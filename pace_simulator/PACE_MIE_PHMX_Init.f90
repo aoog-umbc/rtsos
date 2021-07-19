@@ -1,10 +1,12 @@
 MODULE MIE_PHMX_PACE
-USE PACE_INSTRUMENT_DESIGN,ONLY : NWV_BAND,WV_BAND
+
+USE PACE_INSTRUMENT_DESIGN,ONLY : NWV_BAND,WV_BAND,&
+               NWV_BAND_SEG1P2,NWV_BAND_SEG3,NWV_BAND_SEG4
 USE AEROSOL_MICROPHYSICAL_MODEL
 USE RTUTILITY, ONLY : PI,FACTOR,NUMMIEANGMAX
 
 INTEGER,DIMENSION(3) :: NUM_SCAT_ANG
-REAL*8 :: REFF_MINERAL,AREA_MINERAL
+REAL*8 :: REFF_MINERAL,AREA_MINERAL,WAVELENGTH_MICRON_REF
 REAL*8,DIMENSION(NWV_BAND):: CEXT_ARSL_BAND,CSCAT_ARSL_BAND, &
                  CEXT_Plankton_BAND,CSCAT_Plankton_BAND,BBFRAC_Plankton_BAND, &
                  CEXT_Mineral_BAND,CSCAT_Mineral_BAND,BBFRAC_Mineral_BAND
@@ -14,8 +16,340 @@ REAL*8,DIMENSION(NWV_BAND,NUMMIEANGMAX,0:6)::PHMXMIE_Plankton_PACE
 REAL*8,DIMENSION(NWV_BAND,NUMMIEANGMAX,0:6)::PHMXMIE_Mineral_PACE
 CONTAINS
 
+SUBROUTINE PHMXMIE_PACE_READIN(CFILE_AEROSOLS,NUMMIEUSE,NWV_PHMX,REFF1_Save,VEFF1_Save,      &
+             REFF2_Save,VEFF2_Save,MRR1_Save,MRI1_Save,MRR2_Save,MRI2_Save, &
+		     ARSLND1_Save,ARSLND2_Save,ARSLND_NonSpherical,REFF_NonSpherical,&
+             VEFF_NonSpherical,MRR_NonSpherical,MRI_NonSpherical)
+USE RTUTILITY,ONLY : FACTOR,NUMMIEANGMAX
+USE HDF5
+IMPLICIT NONE
+CHARACTER*360, INTENT(IN) :: CFILE_AEROSOLS
+INTEGER,INTENT(IN):: NUMMIEUSE,NWV_PHMX
+REAL*8,DIMENSION(NUMMIEUSE),INTENT(OUT) :: REFF1_Save,REFF2_Save,VEFF1_Save,VEFF2_Save,&
+										   ARSLND1_Save,ARSLND2_Save
+REAL*8,DIMENSION(NUMMIEUSE,NWV_PHMX),INTENT(OUT) :: MRR1_Save,MRI1_Save,MRR2_Save,MRI2_Save
+
+REAL*8, INTENT(INOUT) :: ARSLND_NonSpherical,REFF_NonSpherical,VEFF_NonSpherical
+REAL*8, INTENT(INOUT),DIMENSION(:) :: MRR_NonSpherical,MRI_NonSpherical
+
+! HDF 5 DEFINITION
+INTEGER(HID_T)  :: file, space, dset, attr ! Handles
+INTEGER :: hdferr
+INTEGER(hsize_t),   DIMENSION(1:2) :: dims
+INTEGER(hsize_t),DIMENSION(1) :: dimscl
+INTEGER(HSIZE_T), DIMENSION(1:2) :: maxdims
+TYPE(C_PTR) :: f_ptr
+REAL*4,DIMENSION(1),TARGET :: HDF5RTMP
+INTEGER,DIMENSION(1),TARGET :: HDF5ITMP
+REAL*4,DIMENSION(:),TARGET,ALLOCATABLE :: HDF5RARR
+REAL*4,DIMENSION(:,:),TARGET,ALLOCATABLE :: HDF5RARR2DIM
+
+INTEGER(hsize_t), DIMENSION(1:3) :: dims3
+REAL*4,DIMENSION(:,:,:),TARGET,ALLOCATABLE :: HDF5RARR3DIM
+
+INTEGER :: INDXVAR,NANGMIE_LOCAL
+
+! READ IN SCATTERING MATRIX
+CALL h5open_f(hdferr)
+CALL h5fopen_f(CFILE_AEROSOLS, H5F_ACC_RDONLY_F, file, hdferr)
+
+!CALL h5dopen_f (file,'NUMMIEANG', dset, hdferr)
+!CALL h5dread_f(dset, H5T_NATIVE_INTEGER,NANGMIE_LOCAL,dimscl, hdferr)
+!CALL h5dclose_f(dset , hdferr)
+
+dimscl=(/ 1 /)
+CALL h5dopen_f (file,'NUM_SCAT_ANG', dset, hdferr)
+CALL h5dread_f(dset, H5T_NATIVE_INTEGER,HDF5ITMP,dimscl, hdferr)
+CALL h5dclose_f(dset , hdferr)
+NANGMIE_LOCAL=HDF5ITMP(1)
+IF(NANGMIE_LOCAL>NUMMIEANGMAX) STOP 'ERROR, NANGMIE_LOCAL>NUMMIEANGMAX'
+NUM_SCAT_ANG(1)=NANGMIE_LOCAL
+
+CALL h5dopen_f (file,'Aerosol_Ndf', dset, hdferr)
+CALL h5dread_f(dset, H5T_NATIVE_REAL,HDF5RTMP,dimscl, hdferr)
+CALL h5dclose_f(dset , hdferr)
+ARSLND1_Save=HDF5RTMP
+
+CALL h5dopen_f (file,'Aerosol_Ndc', dset, hdferr)
+CALL h5dread_f(dset, H5T_NATIVE_REAL,HDF5RTMP,dimscl, hdferr)
+CALL h5dclose_f(dset , hdferr)
+ARSLND2_Save=HDF5RTMP
+
+CALL h5dopen_f (file,'Aerosol_NdD', dset, hdferr)
+CALL h5dread_f(dset, H5T_NATIVE_REAL,HDF5RTMP,dimscl, hdferr)
+CALL h5dclose_f(dset , hdferr)
+ARSLND_NonSpherical=HDF5RTMP(1)
+
+CALL h5dopen_f (file,'Aerosol_Rf', dset, hdferr)
+CALL h5dread_f(dset, H5T_NATIVE_REAL,HDF5RTMP,dimscl, hdferr)
+CALL h5dclose_f(dset , hdferr)
+REFF1_Save=HDF5RTMP
+
+CALL h5dopen_f (file,'Aerosol_Rc', dset, hdferr)
+CALL h5dread_f(dset, H5T_NATIVE_REAL,HDF5RTMP,dimscl, hdferr)
+CALL h5dclose_f(dset , hdferr)
+REFF2_Save=HDF5RTMP
+
+CALL h5dopen_f (file,'Aerosol_RD', dset, hdferr)
+CALL h5dread_f(dset, H5T_NATIVE_REAL,HDF5RTMP,dimscl, hdferr)
+CALL h5dclose_f(dset , hdferr)
+REFF_NonSpherical=HDF5RTMP(1)
+
+CALL h5dopen_f (file,'Aerosol_Vf', dset, hdferr)
+CALL h5dread_f(dset, H5T_NATIVE_REAL,HDF5RTMP,dimscl, hdferr)
+CALL h5dclose_f(dset , hdferr)
+VEFF1_Save=HDF5RTMP
+
+CALL h5dopen_f (file,'Aerosol_Vc', dset, hdferr)
+CALL h5dread_f(dset, H5T_NATIVE_REAL,HDF5RTMP,dimscl, hdferr)
+CALL h5dclose_f(dset , hdferr)
+VEFF2_Save=HDF5RTMP
+
+CALL h5dopen_f (file,'Aerosol_VD', dset, hdferr)
+CALL h5dread_f(dset, H5T_NATIVE_REAL,HDF5RTMP,dimscl, hdferr)
+CALL h5dclose_f(dset , hdferr)
+VEFF_NonSpherical=HDF5RTMP(1)
+
+dimscl=(/ NWV_BAND_SEG1P2 /)
+ALLOCATE(HDF5RARR(NWV_BAND_SEG1P2))
+CALL h5dopen_f (file,'WaveLength_OCI', dset, hdferr)
+CALL h5dread_f(dset, H5T_NATIVE_REAL,HDF5RARR,dimscl, hdferr)
+CALL h5dclose_f(dset , hdferr)
+
+IF(ABS(HDF5RARR(NWV_BAND_SEG1P2)-WV_BAND(NWV_BAND_SEG1P2))>1.0E-6)THEN
+   WRITE(*,*)'WAVELENGTH READ IN FROM AEROSOL FILE IS',HDF5RARR(NWV_BAND_SEG1P2)
+   WRITE(*,*)'WV_BAND(NWV_BAND_SEG1P2)=',WV_BAND(NWV_BAND_SEG1P2)
+   STOP
+ENDIF
+
+HDF5RARR=0.0d0
+CALL h5dopen_f (file,'Aerosol_Cext_OCI', dset, hdferr)
+CALL h5dread_f(dset, H5T_NATIVE_REAL,HDF5RARR,dimscl, hdferr)
+CALL h5dclose_f(dset , hdferr)
+CEXT_ARSL_BAND(1:NWV_BAND_SEG1P2)=HDF5RARR(1:NWV_BAND_SEG1P2)
+
+HDF5RARR=0.0d0
+CALL h5dopen_f (file,'Aerosol_Cscat_OCI', dset, hdferr)
+CALL h5dread_f(dset, H5T_NATIVE_REAL,HDF5RARR,dimscl, hdferr)
+CALL h5dclose_f(dset , hdferr)
+CSCAT_ARSL_BAND(1:NWV_BAND_SEG1P2)=HDF5RARR(1:NWV_BAND_SEG1P2)
+
+HDF5RARR=0.0d0
+CALL h5dopen_f (file,'Aerosol_Mrf_OCI', dset, hdferr)
+CALL h5dread_f(dset, H5T_NATIVE_REAL,HDF5RARR,dimscl, hdferr)
+CALL h5dclose_f(dset , hdferr)
+MRR1_Save(1,1:NWV_BAND_SEG1P2)=HDF5RARR(1:NWV_BAND_SEG1P2)
+
+HDF5RARR=0.0d0
+CALL h5dopen_f (file,'Aerosol_Mif_OCI', dset, hdferr)
+CALL h5dread_f(dset, H5T_NATIVE_REAL,HDF5RARR,dimscl, hdferr)
+CALL h5dclose_f(dset , hdferr)
+MRI1_Save(1,1:NWV_BAND_SEG1P2)=HDF5RARR(1:NWV_BAND_SEG1P2)
+
+HDF5RARR=0.0d0
+CALL h5dopen_f (file,'Aerosol_Mrc_OCI', dset, hdferr)
+CALL h5dread_f(dset, H5T_NATIVE_REAL,HDF5RARR,dimscl, hdferr)
+CALL h5dclose_f(dset , hdferr)
+MRR2_Save(1,1:NWV_BAND_SEG1P2)=HDF5RARR(1:NWV_BAND_SEG1P2)
+
+HDF5RARR=0.0d0
+CALL h5dopen_f (file,'Aerosol_Mic_OCI', dset, hdferr)
+CALL h5dread_f(dset, H5T_NATIVE_REAL,HDF5RARR,dimscl, hdferr)
+CALL h5dclose_f(dset , hdferr)
+MRI2_Save(1,1:NWV_BAND_SEG1P2)=HDF5RARR(1:NWV_BAND_SEG1P2)
+
+HDF5RARR=0.0d0
+CALL h5dopen_f (file,'Aerosol_MrD_OCI', dset, hdferr)
+CALL h5dread_f(dset, H5T_NATIVE_REAL,HDF5RARR,dimscl, hdferr)
+CALL h5dclose_f(dset , hdferr)
+MRR_NonSpherical(1:NWV_BAND_SEG1P2)=HDF5RARR(1:NWV_BAND_SEG1P2)
+
+HDF5RARR=0.0d0
+CALL h5dopen_f (file,'Aerosol_MiD_OCI', dset, hdferr)
+CALL h5dread_f(dset, H5T_NATIVE_REAL,HDF5RARR,dimscl, hdferr)
+CALL h5dclose_f(dset , hdferr)
+MRI_NonSpherical(1:NWV_BAND_SEG1P2)=HDF5RARR(1:NWV_BAND_SEG1P2)
+
+DEALLOCATE(HDF5RARR)
+
+dimscl=(/ NWV_BAND_SEG3 /)
+ALLOCATE(HDF5RARR(NWV_BAND_SEG3))
+CALL h5dopen_f (file,'WaveLength_SPEX', dset, hdferr)
+CALL h5dread_f(dset, H5T_NATIVE_REAL,HDF5RARR,dimscl, hdferr)
+CALL h5dclose_f(dset , hdferr)
+
+IF(ABS(HDF5RARR(NWV_BAND_SEG3)-WV_BAND(NWV_BAND_SEG1P2+NWV_BAND_SEG3))>1.0E-6)THEN
+   WRITE(*,*)'WAVELENGTH READ IN FROM AEROSOL FILE IS',HDF5RARR(NWV_BAND_SEG3)
+   WRITE(*,*)'WV_BAND(NWV_BAND_SEG1P2+NWV_BAND_SEG3)=',WV_BAND(NWV_BAND_SEG1P2+NWV_BAND_SEG3)
+   STOP
+ENDIF
+
+HDF5RARR=0.0d0
+CALL h5dopen_f (file,'Aerosol_Cext_SPEX', dset, hdferr)
+CALL h5dread_f(dset, H5T_NATIVE_REAL,HDF5RARR,dimscl, hdferr)
+CALL h5dclose_f(dset , hdferr)
+CEXT_ARSL_BAND(NWV_BAND_SEG1P2+1:NWV_BAND_SEG1P2+NWV_BAND_SEG3)=HDF5RARR(1:NWV_BAND_SEG3)
+
+HDF5RARR=0.0d0
+CALL h5dopen_f (file,'Aerosol_Cscat_SPEX', dset, hdferr)
+CALL h5dread_f(dset, H5T_NATIVE_REAL,HDF5RARR,dimscl, hdferr)
+CALL h5dclose_f(dset , hdferr)
+CSCAT_ARSL_BAND(NWV_BAND_SEG1P2+1:NWV_BAND_SEG1P2+NWV_BAND_SEG3)=HDF5RARR(1:NWV_BAND_SEG3)
+
+HDF5RARR=0.0d0
+CALL h5dopen_f (file,'Aerosol_Mrf_SPEX', dset, hdferr)
+CALL h5dread_f(dset, H5T_NATIVE_REAL,HDF5RARR,dimscl, hdferr)
+CALL h5dclose_f(dset , hdferr)
+MRR1_Save(1,NWV_BAND_SEG1P2+1:NWV_BAND_SEG1P2+NWV_BAND_SEG3)=HDF5RARR(1:NWV_BAND_SEG3)
+
+HDF5RARR=0.0d0
+CALL h5dopen_f (file,'Aerosol_Mif_SPEX', dset, hdferr)
+CALL h5dread_f(dset, H5T_NATIVE_REAL,HDF5RARR,dimscl, hdferr)
+CALL h5dclose_f(dset , hdferr)
+MRI1_Save(1,NWV_BAND_SEG1P2+1:NWV_BAND_SEG1P2+NWV_BAND_SEG3)=HDF5RARR(1:NWV_BAND_SEG3)
+
+HDF5RARR=0.0d0
+CALL h5dopen_f (file,'Aerosol_Mrc_SPEX', dset, hdferr)
+CALL h5dread_f(dset, H5T_NATIVE_REAL,HDF5RARR,dimscl, hdferr)
+CALL h5dclose_f(dset , hdferr)
+MRR2_Save(1,NWV_BAND_SEG1P2+1:NWV_BAND_SEG1P2+NWV_BAND_SEG3)=HDF5RARR(1:NWV_BAND_SEG3)
+
+HDF5RARR=0.0d0
+CALL h5dopen_f (file,'Aerosol_Mic_SPEX', dset, hdferr)
+CALL h5dread_f(dset, H5T_NATIVE_REAL,HDF5RARR,dimscl, hdferr)
+CALL h5dclose_f(dset , hdferr)
+MRI2_Save(1,NWV_BAND_SEG1P2+1:NWV_BAND_SEG1P2+NWV_BAND_SEG3)=HDF5RARR(1:NWV_BAND_SEG3)
+
+HDF5RARR=0.0d0
+CALL h5dopen_f (file,'Aerosol_MrD_SPEX', dset, hdferr)
+CALL h5dread_f(dset, H5T_NATIVE_REAL,HDF5RARR,dimscl, hdferr)
+CALL h5dclose_f(dset , hdferr)
+MRR_NonSpherical(NWV_BAND_SEG1P2+1:NWV_BAND_SEG1P2+NWV_BAND_SEG3)=HDF5RARR(1:NWV_BAND_SEG3)
+
+HDF5RARR=0.0d0
+CALL h5dopen_f (file,'Aerosol_MiD_SPEX', dset, hdferr)
+CALL h5dread_f(dset, H5T_NATIVE_REAL,HDF5RARR,dimscl, hdferr)
+CALL h5dclose_f(dset , hdferr)
+MRI_NonSpherical(NWV_BAND_SEG1P2+1:NWV_BAND_SEG1P2+NWV_BAND_SEG3)=HDF5RARR(1:NWV_BAND_SEG3)
+
+DEALLOCATE(HDF5RARR)
+
+dimscl=(/ NWV_BAND_SEG4 /)
+ALLOCATE(HDF5RARR(NWV_BAND_SEG4))
+CALL h5dopen_f (file,'WaveLength_HARP', dset, hdferr)
+CALL h5dread_f(dset, H5T_NATIVE_REAL,HDF5RARR,dimscl, hdferr)
+CALL h5dclose_f(dset , hdferr)
+
+IF(ABS(HDF5RARR(NWV_BAND_SEG4)-WV_BAND(NWV_BAND_SEG1P2+NWV_BAND_SEG3+NWV_BAND_SEG4))>1.0E-6)THEN
+   WRITE(*,*)'WAVELENGTH READ IN FROM AEROSOL FILE IS',HDF5RARR(NWV_BAND_SEG4)
+   WRITE(*,*)'WV_BAND(NWV_BAND_SEG1P2+NWV_BAND_SEG3+NWV_SEG4)=',WV_BAND(NWV_BAND_SEG1P2+NWV_BAND_SEG3+NWV_BAND_SEG4)
+   STOP
+ENDIF
+
+HDF5RARR=0.0d0
+CALL h5dopen_f (file,'Aerosol_Cext_HARP', dset, hdferr)
+CALL h5dread_f(dset, H5T_NATIVE_REAL,HDF5RARR,dimscl, hdferr)
+CALL h5dclose_f(dset , hdferr)
+CEXT_ARSL_BAND(NWV_BAND_SEG1P2+NWV_BAND_SEG3+1:NWV_BAND)=HDF5RARR(1:NWV_BAND_SEG4)
+
+HDF5RARR=0.0d0
+CALL h5dopen_f (file,'Aerosol_Cscat_HARP', dset, hdferr)
+CALL h5dread_f(dset, H5T_NATIVE_REAL,HDF5RARR,dimscl, hdferr)
+CALL h5dclose_f(dset , hdferr)
+CSCAT_ARSL_BAND(NWV_BAND_SEG1P2+NWV_BAND_SEG3+1:NWV_BAND)=HDF5RARR(1:NWV_BAND_SEG4)
+
+HDF5RARR=0.0d0
+CALL h5dopen_f (file,'Aerosol_Mrf_HARP', dset, hdferr)
+CALL h5dread_f(dset, H5T_NATIVE_REAL,HDF5RARR,dimscl, hdferr)
+CALL h5dclose_f(dset , hdferr)
+MRR1_Save(1,NWV_BAND_SEG1P2+NWV_BAND_SEG3+1:NWV_BAND)=HDF5RARR(1:NWV_BAND_SEG4)
+
+HDF5RARR=0.0d0
+CALL h5dopen_f (file,'Aerosol_Mif_HARP', dset, hdferr)
+CALL h5dread_f(dset, H5T_NATIVE_REAL,HDF5RARR,dimscl, hdferr)
+CALL h5dclose_f(dset , hdferr)
+MRI1_Save(1,NWV_BAND_SEG1P2+NWV_BAND_SEG3+1:NWV_BAND)=HDF5RARR(1:NWV_BAND_SEG4)
+
+HDF5RARR=0.0d0
+CALL h5dopen_f (file,'Aerosol_Mrc_HARP', dset, hdferr)
+CALL h5dread_f(dset, H5T_NATIVE_REAL,HDF5RARR,dimscl, hdferr)
+CALL h5dclose_f(dset , hdferr)
+MRR2_Save(1,NWV_BAND_SEG1P2+NWV_BAND_SEG3+1:NWV_BAND)=HDF5RARR(1:NWV_BAND_SEG4)
+
+HDF5RARR=0.0d0
+CALL h5dopen_f (file,'Aerosol_Mic_HARP', dset, hdferr)
+CALL h5dread_f(dset, H5T_NATIVE_REAL,HDF5RARR,dimscl, hdferr)
+CALL h5dclose_f(dset , hdferr)
+MRI2_Save(1,NWV_BAND_SEG1P2+NWV_BAND_SEG3+1:NWV_BAND)=HDF5RARR(1:NWV_BAND_SEG4)
+
+HDF5RARR=0.0d0
+CALL h5dopen_f (file,'Aerosol_MrD_HARP', dset, hdferr)
+CALL h5dread_f(dset, H5T_NATIVE_REAL,HDF5RARR,dimscl, hdferr)
+CALL h5dclose_f(dset , hdferr)
+MRR_NonSpherical(NWV_BAND_SEG1P2+NWV_BAND_SEG3+1:NWV_BAND)=HDF5RARR(1:NWV_BAND_SEG4)
+
+HDF5RARR=0.0d0
+CALL h5dopen_f (file,'Aerosol_MiD_HARP', dset, hdferr)
+CALL h5dread_f(dset, H5T_NATIVE_REAL,HDF5RARR,dimscl, hdferr)
+CALL h5dclose_f(dset , hdferr)
+MRI_NonSpherical(NWV_BAND_SEG1P2+NWV_BAND_SEG3+1:NWV_BAND)=HDF5RARR(1:NWV_BAND_SEG4)
+
+DEALLOCATE(HDF5RARR)
+
+dimscl=(/ NANGMIE_LOCAL/)
+ALLOCATE(HDF5RARR(NANGMIE_LOCAL))
+CALL h5dopen_f (file,'Aerosol_Phmxmie_Scatang', dset, hdferr)
+CALL h5dread_f(dset, H5T_NATIVE_REAL,HDF5RARR,dimscl, hdferr)
+CALL h5dclose_f(dset , hdferr)
+DO INDXVAR=1,NWV_BAND
+   PHMXMIE_ARSL_PACE(INDXVAR,1:NANGMIE_LOCAL,0)=HDF5RARR(1:NANGMIE_LOCAL)
+ENDDO
+
+IF(PHMXMIE_ARSL_PACE(1,1,0)>1.0E-6) STOP 'SCATTERING ANGLE (1) IS NOT ZERO'
+IF(ABS(PHMXMIE_ARSL_PACE(1,NANGMIE_LOCAL,0)-180.0D0)>1.0E-6) STOP 'LAST SCATTERING ANGLE IS NOT 180'
+
+dims3= (/NWV_BAND_SEG1P2,NANGMIE_LOCAL,6/)
+ALLOCATE(HDF5RARR3DIM(NWV_BAND_SEG1P2,NANGMIE_LOCAL,6))
+HDF5RARR3DIM=0.0D0
+CALL h5dopen_f (file,'Aerosol_Phmxmie_OCI', dset, hdferr)
+CALL h5dread_f(dset, H5T_NATIVE_REAL,HDF5RARR3DIM,dims, hdferr)
+CALL h5dclose_f(dset , hdferr)
+DO INDXVAR=1,NWV_BAND_SEG1P2
+   PHMXMIE_ARSL_PACE(INDXVAR,1:NANGMIE_LOCAL,1:6)=HDF5RARR3DIM(INDXVAR,1:NANGMIE_LOCAL,1:6)
+ENDDO
+DEALLOCATE(HDF5RARR3DIM)
+
+dims3= (/NWV_BAND_SEG3,NANGMIE_LOCAL,6/)
+ALLOCATE(HDF5RARR3DIM(NWV_BAND_SEG3,NANGMIE_LOCAL,6))
+HDF5RARR3DIM=0.0D0
+CALL h5dopen_f (file,'Aerosol_Phmxmie_SPEX', dset, hdferr)
+CALL h5dread_f(dset, H5T_NATIVE_REAL,HDF5RARR3DIM,dims, hdferr)
+CALL h5dclose_f(dset , hdferr)
+DO INDXVAR=NWV_BAND_SEG1P2+1,NWV_BAND_SEG1P2+NWV_BAND_SEG3
+   PHMXMIE_ARSL_PACE(INDXVAR,1:NANGMIE_LOCAL,1:6) = &
+           HDF5RARR3DIM(INDXVAR-NWV_BAND_SEG1P2,1:NANGMIE_LOCAL,1:6)
+ENDDO
+DEALLOCATE(HDF5RARR3DIM)
+
+dims3= (/NWV_BAND_SEG4,NANGMIE_LOCAL,6/)
+ALLOCATE(HDF5RARR3DIM(NWV_BAND_SEG4,NANGMIE_LOCAL,6))
+HDF5RARR3DIM=0.0D0
+CALL h5dopen_f (file,'Aerosol_Phmxmie_HARP', dset, hdferr)
+CALL h5dread_f(dset, H5T_NATIVE_REAL,HDF5RARR3DIM,dims, hdferr)
+CALL h5dclose_f(dset , hdferr)
+DO INDXVAR=NWV_BAND_SEG1P2+NWV_BAND_SEG3+1,NWV_BAND_SEG1P2+NWV_BAND_SEG3+NWV_BAND_SEG4
+   PHMXMIE_ARSL_PACE(INDXVAR,1:NANGMIE_LOCAL,1:6) = &
+          HDF5RARR3DIM(INDXVAR-NWV_BAND_SEG1P2-NWV_BAND_SEG3,1:NANGMIE_LOCAL,1:6)
+ENDDO
+DEALLOCATE(HDF5RARR3DIM)
+
+CALL h5fclose_f(file , hdferr)
+CALL h5close_f(hdferr)
+
+ENDSUBROUTINE PHMXMIE_PACE_READIN
+
 SUBROUTINE PHMXMIE_PACE_INIT(FREEFORMFLAG,IAEROSOL,IRH,REFF1,VEFF1,REFF2,VEFF2,&
-            MRR1,MRI1,MRR2,MRI2,ARSLND1,ARSLND2,PHYTOPLANKTON_INDEX_REFRACTION,&
+			WV_PACE_REF,MRR1,MRI1,MRR2,MRI2,ARSLND1,ARSLND2,PHYTOPLANKTON_INDEX_REFRACTION,&
             PHYTOPLANKTON_SPECTRAL_SLOPE,SEDIMENT_INDEX_REFRACTION,SEDIMENT_SPECTRAL_SLOPE)
 IMPLICIT NONE
 
@@ -26,7 +360,7 @@ INTEGER,INTENT(IN) :: FREEFORMFLAG
 ! FREEFORMFLAG==3  MINERAL MIE CALCULATION
 
 INTEGER,INTENT(IN) :: IAEROSOL,IRH
-
+REAL*8,INTENT(IN) :: WV_PACE_REF
 REAL*8,INTENT(INOUT)::REFF1,VEFF1,REFF2,VEFF2,ARSLND1,ARSLND2
 REAL*8,DIMENSION(NWV_BAND),INTENT(INOUT)::MRR1,MRI1,MRR2,MRI2
 
@@ -44,6 +378,9 @@ REAL*8::REFF1_LOCAL,VEFF1_LOCAL,REFF2_LOCAL,VEFF2_LOCAL,ARSLND1_LOCAL,ARSLND2_LO
 REAL*8 :: RTMP,RTMP1,BBFRAC_LOCAL
 
 INTEGER :: IWV_BAND
+
+WAVELENGTH_MICRON_REF=WV_PACE_REF/1000.0d0
+CALL WV_REF_ASSIGN(WAVELENGTH_MICRON_REF) ! aerosol optical depth reference wavelength
 
 WV_BAND_MICRON=WV_BAND/1000.0D0
 
@@ -175,6 +512,13 @@ ELSEIF(FREEFORMFLAG==1)THEN
     REFF2_LOCAL=REFF2_LOCAL*EXP(2.5D0*VEFF2_LOCAL)
     VEFF1_LOCAL=EXP(VEFF1_LOCAL)-1.0D0
     VEFF2_LOCAL=EXP(VEFF2_LOCAL)-1.0D0
+
+! pass effective radius and variance back to main program for output
+	REFF1=REFF1_LOCAL
+	VEFF1=VEFF1_LOCAL
+	REFF2=REFF2_LOCAL
+	VEFF2=VEFF2_LOCAL
+
 
     CALL ARSL_INDX_DEALLO
     NDISTR=2

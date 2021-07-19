@@ -2399,13 +2399,13 @@ MODULE nr
 		REAL(SP), DIMENSION(:), INTENT(OUT) :: x,w
 		END SUBROUTINE gaulag
 	END INTERFACE
-	INTERFACE
-		SUBROUTINE gauleg(x1,x2,x,w)
-		USE nrtype
-		REAL(SP), INTENT(IN) :: x1,x2
-		REAL(SP), DIMENSION(:), INTENT(OUT) :: x,w
-		END SUBROUTINE gauleg
-	END INTERFACE
+!	INTERFACE
+!		SUBROUTINE gauleg(x1,x2,x,w)
+!		USE nrtype
+!		REAL(SP), INTENT(IN) :: x1,x2
+!		REAL(SP), DIMENSION(:), INTENT(OUT) :: x,w
+!		END SUBROUTINE gauleg
+!	END INTERFACE
 	INTERFACE
 		SUBROUTINE gaussj(a,b)
 		USE nrtype
@@ -2464,14 +2464,14 @@ MODULE nr
 		REAL(SP), DIMENSION(:,:), INTENT(INOUT) :: a
 		END SUBROUTINE hqr
 	END INTERFACE
-	INTERFACE
-		SUBROUTINE hunt(xx,x,jlo)
-		USE nrtype
-		INTEGER(I4B), INTENT(INOUT) :: jlo
-		REAL(SP), INTENT(IN) :: x
-		REAL(SP), DIMENSION(:), INTENT(IN) :: xx
-		END SUBROUTINE hunt
-	END INTERFACE
+!	INTERFACE
+!		SUBROUTINE hunt(xx,x,jlo)
+!		USE nrtype
+!		INTEGER(I4B), INTENT(INOUT) :: jlo
+!		REAL(SP), INTENT(IN) :: x
+!		REAL(SP), DIMENSION(:), INTENT(IN) :: xx
+!		END SUBROUTINE hunt
+!	END INTERFACE
 	INTERFACE
 		SUBROUTINE hypdrv(s,ry,rdyds)
 		USE nrtype
@@ -3151,14 +3151,14 @@ MODULE nr
 		REAL(SP), INTENT(OUT) :: y,dy
 		END SUBROUTINE polin2
 	END INTERFACE
-	INTERFACE
-		SUBROUTINE polint(xa,ya,x,y,dy)
-		USE nrtype
-		REAL(SP), DIMENSION(:), INTENT(IN) :: xa,ya
-		REAL(SP), INTENT(IN) :: x
-		REAL(SP), INTENT(OUT) :: y,dy
-		END SUBROUTINE polint
-	END INTERFACE
+!	INTERFACE
+!		SUBROUTINE polint(xa,ya,x,y,dy)
+!		USE nrtype
+!		REAL(SP), DIMENSION(:), INTENT(IN) :: xa,ya
+!		REAL(SP), INTENT(IN) :: x
+!		REAL(SP), INTENT(OUT) :: y,dy
+!		END SUBROUTINE polint
+!	END INTERFACE
 	INTERFACE
 		SUBROUTINE powell(p,xi,ftol,iter,fret)
 		USE nrtype
@@ -4932,3 +4932,163 @@ END MODULE nr
 	end do
 	call nrerror('rtsafe: exceeded maximum iterations')
 	END FUNCTION rtsafe
+
+      SUBROUTINE gauleg(x1,x2,x,w,n)
+      INTEGER n
+      REAL*8 x1,x2,x(n),w(n)
+      REAL*8 EPS
+      PARAMETER (EPS=3.d-14)
+
+      INTEGER i,j,m
+      REAL*8 p1,p2,p3,pp,xl,xm,z,z1
+      REAL*8 fi,fj,fn
+      fn=dfloat(n)
+	  
+      m=(n+1)/2
+      xm=0.5d0*(x2+x1)
+      xl=0.5d0*(x2-x1)
+      do 12 i=1,m
+	    fi=dfloat(i)
+        z=cos(3.14159265358979323846d0*(fi-.25d0)/(fn+.5d0))
+1       continue
+          p1=1.d0
+          p2=0.d0
+          do 11 j=1,n
+		    fj=dfloat(j)
+            p3=p2
+            p2=p1
+            p1=((2.d0*fj-1.d0)*z*p2-(fj-1.d0)*p3)/fj
+11        continue
+          pp=n*(z*p1-p2)/(z*z-1.d0)
+          z1=z
+          z=z1-p1/pp
+        if(abs(z-z1).gt.EPS)goto 1
+        x(i)=xm-xl*z
+        x(n+1-i)=xm+xl*z
+        w(i)=2.d0*xl/((1.d0-z*z)*pp*pp)
+        w(n+1-i)=w(i)
+12    continue
+      return
+      END
+
+      SUBROUTINE hunt(xx,n,x,jlo)
+      INTEGER jlo,n
+      REAL*8 x,xx(n)
+      INTEGER inc,jhi,jm
+      LOGICAL ascnd
+      ascnd=xx(n).ge.xx(1)
+      if(jlo.le.0.or.jlo.gt.n)then
+        jlo=0
+        jhi=n+1
+        goto 3
+      endif
+      inc=1
+      if(x.ge.xx(jlo).eqv.ascnd)then
+1       jhi=jlo+inc
+        if(jhi.gt.n)then
+          jhi=n+1
+        else if(x.ge.xx(jhi).eqv.ascnd)then
+          jlo=jhi
+          inc=inc+inc
+          goto 1
+        endif
+      else
+        jhi=jlo
+2       jlo=jhi-inc
+        if(jlo.lt.1)then
+          jlo=0
+        else if(x.lt.xx(jlo).eqv.ascnd)then
+          jhi=jlo
+          inc=inc+inc
+          goto 2
+        endif
+      endif
+3     if(jhi-jlo.eq.1)then
+        if(x.eq.xx(n))jlo=n-1
+        if(x.eq.xx(1))jlo=1
+        return
+      endif
+      jm=(jhi+jlo)/2
+      if(x.ge.xx(jm).eqv.ascnd)then
+        jlo=jm
+      else
+        jhi=jm
+      endif
+      goto 3
+      END
+
+      SUBROUTINE polint(xa,ya,n,x,y,dy)
+      INTEGER n,NMAX
+      REAL*8 dy,x,y,xa(n),ya(n)
+      PARAMETER (NMAX=10)
+      INTEGER i,m,ns
+      REAL*8 den,dif,dift,ho,hp,w,c(NMAX),d(NMAX)
+      ns=1
+      dif=abs(x-xa(1))
+      do i=1,n
+        dift=abs(x-xa(i))
+        if (dift.lt.dif) then
+          ns=i
+          dif=dift
+        endif
+        c(i)=ya(i)
+        d(i)=ya(i)
+      enddo
+      y=ya(ns)
+      ns=ns-1
+      do m=1,n-1
+        do i=1,n-m
+          ho=xa(i)-x
+          hp=xa(i+m)-x
+          w=c(i+1)-d(i)
+          den=ho-hp
+          if(den.eq.0.0d0)stop 'failure in polint'
+          den=w/den
+          d(i)=hp*den
+          c(i)=ho*den
+        enddo
+        if (2*ns.lt.n-m)then
+          dy=c(ns+1)
+        else
+          dy=d(ns)
+          ns=ns-1
+        endif
+        y=y+dy
+      enddo
+      return
+      END
+
+REAL*8 FUNCTION POLINT_SIMPLE(NXX,XX,YY,X,ORDER)
+IMPLICIT NONE
+INTEGER :: NXX,ORDER
+REAL*8 :: XX(NXX),YY(NXX)
+REAL*8 :: X,RTMP
+
+INTEGER :: IULO,MPL,KLO
+
+MPL=ORDER
+
+IULO=INT(FLOAT(NXX)*ABS((X-XX(1))/(XX(NXX)-XX(1))))
+call hunt(XX,NXX,X,IULO)
+IF(IULO==1 .OR. IULO==NXX)MPL=2 ! ONLY ALLOW LINEAR EXTRAPOLATION
+KLO=min(max(IULO-(MPL-1)/2,1),NXX+1-MPL)
+
+CALL POLINT(XX(KLO),YY(KLO),MPL,X,POLINT_SIMPLE,RTMP)
+
+RETURN
+
+END FUNCTION POLINT_SIMPLE
+
+REAL*8 FUNCTION TRAPZOID(NXX,XX,YY)
+IMPLICIT NONE
+! CALCULATE INTEGRATION(YY,d_XX)
+INTEGER :: NXX
+REAL*8,DIMENSION(1:NXX) :: XX,YY
+INTEGER :: IXX
+REAL*8 YAVG
+TRAPZOID=0.0D0
+DO IXX=1,NXX-1
+  TRAPZOID=TRAPZOID+0.5D0*(YY(IXX+1)+YY(IXX))*(XX(IXX+1)-XX(IXX))
+ENDDO
+
+END FUNCTION TRAPZOID
