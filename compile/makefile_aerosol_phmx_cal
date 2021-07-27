@@ -1,0 +1,49 @@
+OBJ=spher.o	nrlib.o aerosol_microphysical_model.o	PACE_Instrument.o		auxiliary_dir_readin.o read_dust_data.o Mie_PHMX_Cal.o	 main_aerosol_phmx_cal.o
+
+F90=gfortran
+FCFLAG= -O3
+#H5FC=h5fc
+FCFLAG_GAS = -O3
+
+HDF5DIR = /usr/local/Cellar/hdf5@1.10/1.10.7
+HDF5LIB=-I$(HDF5DIR)/include
+H5FC=$(HDF5DIR)/bin/h5fc
+LIBSHDF= $(HDF5LIB) -L$(HDF5DIR)/lib/ -lhdf5 -lhdf5_fortran
+
+# cocco options
+#HDF5INCLUDE=-I/usr/include/hdf5/serial/
+#HDF5LIB=/usr/lib/x86_64-linux-gnu/
+#LIBSHDF= $(HDF5INCLUDE) -L$(HDF5LIB) -lhdf5_serial -lhdf5_serial_fortran
+#H5FC=h5fc
+
+# Taki options
+#HDF5DIR =
+#HDF5LIB=
+#H5FC=ifort
+#LIBSHDF= -lhdf5 -lhdf5_fortran
+
+DIR_Core=../src/core/
+DIR_PS=../src/pace_simulator/
+DIR_Main=../src/aerosol_phasematrix_preparation/
+
+
+Aerosol_Phmx_Cal.exe: $(OBJ)
+	$(F90) -o Aerosol_Phmx_Cal.exe $(FCFLAG) $(OBJ) $(LIBSHDF)
+
+spher.o: $(DIR_Core)/spher.f
+	$(F90) -c $(FCFLAG) $(DIR_Core)/spher.f
+nrlib.o:$(DIR_Core)/nrlib.f90
+	$(F90) -c $(FCFLAG) $(DIR_Core)/nrlib.f90
+aerosol_microphysical_model.o: $(DIR_Core)/aerosol_microphysical_model.f90
+	$(F90) -c $(FCFLAG) $(DIR_Core)/aerosol_microphysical_model.f90
+PACE_Instrument.o: $(DIR_PS)/PACE_Instrument.f90
+	$(F90) -c $(FCFLAG) $(LIBSHDF) $(DIR_PS)/PACE_Instrument.f90
+auxiliary_dir_readin.o: $(DIR_Main)/auxiliary_dir_readin.f90
+	$(F90) -c $(FCFLAG) $(DIR_Main)/auxiliary_dir_readin.f90
+read_dust_data.o:   $(DIR_Main)/read_dust_data.f90
+	$(H5FC) -c $(FCFLAG)  $(DIR_Main)/read_dust_data.f90
+Mie_PHMX_Cal.o: $(DIR_Main)/Mie_PHMX_Cal.f90
+	$(F90) -c $(FCFLAG) $(DIR_Main)/Mie_PHMX_Cal.f90
+main_aerosol_phmx_cal.o: $(DIR_Main)/main_aerosol_phmx_cal.f90
+	$(F90) -c $(FCFLAG) $(LIBSHDF) $(DIR_Main)/main_aerosol_phmx_cal.f90
+clean:;       rm -f *.o *.mod
