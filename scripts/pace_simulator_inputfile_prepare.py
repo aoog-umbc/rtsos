@@ -42,6 +42,7 @@ def input_writer(filestrbase,ichla,itheta,ipss):
     f.write("%d" % gas_abs_flag + '        #GAS_ABS_FLAG, 1=.true. 0=.false. \n')
     f.write("%f" % OZONE_COLUMN + '       #ozone column amount in Dobson Unit \n')
     f.write("%f" % H2O_COLUMN + '       #water vapor column amount in cm \n')
+    f.write("%f" % NO2_COLUMN + '       #no2 column amount in Dobson Unit \n')
     f.write("%f" % pressure_surface + '       # surface pressure in mb \n')
     f.write("%d" % wv_seg_flag + '        #wv_seg_flag, 0: all; 1: seg1+3only; 2: seg2only; 3 seg1+2+3; 4: seg4only \n')
     f.write("%f" % AirSensor_Height + '       # AirSensor_Height unit km \n')
@@ -115,6 +116,7 @@ pss_flag=np.array([0, 1])
 # these two values are the reference values caculated from US standard atmosphere 1976.
 OZONE_COLUMN=345.66 # OZONE IN THE WHOLE COLUMN IN DOBSON UNIT
 H2O_COLUMN=1.4387   # WATER VAPOR IN THE WHOLE COLUMN IN CENTIMETERS.
+NO2_COLUMN=0.2075   # NO2 IN THE WHOLE COLUMN IN DOBSON UNIT
 
 pressure_surface=1013.0 #surface pressure in mb
 

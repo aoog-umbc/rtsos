@@ -39,12 +39,20 @@ REAL*8,DIMENSION(NWV_SF) ::    MR_WATER_SF=(/1.349D0,1.345D0,1.339D0,1.335D0,   
        1.334D0,1.333D0,1.332D0,1.331D0,1.329D0,1.326D0,1.323D0,1.318D0,1.312D0,1.306D0,1.292D0,1.261D0/)
 REAL*8,DIMENSION(NWV_SF) ::    MI_WATER_SF=(/1.6D-8,8.45D-9,1.86D-9,9.69D-10,   &
        1.18D-9,1.96D-9,1.46D-8,3.05D-8,3.29D-7,4.18D-6,3.69D-5,9.97D-5,1.15D-4,1.10D-3,3.9D-4,1.74D-3/)
+!Real part of BrC is assumed to be 1.55.
+!https://www.nature.com/articles/srep37735
+REAL*8,DIMENSION(NWV_JM) :: MR_BRC_JM=(/1.55D0,1.55D0,1.55D0,1.55D0,1.55D0, &
+                            1.55D0,1.55D0,1.55D0,1.55D0,1.55D0/)
 !Mok et al., 2016 (Impacts of brown carbon from biomass burning on surface UV and ozone photochemistry in the Amazon Basin)
 !BrC volume fraction 0.27 (data corresponds to low temperature burn conditions : best estimate)
-REAL*8,DIMENSION(NWV_JM) :: MR_BRC_JM=(/1.4905D0,1.4905D0,1.4905D0,1.4905D0,1.4905D0, &
-	 1.4905D0,1.4905D0,1.4905D0,1.4905D0,1.4905D0/)
-REAL*8, DIMENSION(NWV_JM):: MI_BRC_JM=(/0.4626D0, 0.3146D0, 0.3667D0, 0.1855D0, 0.2607D0, &
-	 0.1501D0, 0.0501D0, 0.01051D0, 0.0334D0, 0.0042D0/)
+!high temperature burn conditions fBrC=0.05
+!REAL*8, DIMENSION(NWV_JM):: MI_BRC_JM=(/0.4626D0, 0.3146D0, 0.3667D0, 0.1855D0, 0.2607D0, &
+!	 0.1501D0, 0.0501D0, 0.01051D0, 0.0334D0, 0.0042D0/)
+
+!low temperature burn conditions fBrC=0.27 (best estimate)
+!(Please use this in the code as this corresponds to common burning conditions)
+REAL*8, DIMENSION(NWV_JM):: MI_BRC_JM=(/0.0926D0,0.0663D0 ,0.0756D0, 0.0433D0, 0.0567D0, &
+0.0370D0, 0.0193D0, 0.0122D0, 0.0163D0, 0.0111D02/)
 
 !mode radius for different relative humidities (5)
 !RTROPOSPHERE,RRURALC, RURBANF,RURBANC are from table 2 of Shettle, Fenn report
