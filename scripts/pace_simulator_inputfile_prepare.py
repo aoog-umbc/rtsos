@@ -5,7 +5,8 @@ def input_writer(filestrbase,ichla,itheta,ipss):
     f = open(fileinput, 'w')
     f.write("%f" % wndspd + '        #wind speed \n')
     f.write("%f" % theta0[itheta]+ '       #THETA0 in degrees \n')
-    f.write("%f" % tau550 + '        #TAU550 \n')
+    f.write("%f" % wv_pace_ref + '        #WV_PACE_REF \n')
+    f.write("%f" % tau_ref + '        #TAU_REF \n')
     f.write("%f" % RH[irh]+ '        #Relative Humidity IRH=1,8, RH=[0.30,0.50,0.70,0.75,0.80,0.85,0.90,0.95] \n')
     f.write("%d" % iaerosol+ '        #IAEROSOL=-99,1,20. -99 read in from file; 1-10 is Shettle and Fenn, 11-20 is Ahmad model \n')
     f.write("%d" % ocean_case_select + '   #OCEAN_CASE_SELECT, case 0(atmosphere only), case 1 [Chla] parameterization, case 2 [Chla]+Sediment, case 3: seven parameter model\n')
@@ -57,7 +58,8 @@ RH=np.array([0.30,0.50,0.70,0.75,0.80,0.85,0.90,0.95])
 irh=4
 wndspd=5.0
 theta0=np.array([30.0, 85.0])
-tau550=0.1
+wv_pace_ref=873.0
+tau_ref=0.1
 
 
 iaerosol=16
@@ -136,7 +138,7 @@ for ichla in range(len(chla)):
 	for itheta in range(len(theta0)):
 		for ipss in range(len(pss_flag)):
 			filestrbase='OceanCase%d' % ocean_case_select \
-						+ 'tau550_%05.2f' % tau550       \
+						+ 'tau_ref_%05.2f' % tau_ref       \
 						+'chla%05.2f' % chla[ichla] \
 						+'theta0_%05.2f' %theta0[itheta] \
 						+'pss%d'%pss_flag[ipss]
