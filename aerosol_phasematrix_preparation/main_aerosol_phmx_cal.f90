@@ -108,9 +108,13 @@ IF(IAEROSOL==-99)THEN
    ENDIF
 ENDIF
 
-
+IF (NMODE==3) THEN
+RF1=0
+ENDIF
 
 CLOSE(1)
+
+IF (NMODE==3) rf1=0
 
 IF(NMODE==2 .AND. rf1+rf2+rf3>1) STOP 'Fine mode composition is not consistent; check rf1+rf2+rf3<1'
 IF(NMODE==3 .AND. rf2+rf3>1) STOP 'Fine mode composition is not consistent; check rf2+rf3<1'
@@ -506,7 +510,7 @@ ENDIF
 
 
 !write(*,*)'PHMXMIE_ARSL_PACE_ANG',PHMXMIE_ARSL_PACE(1,1:NUM_SCAT_ANG,0)
-
+write(*,*)'NUM_SCAT_ANG=',NUM_SCAT_ANG
 dimscl = (/ NUM_SCAT_ANG /)
 ALLOCATE(HDF5RARR(NUM_SCAT_ANG))
 HDF5RARR=PHMXMIE_ARSL_PACE(NWV_BAND_START,1:NUM_SCAT_ANG,0)
