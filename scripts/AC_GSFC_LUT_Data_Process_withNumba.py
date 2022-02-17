@@ -13,7 +13,7 @@ import itertools
 ### To use the script, run the following command from the terminal:
 ### python MODIS_Data_Process_withNumba.py
 ### enter instrument_label from command line:
-### instrument_label=1, 2 or 3  #1: OCI 2: MODIS A 3: SeaWifs
+### instrument_label=1, 2, 3, 4  #1: OCI 2: MODIS A 3: SeaWifs 4: MISR
 
 ########## postprocessing functions section starts here ##########
 def LUTDataPostProcessing(iaerosol,irh):
@@ -253,14 +253,15 @@ def assign_reflectance(wavelengths,PhiV,nthetav,isigma,iopt,itheta, \
 
 # Specify instrument_label first before postprocessing
 
-instrument_label = input("instrument_label=?, enter 1 for OCI, 2 for MODIS and 3 for SeaWifs: ")
+instrument_label = input("instrument_label=?, enter 1 for OCI, 2 for MODIS, 3 for SeaWifs, 4 for MISR: ")
 print ("You entered " + instrument_label)
 
 instrument_label=int(instrument_label)  # 1: OCI table 2: MODIS A 3: SeaWifs
 
-if instrument_label < 1 or instrument_label >3 :
+if instrument_label < 1 or instrument_label > 4 :
 	sys.exit("Your instrument_label value is invalid")
 
+Misr_Mie_Dir='MISR_MIE_DIR.txt'
 SeaWifs_Mie_Dir='SEAWIFS_MIE_DIR.txt'
 MODIS_Mie_Dir='MODIS_MIE_DIR.txt'
 OCI_Mie_Dir='OCI_MIE_DIR.txt'
@@ -277,7 +278,7 @@ if instrument_label == 1 :
 	MIE_SCAT_Dir=OCI_Mie_Dir
 	MIE_str_base='OCI'
 
-if instrument_label == 2 :
+elif instrument_label == 2 :
 	Instrument_Setting_Filename=Instrument_Settingdir+'/'+'afrt_input_modisa.txt'
 	nwv=17
 #	wavelengths=np.array([4.12000e-01, 4.43000e-01, 4.69000e-01,4.88000e-01, \
@@ -288,7 +289,7 @@ if instrument_label == 2 :
 	instrument_strbase='MODISa'
 	MIE_SCAT_Dir=MODIS_Mie_Dir
 	MIE_str_base='MODIS'
-else :
+elif instrument_label == 3 :
 	Instrument_Setting_Filename=Instrument_Settingdir+'/'+'afrt_input_seawifs.txt'
 	nwv=8
 #	wavelengths=np.array([4.12000e-01,4.43000e-01,4.90000e-01,5.10000e-01,\
@@ -296,6 +297,13 @@ else :
 	instrument_strbase='SeaWifs'
 	MIE_SCAT_Dir=SeaWifs_Mie_Dir
 	MIE_str_base='SEAWIFS'
+elif instrument_label == 4 :
+	Instrument_Setting_Filename=Instrument_Settingdir+'/'+'rtsos_input_misr.txt'
+	nwv=4
+#	wavelengths=np.array([4.43000e-01,5.57000e-01,6.71000e-01,8.65000e-01],np.float32)
+	instrument_strbase='Misr'
+	MIE_SCAT_Dir=Misr_Mie_Dir
+	MIE_str_base='MISR'
 
 wavelengths=np.zeros(nwv)
 with open(Instrument_Setting_Filename, 'r') as instrument_file:

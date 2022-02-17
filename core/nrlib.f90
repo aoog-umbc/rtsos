@@ -3682,34 +3682,34 @@ MODULE nr
 		END INTERFACE
 		END FUNCTION rtflsp
 	END INTERFACE
-	INTERFACE
-		FUNCTION rtnewt(funcd,x1,x2,xacc)
-		USE nrtype
-		REAL(SP), INTENT(IN) :: x1,x2,xacc
-		REAL(SP) :: rtnewt
-		INTERFACE
-			SUBROUTINE funcd(x,fval,fderiv)
-			USE nrtype
-			REAL(SP), INTENT(IN) :: x
-			REAL(SP), INTENT(OUT) :: fval,fderiv
-			END SUBROUTINE funcd
-		END INTERFACE
-		END FUNCTION rtnewt
-	END INTERFACE
-	INTERFACE
-		FUNCTION rtsafe(funcd,x1,x2,xacc)
-		USE nrtype
-		REAL(SP), INTENT(IN) :: x1,x2,xacc
-		REAL(SP) :: rtsafe
-		INTERFACE
-			SUBROUTINE funcd(x,fval,fderiv)
-			USE nrtype
-			REAL(SP), INTENT(IN) :: x
-			REAL(SP), INTENT(OUT) :: fval,fderiv
-			END SUBROUTINE funcd
-		END INTERFACE
-		END FUNCTION rtsafe
-	END INTERFACE
+!	INTERFACE
+!		FUNCTION rtnewt(funcd,x1,x2,xacc)
+!		USE nrtype
+!		REAL(SP), INTENT(IN) :: x1,x2,xacc
+!		REAL(SP) :: rtnewt
+!		INTERFACE
+!			SUBROUTINE funcd(x,fval,fderiv)
+!			USE nrtype
+!			REAL(SP), INTENT(IN) :: x
+!			REAL(SP), INTENT(OUT) :: fval,fderiv
+!			END SUBROUTINE funcd
+!		END INTERFACE
+!		END FUNCTION rtnewt
+!	END INTERFACE
+!	INTERFACE
+!		FUNCTION rtsafe(funcd,x1,x2,xacc)
+!		USE nrtype
+!		REAL(SP), INTENT(IN) :: x1,x2,xacc
+!		REAL(SP) :: rtsafe
+!		INTERFACE
+!			SUBROUTINE funcd(x,fval,fderiv)
+!			USE nrtype
+!			REAL(SP), INTENT(IN) :: x
+!			REAL(SP), INTENT(OUT) :: fval,fderiv
+!			END SUBROUTINE funcd
+!		END INTERFACE
+!		END FUNCTION rtsafe
+!	END INTERFACE
 	INTERFACE
 		SUBROUTINE rzextr(iest,xest,yest,yz,dy)
 		USE nrtype

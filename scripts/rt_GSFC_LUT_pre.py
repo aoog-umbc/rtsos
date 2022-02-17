@@ -5,7 +5,7 @@ import numpy as np
 
 def input_writer(fileinput,fileoutput,iaerosol,irh,isigma,itheta,iopt):
     f = open(fileinput, 'w')
-    f.write("%d" % instrument_label+ '        #instrument_label, 1: OCI 2: MODIS 3: SeaWifs \n')
+    f.write("%d" % instrument_label+ '        #instrument_label, 1: OCI 2: MODIS 3: SeaWifs 4: MISR \n')
     f.write("%d" % Aerosol_Model[iaerosol]+ '        #IAEROSOL=1,21. 1-10 is Shettle and Fenn, 11-20 is Ahmad model, 21 dust aerosol model \n')
     f.write("%f" % RH[irh] + '        #Relative Humidity RH=[0.3, 0.50,0.70,0.75, 0.80,0.85,0.90,0.95] \n')
     f.write("%f" % wndspd[isigma] + '        #wind speed \n')
@@ -22,11 +22,11 @@ def input_writer(fileinput,fileoutput,iaerosol,irh,isigma,itheta,iopt):
     f.write("%s" % fileoutput +'\n')
     f.close
 
-instrument_label = input("instrument_label=?, enter 1 for OCI, 2 for MODIS and 3 for SeaWifs: ")
+instrument_label = input("instrument_label=?, enter 1 for OCI, 2 for MODIS, 3 for SeaWifs, 4 for MISR: ")
 
 instrument_label=int(instrument_label)  # 1: OCI table 2: MODIS A 3: SeaWifs
 
-if instrument_label < 1 or instrument_label >3 :
+if instrument_label < 1 or instrument_label >4 :
 	sys.exit("Your instrument_label value is invalid")
 
 I_SURFACE_ROUGHNESS_PARA=2
@@ -59,9 +59,12 @@ if instrument_label == 1 :
 elif instrument_label == 2 :
 	instrument_strbase='MODISa'
 	Miefile_Dir='MODIS_MIE_DIR.txt'
-else :
+elif instrument_label == 3 :
 	instrument_strbase='SeaWifs'
 	Miefile_Dir='SEAWIFS_MIE_DIR.txt'
+elif instrument_label == 4 :
+	instrument_strbase='Misr'
+	Miefile_Dir='MISR_MIE_DIR.txt'
 
 iwhitecap=0
      #if iwhitecap==0 turn off white cap calculation
