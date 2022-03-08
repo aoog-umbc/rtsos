@@ -7,6 +7,7 @@ def input_writer(fileinput,fileoutput,iaerosol,irh,isigma,itheta,iopt):
     f = open(fileinput, 'w')
     f.write("%d" % instrument_label+ '        #instrument_label, 1: OCI 2: MODIS 3: SeaWifs 4: MISR \n')
     f.write("%d" % Aerosol_Model[iaerosol]+ '        #IAEROSOL=1,21. 1-10 is Shettle and Fenn, 11-20 is Ahmad model, 21 dust aerosol model \n')
+    f.write("%f" % AeroFMF + '        #Aerosol fine mode fraction, only used when Aerosol_Model[iaerosol]==-1 \n')
     f.write("%f" % RH[irh] + '        #Relative Humidity RH=[0.3, 0.50,0.70,0.75, 0.80,0.85,0.90,0.95] \n')
     f.write("%f" % wndspd[isigma] + '        #wind speed \n')
     f.write("%f" % theta0[itheta]+ '       #THETA0 in degrees \n')
@@ -35,6 +36,7 @@ I_SPHERICAL_SHELL_CORRECTION=0 # 0/1: turn off/on spherical shell correction
 
 #IAEROSOL=1,21. 1-10 is Shettle and Fenn, 11-20 is Ahmad model, 21 dust aerosol model
 Aerosol_Model=([11,12,13,14,15,16,17,18,19,20])
+AeroFMF=-1.0E12  # intentionly set it to be bizarre as we don't need it in this work.
 tau865=np.array([0.00,0.05,0.10,0.15,0.20,0.25,0.30,0.40,0.50])
 RH=np.array([0.3,0.50,0.70,0.75,0.80,0.85,0.90,0.95]) # Relative Humidity values shown the table above
 theta0=np.array([ 0., 2., 4., 6., 8., 10., 12., 14., 16., 18., 20., 22., 24., \
