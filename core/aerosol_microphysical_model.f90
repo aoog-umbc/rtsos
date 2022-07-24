@@ -61,15 +61,20 @@ REAL*8 :: V_0,V
 !mode radius for different relative humidities (5)
 !RTROPOSPHERE,RRURALC, RURBANF,RURBANC are from table 2 of Shettle, Fenn report
 ! RH=0.30,0.75,0.85 are interpolated from Table 2 of Shettle and Fenn report.
-REAL*8,DIMENSION(NRH) :: RTROPOSPHERE=(/0.027288,0.02748,0.02846,0.0306,0.03274,0.03579,0.03884,0.04238/),  &
-                         RRURALC=(/0.43462,0.4377, 0.4571,0.5024,0.5477,0.59695,0.6462,0.7078/),            &
-                         ROCEANIC=(/0.1666,0.1711,0.2041,0.26105,0.3180,0.34915,0.3803,0.4606/),            &
-                         RURBANF=(/0.025378,0.02563,0.02911,0.032125,0.03514,0.038505,0.04187,0.04904/),        &
-                         RURBANC=(/0.40678,0.4113,0.4777,0.5291,0.5805,0.6433,0.7061,0.8634/),             &
-                         RZIAF=(/0.150, 0.152, 0.158, 0.167,0.187,0.204, 0.221, 0.246/),           &
-                         RZIAC=(/2.441,2.477,2.927,3.481,3.966,4.243,4.638,5.549/),               &
-                         RATIO_WETDRY_ZIAF=(/1.006,1.0190,1.0630,1.118,1.2550,1.371, 1.4860, 1.6480/), &
-                         RATIO_WETDRY_ZIAC=(/1.009,1.0240,1.2100,1.439,1.6390, 1.753, 1.9170, 2.2930/)
+REAL*8,DIMENSION(NRH) :: RTROPOSPHERE=(/0.027288,0.02748,0.02846,0.0306,0.03274,0.03579,0.03884,0.04238/)
+REAL*8,DIMENSION(NRH) :: RRURALC=(/0.43462,0.4377, 0.4571,0.5024,0.5477,0.59695,0.6462,0.7078/)
+REAL*8,DIMENSION(NRH) :: ROCEANIC=(/0.1666,0.1711,0.2041,0.26105,0.3180,0.34915,0.3803,0.4606/)
+REAL*8,DIMENSION(NRH) :: RURBANF=(/0.025378,0.02563,0.02911,0.032125,0.03514,0.038505,0.04187,0.04904/)
+REAL*8,DIMENSION(NRH) :: RURBANC=(/0.40678,0.4113,0.4777,0.5291,0.5805,0.6433,0.7061,0.8634/)
+REAL*8,DIMENSION(NRH) :: RZIAF=(/0.150, 0.152, 0.158, 0.167,0.187,0.204, 0.221, 0.246/)
+!REAL*8,DIMENSION(NRH) :: RZIAC=(/2.441,2.477,2.927,3.481,3.966,4.243,4.638,5.549/)
+! New RZIAC values different from Table 4 of Ahmad, et al., Applied Optics, 2010
+! This is to be consistent with the l2gen LUT based on a discussion with Amir Ibrahim and Zia Ahmad.
+! The data is 0.9*Table4 value of Ahmad2010. Pengwang Zha 07/22/2022
+REAL*8,DIMENSION(NRH) :: RZIAC=(/2.1969,2.2293,2.6343,3.1329,3.5694,3.8187,4.1742,4.9941/)
+
+REAL*8,DIMENSION(NRH) :: RATIO_WETDRY_ZIAF=(/1.006,1.0190,1.0630,1.118,1.2550,1.371, 1.4860, 1.6480/)
+REAL*8,DIMENSION(NRH) :: RATIO_WETDRY_ZIAC=(/1.009,1.0240,1.2100,1.439,1.6390, 1.753, 1.9170, 2.2930/)
 REAL*8,DIMENSION(NFINEMODE) :: RATIO_FINE_MODE_ZIA=(/0.0, 0.01, 0.02, 0.05, 0.1, 0.2,&
                                        0.3, 0.5, 0.8, 0.95/) ! from personal communication with Zia
 !standard deviation

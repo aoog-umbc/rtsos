@@ -869,7 +869,39 @@ CALL h5sclose_f(space, hdferr)
 CALL h5dclose_f(dset , hdferr)
 
 CALL h5screate_simple_f(1, dimscl, space, hdferr)
-CALL h5dcreate_f(file, 'Rf', H5T_IEEE_F32LE, space, dset, hdferr)
+CALL h5dcreate_f(file, 'Reff_f', H5T_IEEE_F32LE, space, dset, hdferr)
+HDF5RTMP=REFF1(IMIE)
+f_ptr=C_LOC(HDF5RTMP(1))
+CALL h5dwrite_f(dset,H5T_NATIVE_REAL,f_ptr, hdferr)
+CALL h5dclose_f(dset , hdferr)
+CALL h5sclose_f(space, hdferr)
+
+CALL h5screate_simple_f(1, dimscl, space, hdferr)
+CALL h5dcreate_f(file, 'Veff_f', H5T_IEEE_F32LE, space, dset, hdferr)
+HDF5RTMP=VEFF1(IMIE)
+f_ptr=C_LOC(HDF5RTMP(1))
+CALL h5dwrite_f(dset, H5T_NATIVE_REAL,f_ptr, hdferr)
+CALL h5dclose_f(dset , hdferr)
+CALL h5sclose_f(space, hdferr)
+
+CALL h5screate_simple_f(1, dimscl, space, hdferr)
+CALL h5dcreate_f(file, 'Reff_c', H5T_IEEE_F32LE, space, dset, hdferr)
+HDF5RTMP=REFF2(IMIE)
+f_ptr=C_LOC(HDF5RTMP(1))
+CALL h5dwrite_f(dset, H5T_NATIVE_REAL,f_ptr, hdferr)
+CALL h5dclose_f(dset , hdferr)
+CALL h5sclose_f(space, hdferr)
+
+CALL h5screate_simple_f(1, dimscl, space, hdferr)
+CALL h5dcreate_f(file, 'Veff_c', H5T_IEEE_F32LE, space, dset, hdferr)
+HDF5RTMP=VEFF2(IMIE)
+f_ptr=C_LOC(HDF5RTMP(1))
+CALL h5dwrite_f(dset, H5T_NATIVE_REAL,f_ptr, hdferr)
+CALL h5dclose_f(dset , hdferr)
+CALL h5sclose_f(space, hdferr)
+
+CALL h5screate_simple_f(1, dimscl, space, hdferr)
+CALL h5dcreate_f(file, 'Rg_f', H5T_IEEE_F32LE, space, dset, hdferr)
 RTMP=LOG(VEFF1(IMIE)+1.0)
 HDF5RTMP=REFF1(IMIE)*EXP(-2.5*RTMP)
 f_ptr=C_LOC(HDF5RTMP(1))
@@ -878,7 +910,7 @@ CALL h5dclose_f(dset , hdferr)
 CALL h5sclose_f(space, hdferr)
 
 CALL h5screate_simple_f(1, dimscl, space, hdferr)
-CALL h5dcreate_f(file, 'Vf', H5T_IEEE_F32LE, space, dset, hdferr)
+CALL h5dcreate_f(file, 'Vg_f', H5T_IEEE_F32LE, space, dset, hdferr)
 RTMP=LOG(VEFF1(IMIE)+1.0)
 HDF5RTMP=SQRT(RTMP)
 f_ptr=C_LOC(HDF5RTMP(1))
@@ -887,7 +919,7 @@ CALL h5dclose_f(dset , hdferr)
 CALL h5sclose_f(space, hdferr)
 
 CALL h5screate_simple_f(1, dimscl, space, hdferr)
-CALL h5dcreate_f(file, 'Rc', H5T_IEEE_F32LE, space, dset, hdferr)
+CALL h5dcreate_f(file, 'Rg_c', H5T_IEEE_F32LE, space, dset, hdferr)
 RTMP=LOG(VEFF2(IMIE)+1.0)
 HDF5RTMP=REFF2(IMIE)*EXP(-2.5*RTMP)
 f_ptr=C_LOC(HDF5RTMP(1))
@@ -896,7 +928,7 @@ CALL h5dclose_f(dset , hdferr)
 CALL h5sclose_f(space, hdferr)
 
 CALL h5screate_simple_f(1, dimscl, space, hdferr)
-CALL h5dcreate_f(file, 'Vc', H5T_IEEE_F32LE, space, dset, hdferr)
+CALL h5dcreate_f(file, 'Vg_c', H5T_IEEE_F32LE, space, dset, hdferr)
 RTMP=LOG(VEFF2(IMIE)+1.0)
 HDF5RTMP=SQRT(RTMP)
 f_ptr=C_LOC(HDF5RTMP(1))
@@ -1262,7 +1294,7 @@ REAL*8 AL1(NPL),AL2(NPL),AL3(NPL),AL4(NPL),BET1(NPL),BET2(NPL)
 !      N=100
 !      NP=4
       R1=0.0D0
-      R2=20.0D0    
+      R2=30.0D0
 
        IF(NDISTR==1) THEN
 !     NDISTR = 1 - modified gamma distribution                         
@@ -1328,9 +1360,9 @@ REAL*8 AL1(NPL),AL2(NPL),AL3(NPL),AL4(NPL),BET1(NPL),BET2(NPL)
        ELSE
           STOP 'NDISTR<1 OR > 7'
        ENDIF
-       NK=20
-       N=200
-       NP=4
+       NK=40
+       N=400
+       NP=8
        WVNM=LAM*1000
        DDELT=1D-7
 
@@ -2498,8 +2530,8 @@ INTEGER, INTENT(IN) :: NWV,NUMMIEUSE,NTLYER
 REAL*8,DIMENSION(NUMMIEUSE),INTENT(IN)::REFF1,REFF2,VEFF1,VEFF2
 REAL*8,DIMENSION(NWV+1,NUMMIEUSE),INTENT(IN) ::MRR1,MRR2,MRI1,MRI2
 REAL*8,DIMENSION(NTLYER),INTENT(IN) :: ARSLND1,ARSLND2
-
-
+INTEGER :: IMIE
+REAL*8 :: RTMP
 
 ! HDF 5 DEFINITION
 ! This should map to REAL*8 on most modern processors
@@ -2523,7 +2555,7 @@ INTEGER(HSIZE_T), DIMENSION(1:3) :: maxdims3
 REAL*4,DIMENSION(:,:,:),TARGET,ALLOCATABLE :: HDF5RARR3DIM
 
 LOGICAL :: file_e
-
+IMIE=1
 CALL h5open_f(hdferr)
 CALL h5fcreate_f(Mie_Database_filename, H5F_ACC_TRUNC_F, file, hdferr)
 
@@ -2538,36 +2570,72 @@ CALL h5sclose_f(space, hdferr)
 CALL h5dclose_f(dset , hdferr)
 
 CALL h5screate_simple_f(1, dimscl, space, hdferr)
-CALL h5dcreate_f(file, 'Rf', H5T_IEEE_F64LE, space, dset, hdferr)
-HDF5RTMP=REFF1(1)
-f_ptr = C_LOC(HDF5RTMP(1))
-CALL h5dwrite_f(dset, H5T_NATIVE_REAL,f_ptr, hdferr)
-CALL h5sclose_f(space, hdferr)
+CALL h5dcreate_f(file, 'Reff_f', H5T_IEEE_F32LE, space, dset, hdferr)
+HDF5RTMP=REFF1(IMIE)
+f_ptr=C_LOC(HDF5RTMP(1))
+CALL h5dwrite_f(dset,H5T_NATIVE_REAL,f_ptr, hdferr)
 CALL h5dclose_f(dset , hdferr)
+CALL h5sclose_f(space, hdferr)
 
 CALL h5screate_simple_f(1, dimscl, space, hdferr)
-CALL h5dcreate_f(file, 'Vf', H5T_IEEE_F64LE, space, dset, hdferr)
-HDF5RTMP=VEFF1(1)
-f_ptr = C_LOC(HDF5RTMP(1))
+CALL h5dcreate_f(file, 'Veff_f', H5T_IEEE_F32LE, space, dset, hdferr)
+HDF5RTMP=VEFF1(IMIE)
+f_ptr=C_LOC(HDF5RTMP(1))
 CALL h5dwrite_f(dset, H5T_NATIVE_REAL,f_ptr, hdferr)
-CALL h5sclose_f(space, hdferr)
 CALL h5dclose_f(dset , hdferr)
+CALL h5sclose_f(space, hdferr)
 
 CALL h5screate_simple_f(1, dimscl, space, hdferr)
-CALL h5dcreate_f(file, 'Rc', H5T_IEEE_F64LE, space, dset, hdferr)
-HDF5RTMP=REFF2(1)
-f_ptr = C_LOC(HDF5RTMP(1))
+CALL h5dcreate_f(file, 'Reff_c', H5T_IEEE_F32LE, space, dset, hdferr)
+HDF5RTMP=REFF2(IMIE)
+f_ptr=C_LOC(HDF5RTMP(1))
 CALL h5dwrite_f(dset, H5T_NATIVE_REAL,f_ptr, hdferr)
-CALL h5sclose_f(space, hdferr)
 CALL h5dclose_f(dset , hdferr)
+CALL h5sclose_f(space, hdferr)
 
 CALL h5screate_simple_f(1, dimscl, space, hdferr)
-CALL h5dcreate_f(file, 'Vc', H5T_IEEE_F64LE, space, dset, hdferr)
-HDF5RTMP=VEFF2(1)
-f_ptr = C_LOC(HDF5RTMP(1))
+CALL h5dcreate_f(file, 'Veff_c', H5T_IEEE_F32LE, space, dset, hdferr)
+HDF5RTMP=VEFF2(IMIE)
+f_ptr=C_LOC(HDF5RTMP(1))
 CALL h5dwrite_f(dset, H5T_NATIVE_REAL,f_ptr, hdferr)
-CALL h5sclose_f(space, hdferr)
 CALL h5dclose_f(dset , hdferr)
+CALL h5sclose_f(space, hdferr)
+
+CALL h5screate_simple_f(1, dimscl, space, hdferr)
+CALL h5dcreate_f(file, 'Rg_f', H5T_IEEE_F32LE, space, dset, hdferr)
+RTMP=LOG(VEFF1(IMIE)+1.0)
+HDF5RTMP=REFF1(IMIE)*EXP(-2.5*RTMP)
+f_ptr=C_LOC(HDF5RTMP(1))
+CALL h5dwrite_f(dset,H5T_NATIVE_REAL,f_ptr, hdferr)
+CALL h5dclose_f(dset , hdferr)
+CALL h5sclose_f(space, hdferr)
+
+CALL h5screate_simple_f(1, dimscl, space, hdferr)
+CALL h5dcreate_f(file, 'Vg_f', H5T_IEEE_F32LE, space, dset, hdferr)
+RTMP=LOG(VEFF1(IMIE)+1.0)
+HDF5RTMP=SQRT(RTMP)
+f_ptr=C_LOC(HDF5RTMP(1))
+CALL h5dwrite_f(dset, H5T_NATIVE_REAL,f_ptr, hdferr)
+CALL h5dclose_f(dset , hdferr)
+CALL h5sclose_f(space, hdferr)
+
+CALL h5screate_simple_f(1, dimscl, space, hdferr)
+CALL h5dcreate_f(file, 'Rg_c', H5T_IEEE_F32LE, space, dset, hdferr)
+RTMP=LOG(VEFF2(IMIE)+1.0)
+HDF5RTMP=REFF2(IMIE)*EXP(-2.5*RTMP)
+f_ptr=C_LOC(HDF5RTMP(1))
+CALL h5dwrite_f(dset, H5T_NATIVE_REAL,f_ptr, hdferr)
+CALL h5dclose_f(dset , hdferr)
+CALL h5sclose_f(space, hdferr)
+
+CALL h5screate_simple_f(1, dimscl, space, hdferr)
+CALL h5dcreate_f(file, 'Vg_c', H5T_IEEE_F32LE, space, dset, hdferr)
+RTMP=LOG(VEFF2(IMIE)+1.0)
+HDF5RTMP=SQRT(RTMP)
+f_ptr=C_LOC(HDF5RTMP(1))
+CALL h5dwrite_f(dset, H5T_NATIVE_REAL,f_ptr, hdferr)
+CALL h5dclose_f(dset , hdferr)
+CALL h5sclose_f(space, hdferr)
 
 CALL h5screate_simple_f(1, dimscl, space, hdferr)
 CALL h5dcreate_f(file, 'AerosolNumberConcentration_f', H5T_IEEE_F64LE, space, dset, hdferr)
