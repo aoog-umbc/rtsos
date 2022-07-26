@@ -6,8 +6,8 @@ FCFLAG= -O3
 #FCFLAG=-real-size 64 -O3
 #FCFLAG= -g -fbounds-check -ffpe-trap=invalid,zero,overflow -finit-real=snan
 
-HDF5DIR = /usr/local/Cellar/hdf5@1.10/1.10.7
-HDF5LIB=-I$(HDF5DIR)/include
+HDF5DIR = /mnt/beegfs/poseidon/hpc/ocssw-develop/opt
+HDF5LIB=-I$(HDF5DIR)/include/shared/
 H5FC=$(HDF5DIR)/bin/h5fc
 LIBSHDF= $(HDF5LIB) -L$(HDF5DIR)/lib/ -lhdf5 -lhdf5_fortran
 
@@ -23,8 +23,8 @@ LIBSHDF= $(HDF5LIB) -L$(HDF5DIR)/lib/ -lhdf5 -lhdf5_fortran
 #H5FC=ifort
 #LIBSHDF= -lhdf5 -lhdf5_fortran
 
-DIRCore=../core/
-DIRMain=../AC_Aerosols_LUT/
+DIRCore=../src/core/
+DIRMain=../src/AC_Aerosols_LUT/
 
 rtsos_GSFC_AC_LUT.exe: $(OBJ)
 	$(F90) -o rtsos_GSFC_AC_LUT.exe $(FCFLAG) $(OBJ) $(LIBSHDF)

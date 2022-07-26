@@ -13,8 +13,8 @@ FCFLAG=-O3
 #LIBSHDF= $(HDF5LIB) -L$(HDF5DIR)/lib/ -lhdf5 -lhdf5_fortran
 LIBSHDF=
 
-DIRCore=../core/
-DIRMain=../main_program_monochromatic/
+DIRCore=../src/core/
+DIRMain=../src/main_program_monochromatic/
 
 rtsos_rao_dg.exe: $(OBJ)
 	$(F90) -o rtsos_rao_dg.exe $(FCFLAG) $(OBJ) $(LIBSHDF)
