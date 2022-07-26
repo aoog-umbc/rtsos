@@ -6,7 +6,7 @@ from pathlib import Path
 import shutil
 
 
-instrument_label = 1
+instrument_label = 2
 
 #instrument_label = input("instrument_label=?, enter 1 for OCI, 2 for MODIS, 3 for SeaWifs, 4 for MISR: ")
 
