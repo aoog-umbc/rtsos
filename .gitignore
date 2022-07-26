@@ -1,1 +1,4 @@
 share/
+*.o
+*.mod
+*.exe
