@@ -2,3 +2,5 @@ share/
 *.o
 *.mod
 *.exe
+*.out
+*.err

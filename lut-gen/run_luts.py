@@ -5,6 +5,8 @@ import tempfile
 from pathlib import Path
 import shutil
 
+cwd = os.getcwd()
+cwd = cwd + '/'
 
 instrument_label = 2
 
@@ -24,7 +26,7 @@ elif instrument_label == 3 :
 elif instrument_label == 4 :
         instrument_strbase='Misr'
 
-path='/home/aibrahi2/pwzrt/run_luts/' + instrument_strbase + '/'
+path= cwd + instrument_strbase + '/'
 
 # Here I get the directory path for each aerosol models- 80 in total
 mdl = np.arange(11,21, dtype=int)
@@ -65,13 +67,15 @@ for i in range(80):
     for k in range(sarray[idx],sarray[idx+1]):
         tmpdir = tempfile.TemporaryDirectory()
         os.chdir(tmpdir.name)
-        os.system('ls')
-        command = '/home/aibrahi2/pwzrt/run_luts/rtsos_GSFC_AC_LUT.exe ' + path+fpath[i]+'/'+inp[k]
-        shutil.copy('/home/aibrahi2/pwzrt/run_luts/auxiliary_directory', tmpdir.name)
-        shutil.copy('/home/aibrahi2/pwzrt/run_luts/gas_absorption_coeff_dir', tmpdir.name)
+        #os.system('ls')
+        command = cwd + 'rtsos_GSFC_AC_LUT.exe ' +  path+fpath[i]+'/'+inp[k]
+        shutil.copy(cwd+'auxiliary_directory', tmpdir.name)
+        shutil.copy(cwd+'gas_absorption_coeff_dir', tmpdir.name)
+        shutil.copy(cwd+'MODIS_MIE_DIR.txt', tmpdir.name)
         os.system(command)
-        os.system('ls')
+        #os.system('ls')
+        #print(command)
         ofile = 'output' + inp[k][5:] + '.h5'
         tmpoutputfile = Path(tmpdir.name + '/' + ofile)
-        shutil.copy(tmpoutputfile, '/home/aibrahi2/pwzrt/run_luts/' + outpath)
+        shutil.copy(tmpoutputfile, cwd + outpath)
 

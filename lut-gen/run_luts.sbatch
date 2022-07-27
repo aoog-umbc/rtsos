@@ -8,7 +8,7 @@
 #SBATCH --cpus-per-task=1        # cpu-cores per task (>1 if multi-threaded tasks)
 #SBATCH --mem-per-cpu=36G         # memory per cpu-core (4G is default)
 ##SBATCH --time=100:30:00          # total run time limit (HH:MM:SS)
-#SBATCH --exclude=poseidon-compute-[1-4]
+#SBATCH --exclude=poseidon-compute-[1-4,13]
 #SBATCH --requeue       # this will make sure if a node fails, it will be requeued again
 #SBATCH --array=[0-829]              # job array with index values 0, 1, 2, 3, 4
 export TMPDIR=/dev/shm
