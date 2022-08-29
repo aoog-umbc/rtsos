@@ -1,11 +1,6 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Thu Oct 15 11:47:30 2020
+import numpy as np
+import random
 
-@author: kamal
-"""
-
-import numpy as np                                                                                                                                                      
 def input_writer(filestrbase,chla,iaerosol,irh,theta0,tau_ref):
     fileinput='input_ps_'+filestrbase
     f = open(fileinput, 'w')
@@ -13,8 +8,9 @@ def input_writer(filestrbase,chla,iaerosol,irh,theta0,tau_ref):
     f.write("%f" % theta0+ '       #THETA0 in degrees \n')
 	f.write("%f" % wv_pace_ref + '        #WV_PACE_REF \n')
     f.write("%f" % tau_ref+ '        #TAU_REF \n')
+    f.write("%d" % Aerosol_Model[iaerosol]+ '  #IAEROSOL=-99,-1,1,20. -99 read in from file; -1; Ahmad model with flexbile RH and FMF; 1-10 is Shettle and Fenn, 11-20 is Ahmad model \n')
+    f.write("%f" % AeroFMF + '        #Aerosol fine mode fraction, only used when Aerosol_Model[iaerosol]==-1 \n')
     f.write("%f" % RH[irh]+ '    #Relative Humidity IRH=1,5, RH=[0.30,0.50,0.70,0.75,0.80,0.85,0.90,0.95] \n')
-    f.write("%d" % iaerosol+ '        #IAEROSOL=-99,1,20. -99 read in from file; 1-10 is Shettle and Fenn, 11-20 is Ahmad model \n')
     f.write("%d" % ocean_case_select + '   #OCEAN_CASE_SELECT, case 0(atmosphere only), case 1 [Chla] parameterization, case 2 [Chla]+Sediment, case 3: seven parameter model\n')
     f.write("%f" % water_depth_max + '   #water_depth_max \n')
     f.write("%f" % chla+ '        #CHLa \n')
@@ -70,6 +66,7 @@ SUNGLINT_INPUT=0
 water_depth_max=200.0
 
 RH=np.array([0.30,0.50,0.70,0.75,0.80,0.85,0.90,0.95])
+AeroFMF=random.random()
 
 # the following parameters are used in ocean_case_select==2
 # chla, phytoplankton_index_refraction,phytoplankton_spectral_slope,

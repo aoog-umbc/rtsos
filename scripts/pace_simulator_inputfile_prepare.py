@@ -1,4 +1,5 @@
 import numpy as np
+import random
 
 def input_writer(filestrbase,ichla,itheta,ipss):
     fileinput='input_ps_'+filestrbase
@@ -7,8 +8,9 @@ def input_writer(filestrbase,ichla,itheta,ipss):
     f.write("%f" % theta0[itheta]+ '       #THETA0 in degrees \n')
     f.write("%f" % wv_pace_ref + '        #WV_PACE_REF \n')
     f.write("%f" % tau_ref + '        #TAU_REF \n')
+    f.write("%d" % Aerosol_Model[iaerosol]+ '  #IAEROSOL=-99,-1,1,20. -99 read in from file; -1; Ahmad model with flexbile RH and FMF; 1-10 is Shettle and Fenn, 11-20 is Ahmad model \n')
+    f.write("%f" % AeroFMF + '        #Aerosol fine mode fraction, only used when Aerosol_Model[iaerosol]==-1 \n')
     f.write("%f" % RH[irh]+ '        #Relative Humidity IRH=1,8, RH=[0.30,0.50,0.70,0.75,0.80,0.85,0.90,0.95] \n')
-    f.write("%d" % iaerosol+ '        #IAEROSOL=-99,1,20. -99 read in from file; 1-10 is Shettle and Fenn, 11-20 is Ahmad model \n')
     f.write("%d" % ocean_case_select + '   #OCEAN_CASE_SELECT, case 0(atmosphere only), case 1 [Chla] parameterization, case 2 [Chla]+Sediment, case 3: seven parameter model\n')
     f.write("%f" % water_depth_max + '   #water_depth_max \n')
     f.write("%f" % chla[ichla] + '        #CHLa \n')
@@ -61,8 +63,16 @@ theta0=np.array([30.0, 85.0])
 wv_pace_ref=873.0
 tau_ref=0.1
 
+Aerosol_Model=([-1,11,12,13,14,15,16,17,18,19,20])
+#Aerosol_Model=([-1]) # flexible FMF and RH options for Ahmad's aerosol model.
 
-iaerosol=16
+iaerosol=7
+
+#IAEROSOL=11-20 corresponds to fine mode fraction of (/0.0, 0.01, 0.02, 0.05, 0.1, 0.2, 0.3, 0.5, 0.8, 0.95/)
+#RATIO_FINE_MODE_ZIA=(/0.0, 0.01, 0.02, 0.05, 0.1, 0.2, 0.3, 0.5, 0.8, 0.95/) ! from personal communication with Zia
+
+#AeroFMF=random.random()
+AeroFMF=0.3
 
 #ocean_case_select=np.array([0, 1, 2, 3])
 ocean_case_select=1
@@ -133,16 +143,26 @@ aerosol_phasematrix_file='output_flexible_nmode3_fmixing_2_fmfrac_0.500_dmfrac_0
 #afglmw.dat
 
 ###########
+ichla=2
+itheta=1
+ipss=1
+filestrbase='OceanCase%d' % ocean_case_select \
+			+ 'tau_ref_%05.2f' % tau_ref       \
+			+'IAEROSOL%d' % Aerosol_Model[iaerosol] \
+			+'FMF_%05.2f' % AeroFMF
+			
+input_writer(filestrbase,ichla,itheta,ipss)
 
-for ichla in range(len(chla)):
-	for itheta in range(len(theta0)):
-		for ipss in range(len(pss_flag)):
-			filestrbase='OceanCase%d' % ocean_case_select \
-						+ 'tau_ref_%05.2f' % tau_ref       \
-						+'chla%05.2f' % chla[ichla] \
-						+'theta0_%05.2f' %theta0[itheta] \
-						+'pss%d'%pss_flag[ipss]
-			input_writer(filestrbase,ichla,itheta,ipss)
+
+#for ichla in range(len(chla)):
+#	for itheta in range(len(theta0)):
+#		for ipss in range(len(pss_flag)):
+#			filestrbase='OceanCase%d' % ocean_case_select \
+#						+ 'tau_ref_%05.2f' % tau_ref       \
+#						+'chla%05.2f' % chla[ichla] \
+#						+'theta0_%05.2f' %theta0[itheta] \
+#						+'pss%d'%pss_flag[ipss]
+#			input_writer(filestrbase,ichla,itheta,ipss)
 
 
 
