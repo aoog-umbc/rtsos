@@ -1,4 +1,5 @@
 import numpy as np
+import random
 
 def input_writer(filestrbase,ichla,itheta,itau):
     fileinput='input_ps_'+filestrbase
@@ -7,8 +8,9 @@ def input_writer(filestrbase,ichla,itheta,itau):
     f.write("%f" % theta0[itheta]+ '       #THETA0 in degrees \n')
     f.write("%f" % wv_pace_ref + '        #WV_PACE_REF \n')
     f.write("%f" % tau_ref[itau] + '        #TAU_REF \n')
+    f.write("%d" % Aerosol_Model[iaerosol]+ '  #IAEROSOL=-99,-1,1,20. -99 read in from file; -1; Ahmad model with flexbile RH and FMF; 1-10 is Shettle and Fenn, 11-20 is Ahmad model \n')
+    f.write("%f" % AeroFMF + '        #Aerosol fine mode fraction, only used when Aerosol_Model[iaerosol]==-1 \n')
     f.write("%f" % RH[irh]+ '        #Relative Humidity IRH=1,8, RH=[0.30,0.50,0.70,0.75,0.80,0.85,0.90,0.95] \n')
-    f.write("%d" % iaerosol+ '        #IAEROSOL=-99,1,20. -99 read in from file; 1-10 is Shettle and Fenn, 11-20 is Ahmad model \n')
     f.write("%d" % ocean_case_select + '   #OCEAN_CASE_SELECT, case 0(atmosphere only), case 1 [Chla] parameterization, case 2 [Chla]+Sediment, case 3: seven parameter model\n')
     f.write("%f" % water_depth_max + '   #water_depth_max \n')
     f.write("%f" % chla[ichla] + '        #CHLa \n')
@@ -61,8 +63,10 @@ theta0=np.array([10.0, 30.0, 50.0, 70.0, 85.0])
 wv_pace_ref=873.0
 tau_ref=np.array([0.01,0.1,0.2])
 
+Aerosol_Model=([11,12,13,14,15,16,17,18,19,20])
 
-iaerosol=16
+iaerosol=6
+AeroFMF=random.random()
 
 #ocean_case_select=np.array([0, 1, 2, 3])
 ocean_case_select=1
