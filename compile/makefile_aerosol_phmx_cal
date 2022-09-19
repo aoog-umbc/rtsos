@@ -41,7 +41,7 @@ PACE_Instrument.o: $(DIR_PS)/PACE_Instrument.f90
 auxiliary_dir_readin.o: $(DIR_Main)/auxiliary_dir_readin.f90
 	$(F90) -c $(FCFLAG) $(DIR_Main)/auxiliary_dir_readin.f90
 read_dust_data.o:   $(DIR_Main)/read_dust_data.f90
-	$(H5FC) -c $(FCFLAG)  $(DIR_Main)/read_dust_data.f90
+	$(F90) -c $(FCFLAG) $(LIBSHDF) $(DIR_Main)/read_dust_data.f90
 Mie_PHMX_Cal.o: $(DIR_Main)/Mie_PHMX_Cal.f90
 	$(F90) -c $(FCFLAG) $(DIR_Main)/Mie_PHMX_Cal.f90
 main_aerosol_phmx_cal.o: $(DIR_Main)/main_aerosol_phmx_cal.f90
