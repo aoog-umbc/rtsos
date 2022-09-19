@@ -5,28 +5,28 @@ from tqdm.notebook import tqdm
 
 # arrays of the input parameters used in the runs
 # coming from rt_GSFC_LUT_pre.py
-Aerosol_Model=([11,12,13,14,15,16,17,18,19,20])
+Aerosol_Model=([11,12,13,14,15,16,17,18,19,20]) # aerosol model numbers named for Ahmad models according to pwz
 RH=np.array([0.3,0.50,0.70,0.75,0.80,0.85,0.90,0.95]) # Relative Humidity values shown the table above
 #Aerosol_Model=([19,20])
  
 #Outputfile_Dir_MODISaAerosolModel11rh_0.300000
 
-tau865=np.array([0.00,0.05,0.10,0.15,0.20,0.25,0.30,0.40,0.50])
+tau865=np.array([0.00,0.05,0.10,0.15,0.20,0.25,0.30,0.40,0.50]) # optical depth array from rt_GSFC_LUT_pre.py
 theta0=np.array([ 0., 2., 4., 6., 8., 10., 12., 14., 16., 18., 20., 22., 24., \
                                   26., 28., 30., 32., 34., 36., 38., 40., 42., 44., 46., 48., \
                                   50., 52., 54., 56., 58., 60., 62., 64., 66., 68., 70., \
-                                  72., 74., 76., 78., 80., 82., 84., 86., 88.])
+                                  72., 74., 76., 78., 80., 82., 84., 86., 88.]) # solz array from rt_GSFC_LUT_pre.py
 
-sigma = np.array([0, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4])
+sigma = np.array([0, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4]) # wave slope array from rt_GSFC_LUT_pre.py
 thetav = np.array([  0.    ,   2.282 ,   5.2363,   8.2037,  11.1683,  14.125 ,  17.0705,
         20.0018,  22.9162,  25.8107,  28.6824,  31.5285,  34.3456,  37.1307,
         39.8804,  42.5912,  45.2595,  47.8813,  50.4528,  52.9697,  55.4276,
         57.8219,  60.1479,  62.4006,  64.5749,  66.6652,  68.6663,  70.5724,
         72.3778,  74.0767,  75.6633,  77.1319,  78.4769,  79.6929,  80.7746,
-        81.7174,  82.5169,  83.1692,  83.6712,  84.0205,  84.2152])
+        81.7174,  82.5169,  83.1692,  83.6712,  84.0205,  84.2152]) # senz array from rt_GSFC_LUT_pre.py
 
 phi = np.array([  0.,   5.,  15.,  25.,  35.,  45.,  55.,  65.,  75.,  85.,  95., 105.,
-       115., 125., 135., 145., 155., 165., 175., 180.])
+       115., 125., 135., 145., 155., 165., 175., 180.])  # relaz array from rt_GSFC_LUT_pre.py
 
 wave = 1000*np.array([0.412, 0.443, 0.469, 0.488, 0.531, 0.547, 0.551, 0.555, 0.645, 0.667,
        0.678, 0.748, 0.859, 0.869, 1.24 , 1.64 , 2.13 ])
@@ -37,24 +37,24 @@ len_phi = 20
 len_thetav = 41
 len_wave = 17
 print('Allocating memory...')
-Lt = np.nan+np.empty((len(Aerosol_Model), len(RH), len(sigma), len(theta0), len(tau865), len_phi, len_thetav, len_wave))
-LQ = np.nan+np.empty((len(Aerosol_Model), len(RH), len(sigma), len(theta0), len(tau865), len_phi, len_thetav, len_wave))
-LU = np.nan+np.empty((len(Aerosol_Model), len(RH), len(sigma), len(theta0), len(tau865), len_phi, len_thetav, len_wave))
-TLg = np.nan+np.empty((len(Aerosol_Model), len(RH), len(sigma), len(theta0), len(tau865), len_phi, len_thetav, len_wave))
-TQg = np.nan+np.empty((len(Aerosol_Model), len(RH), len(sigma), len(theta0), len(tau865), len_phi, len_thetav, len_wave))
-TUg = np.nan+np.empty((len(Aerosol_Model), len(RH), len(sigma), len(theta0), len(tau865), len_phi, len_thetav, len_wave))
-diff_irrad = np.nan+np.empty((len(Aerosol_Model), len(RH), len(sigma), len(theta0), len(tau865), len(wave)))
-aot = np.nan+np.empty((len(Aerosol_Model), len(RH), len(tau865), len(wave)))
-rot = np.nan+np.empty((len(Aerosol_Model), len(RH), len(tau865), len(wave)))
-depol = np.nan+np.empty((len(Aerosol_Model), len(RH), len(tau865), len(wave)))
-LT_TOA = np.nan+np.empty((len(Aerosol_Model), len(RH), len(sigma), len(tau865), len_phi, len_thetav, len(wave)))
-LT_BOA = np.nan+np.empty((len(Aerosol_Model), len(RH), len(sigma), len(tau865), len_phi, len_thetav, len(wave)))
+Lt = np.nan+np.empty((len(Aerosol_Model), len(RH), len(sigma), len(theta0), len(tau865), len_phi, len_thetav, len_wave),dtype='float32')
+LQ = np.nan+np.empty((len(Aerosol_Model), len(RH), len(sigma), len(theta0), len(tau865), len_phi, len_thetav, len_wave),dtype='float32')
+LU = np.nan+np.empty((len(Aerosol_Model), len(RH), len(sigma), len(theta0), len(tau865), len_phi, len_thetav, len_wave),dtype='float32')
+TLg = np.nan+np.empty((len(Aerosol_Model), len(RH), len(sigma), len(theta0), len(tau865), len_phi, len_thetav, len_wave),dtype='float32')
+TQg = np.nan+np.empty((len(Aerosol_Model), len(RH), len(sigma), len(theta0), len(tau865), len_phi, len_thetav, len_wave),dtype='float32')
+TUg = np.nan+np.empty((len(Aerosol_Model), len(RH), len(sigma), len(theta0), len(tau865), len_phi, len_thetav, len_wave),dtype='float32')
+diff_irrad = np.nan+np.empty((len(Aerosol_Model), len(RH), len(sigma), len(theta0), len(tau865), len(wave)),dtype='float32')
+aot = np.nan+np.empty((len(Aerosol_Model), len(RH), len(tau865), len(wave)),dtype='float32')
+rot = np.nan+np.empty((len(Aerosol_Model), len(RH), len(tau865), len(wave)),dtype='float32')
+depol = np.nan+np.empty((len(Aerosol_Model), len(RH), len(tau865), len(wave)),dtype='float32')
+LT_TOA = np.nan+np.empty((len(Aerosol_Model), len(RH), len(sigma), len(tau865), len_phi, len_thetav, len(wave)),dtype='float32')
+LT_BOA = np.nan+np.empty((len(Aerosol_Model), len(RH), len(sigma), len(tau865), len_phi, len_thetav, len(wave)),dtype='float32')
 print('starting loops')
 for imdl, mdl in tqdm(enumerate(Aerosol_Model)):
     for irh, rh in enumerate(RH):
         #fpath = 'Outputfile_Dir_MODISaAerosolModel%d'%Aerosol_Model[imdl]+'rh_%0f_2/'%RH[irh]
         #print('Rading path %s' %fpath) 
-        fpath = '~/test/'
+        fpath = './MODISa/rt_outputs/'
         for isig, sig in enumerate(sigma):
             for itheta, theta in enumerate(theta0):
                 for iopt, opt in enumerate(tau865):

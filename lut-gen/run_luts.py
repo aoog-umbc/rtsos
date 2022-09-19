@@ -8,7 +8,7 @@ import shutil
 cwd = os.getcwd()
 cwd = cwd + '/'
 
-instrument_label = 2
+instrument_label = 1
 
 #instrument_label = input("instrument_label=?, enter 1 for OCI, 2 for MODIS, 3 for SeaWifs, 4 for MISR: ")
 
@@ -71,7 +71,7 @@ for i in range(80):
         command = cwd + 'rtsos_GSFC_AC_LUT.exe ' +  path+fpath[i]+'/'+inp[k]
         shutil.copy(cwd+'auxiliary_directory', tmpdir.name)
         shutil.copy(cwd+'gas_absorption_coeff_dir', tmpdir.name)
-        shutil.copy(cwd+'MODIS_MIE_DIR.txt', tmpdir.name)
+        shutil.copy(cwd+'OCI_MIE_DIR.txt', tmpdir.name)
         os.system(command)
         #os.system('ls')
         #print(command)

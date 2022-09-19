@@ -90,7 +90,7 @@ for imdl, mdl in tqdm(enumerate(Aerosol_Model)):
                     'wave': wave.astype(np.float32),
                     'dtran_wave' : wave.astype(np.float32),
                     'dtran_theta' : data.senz.values.astype(np.float32)
-                    }, attrs = {'AerosolModel': str(mdl), 'AerosolFMF': fmf[imdl],
+                    }, attrs = {'AerosolModel': str(mdl), 'AerosolFMF': int(fmf[imdl]),
                         'RelativeHumidity' : rh, 'Size Distribution': sd[imdl],  'sigma': sigma[isig]})
         ds.to_netcdf('aerosol_modisa_r%d'%(rh*100)+'f%s'%fmf[imdl]+'v01.nc')
         print('saved... ' + 'aerosol_modisa_r%d'%(rh*100)+'f%s'%fmf[imdl]+'v01.nc')

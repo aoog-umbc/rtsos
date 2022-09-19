@@ -3,10 +3,15 @@ OBJ=spher.o	nrlib.o aerosol_microphysical_model.o	PACE_Instrument.o		auxiliary_d
 F90=gfortran
 FCFLAG= -O3
 #H5FC=h5fc
-FCFLAG_GAS = -O3
+#FCFLAG_GAS = -O3
 
-HDF5DIR = /mnt/beegfs/poseidon/hpc/ocssw-develop/opt
-HDF5LIB=-I$(HDF5DIR)/include/shared/
+#HDF5DIR = /mnt/beegfs/poseidon/hpc/ocssw-develop/opt
+#HDF5LIB=-I$(HDF5DIR)/include/shared/
+#H5FC=$(HDF5DIR)/bin/h5fc
+#LIBSHDF= $(HDF5LIB) -L$(HDF5DIR)/lib/ -lhdf5 -lhdf5_fortran
+
+HDF5DIR = /mnt/beegfs/poseidon/hpc/ocssw-develop/opt/
+HDF5LIB=-I$(HDF5DIR)/include -I$(HDF5DIR)/include/shared/
 H5FC=$(HDF5DIR)/bin/h5fc
 LIBSHDF= $(HDF5LIB) -L$(HDF5DIR)/lib/ -lhdf5 -lhdf5_fortran
 
