@@ -18,13 +18,17 @@ if instrument_label < 1 or instrument_label >4 :
         sys.exit("Your instrument_label value is invalid")
 
 if instrument_label == 1 :
-        instrument_strbase='OCI'
+	instrument_strbase='OCI'
+	Miefile_Dir='OCI_MIE_DIR.txt'
 elif instrument_label == 2 :
-        instrument_strbase='MODISa'
+	instrument_strbase='MODISa'
+	Miefile_Dir='MODIS_MIE_DIR.txt'
 elif instrument_label == 3 :
-        instrument_strbase='SeaWifs'
+	instrument_strbase='SeaWifs'
+	Miefile_Dir='SEAWIFS_MIE_DIR.txt'
 elif instrument_label == 4 :
-        instrument_strbase='Misr'
+	instrument_strbase='Misr'
+	Miefile_Dir='MISR_MIE_DIR.txt'
 
 path= cwd + instrument_strbase + '/'
 
@@ -71,7 +75,7 @@ for i in range(80):
         command = cwd + 'rtsos_GSFC_AC_LUT.exe ' +  path+fpath[i]+'/'+inp[k]
         shutil.copy(cwd+'auxiliary_directory', tmpdir.name)
         shutil.copy(cwd+'gas_absorption_coeff_dir', tmpdir.name)
-        shutil.copy(cwd+'OCI_MIE_DIR.txt', tmpdir.name)
+        shutil.copy(cwd+Miefile_Dir, tmpdir.name)
         os.system(command)
         #os.system('ls')
         #print(command)
