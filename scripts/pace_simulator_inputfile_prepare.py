@@ -1,17 +1,19 @@
 import numpy as np
 import random
 
-def input_writer(filestrbase,ichla,itheta,ipss):
+def input_writer(filestrbase,itau,itheta,ipss):
     fileinput='input_ps_'+filestrbase
     f = open(fileinput, 'w')
     f.write("%f" % wndspd + '        #wind speed \n')
     f.write("%f" % theta0[itheta]+ '       #THETA0 in degrees \n')
     f.write("%f" % wv_pace_ref + '        #WV_PACE_REF \n')
-    f.write("%f" % tau_ref + '        #TAU_REF \n')
-    f.write("%d" % Aerosol_Model[iaerosol]+ '  #IAEROSOL=-99,-1,1,20. -99 read in from file; -1; Ahmad model with flexbile RH and FMF; 1-10 is Shettle and Fenn, 11-20 is Ahmad model \n')
+    f.write("%f" % tau_ref[itau] + '        #TAU_REF \n')
+    f.write("%f" % Height_Particle + '    # scatteror height \n')
+    f.write("%d" % Aerosol_Model[iaerosol]+ '  #IAEROSOL=-99,-98,-1,1,20. -99 read aerosol pmhx in from file; -98 read water cloud phmx from file; -1 Ahmad model with flexbile RH and FMF; 1-10 is Shettle and Fenn, 11-20 is Ahmad model \n')
     f.write("%f" % AeroFMF + '        #Aerosol fine mode fraction, only used when Aerosol_Model[iaerosol]==-1 \n')
     f.write("%f" % RH[irh]+ '        #Relative Humidity IRH=1,8, RH=[0.30,0.50,0.70,0.75,0.80,0.85,0.90,0.95] \n')
-    f.write("%d" % ocean_case_select + '   #OCEAN_CASE_SELECT, case 0(atmosphere only), case 1 [Chla] parameterization, case 2 [Chla]+Sediment, case 3: seven parameter model\n')
+    f.write("%d" % ocean_case_select + '   #OCEAN_CASE_SELECT, case -1 Land; 0(atmosphere only), case 1 [Chla] parameterization, case 2 [Chla]+Sediment, case 3: seven parameter model\n')
+    f.write("%f" % albedo_ground + '   #albedo_ground \n')
     f.write("%f" % water_depth_max + '   #water_depth_max \n')
     f.write("%f" % chla[ichla] + '        #CHLa \n')
     f.write("%f" % phytoplankton_index_refraction + '        #PHYTOPLANKTON_INDEX_REFRACTION \n')
@@ -59,29 +61,37 @@ RH=np.array([0.30,0.50,0.70,0.75,0.80,0.85,0.90,0.95])
 
 irh=4
 wndspd=5.0
-theta0=np.array([30.0, 85.0])
+theta0=np.array([45.0, 85.0])
 wv_pace_ref=873.0
-tau_ref=0.1
+tau_ref=np.array([0.1,0.4])
 
-Aerosol_Model=([-1,11,12,13,14,15,16,17,18,19,20])
+Height_Particle=6.0
+Aerosol_Model=([-99,-98, -1,11,12,13,14,15,16,17,18,19,20])
 #Aerosol_Model=([-1]) # flexible FMF and RH options for Ahmad's aerosol model.
 
-iaerosol=7
+iaerosol=0
 
-#IAEROSOL=11-20 corresponds to fine mode fraction of (/0.0, 0.01, 0.02, 0.05, 0.1, 0.2, 0.3, 0.5, 0.8, 0.95/)
+#IAEROSOL=11-20 corresponds to fine mode fraction of
 #RATIO_FINE_MODE_ZIA=(/0.0, 0.01, 0.02, 0.05, 0.1, 0.2, 0.3, 0.5, 0.8, 0.95/) ! from personal communication with Zia
+
+#IAEROSOL=-1: Zia aerosol models with flexible FMF and relative humidity.
+#IAEROSOL=-98: Water clouds
+#IAEROSOL=-99: flexible aerosol models output from seperate package
 
 #AeroFMF=random.random()
 AeroFMF=0.3
 
-#ocean_case_select=np.array([0, 1, 2, 3])
+#ocean_case_select=np.array([-1, 0, 1, 2, 3])
+# -1 is land surface with albedo_ground defined below
+# 0: atmosphere bounded by ocean surface only
 ocean_case_select=1
+albedo_ground=0.3
 water_depth_max=200.0
 
 # the following parameters are used in ocean_case_select==2
 # chla, phytoplankton_index_refraction,phytoplankton_spectral_slope,
 #sediment_index_refraction,sediment_spectral_slope,sediment_concentration
-chla=np.array([0.01, 0.03, 0.1, 0.3, 1.0, 3, 10])
+chla=np.array([0.01, 0.03, 0.1, 0.3, 1.0, 3, 10, 30])
 phytoplankton_index_refraction=1.02
 phytoplankton_spectral_slope=3.0
 sediment_index_refraction=1.2
@@ -97,10 +107,10 @@ Sdg=0.015                          #Sdg exponential spectral slope of dg absorpt
 Sbp=0.3                            #Sbp power spectral slope of backscattering coefficient (1/nm) range: 0:0.5
 S_Bp=0.01                          #S_Bp power spectral slope of backscattering fraction (1/nm) range: -0.2:0.2
 
-ncolinput=20
+ncolinput=40
 nquadainput=40
 nquadoinput=60
-MAXMORDINPUT=20
+MAXMORDINPUT=40
 NTHETAV=36
 NPHIV=19
 
@@ -135,7 +145,7 @@ pressure_surface=1013.0 #surface pressure in mb
 
 atmos_profile_base='afglus'
 atmos_profile_filename=atmos_profile_base+'.dat'
-aerosol_phasematrix_file='output_flexible_nmode3_fmixing_2_fmfrac_0.500_dmfrac_0.200_cmfrac_0.300_dmsfrac_0.600_fwatersol_0.600_fBrc_0.100_fsoot_0.300.h5'
+aerosol_phasematrix_file='output_IAEROSOL_16_IRH_4.h5'
 #possible atmosphere profiles are:
 #afglus.dat
 #afglsw.dat
@@ -143,15 +153,14 @@ aerosol_phasematrix_file='output_flexible_nmode3_fmixing_2_fmfrac_0.500_dmfrac_0
 #afglmw.dat
 
 ###########
-ichla=2
+ichla=7
 itheta=1
 ipss=1
-filestrbase='OceanCase%d' % ocean_case_select \
-			+ 'tau_ref_%05.2f' % tau_ref       \
-			+'IAEROSOL%d' % Aerosol_Model[iaerosol] \
-			+'FMF_%05.2f' % AeroFMF
-			
-input_writer(filestrbase,ichla,itheta,ipss)
+for itau in range(len(tau_ref)):
+	filestrbase='NQUAD%d'%ncolinput+'_OceanCase%d' % ocean_case_select \
+				+ 'tau_ref_%05.2f' % tau_ref[itau]       \
+				+'IAEROSOL%d' % Aerosol_Model[iaerosol]
+	input_writer(filestrbase,itau,itheta,ipss)
 
 
 #for ichla in range(len(chla)):
@@ -163,9 +172,3 @@ input_writer(filestrbase,ichla,itheta,ipss)
 #						+'theta0_%05.2f' %theta0[itheta] \
 #						+'pss%d'%pss_flag[ipss]
 #			input_writer(filestrbase,ichla,itheta,ipss)
-
-
-
-
-
-
