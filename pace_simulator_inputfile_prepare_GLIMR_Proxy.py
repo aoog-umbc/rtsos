@@ -8,10 +8,12 @@ def input_writer(filestrbase,ichla,itheta,itau):
     f.write("%f" % theta0[itheta]+ '       #THETA0 in degrees \n')
     f.write("%f" % wv_pace_ref + '        #WV_PACE_REF \n')
     f.write("%f" % tau_ref[itau] + '        #TAU_REF \n')
-    f.write("%d" % Aerosol_Model[iaerosol]+ '  #IAEROSOL=-99,-1,1,20. -99 read in from file; -1; Ahmad model with flexbile RH and FMF; 1-10 is Shettle and Fenn, 11-20 is Ahmad model \n')
+    f.write("%f" % Height_Particle + '    # scatteror height \n')
+    f.write("%d" % Aerosol_Model[iaerosol]+ '  #IAEROSOL=-99,-98,-1,1,20. -99 read aerosol pmhx in from file; -98 read water cloud phmx from file; -1 Ahmad model with flexbile RH and FMF; 1-10 is Shettle and Fenn, 11-20 is Ahmad model \n')
     f.write("%f" % AeroFMF + '        #Aerosol fine mode fraction, only used when Aerosol_Model[iaerosol]==-1 \n')
     f.write("%f" % RH[irh]+ '        #Relative Humidity IRH=1,8, RH=[0.30,0.50,0.70,0.75,0.80,0.85,0.90,0.95] \n')
     f.write("%d" % ocean_case_select + '   #OCEAN_CASE_SELECT, case 0(atmosphere only), case 1 [Chla] parameterization, case 2 [Chla]+Sediment, case 3: seven parameter model\n')
+    f.write("%f" % albedo_ground + '   #albedo_ground \n')
     f.write("%f" % water_depth_max + '   #water_depth_max \n')
     f.write("%f" % chla[ichla] + '        #CHLa \n')
     f.write("%f" % phytoplankton_index_refraction + '        #PHYTOPLANKTON_INDEX_REFRACTION \n')
@@ -62,7 +64,7 @@ wndspd=5.0
 theta0=np.array([10.0, 30.0, 50.0, 70.0, 85.0])
 wv_pace_ref=873.0
 tau_ref=np.array([0.01,0.1,0.2])
-
+Height_Particle=3.0
 Aerosol_Model=([11,12,13,14,15,16,17,18,19,20])
 
 iaerosol=6
@@ -70,6 +72,7 @@ AeroFMF=random.random()
 
 #ocean_case_select=np.array([0, 1, 2, 3])
 ocean_case_select=1
+albedo_ground=0.3
 water_depth_max=200.0
 
 # the following parameters are used in ocean_case_select==2
@@ -91,7 +94,7 @@ Sdg=0.018                          #Sdg exponential spectral slope of dg absorpt
 Sbp=0.15                            #Sbp power spectral slope of backscattering coefficient (1/nm) range: 0:0.5
 S_Bp=0.00                          #S_Bp power spectral slope of backscattering fraction (1/nm) range: -0.2:0.2
 
-ncolinput=20
+ncolinput=40
 nquadainput=40
 nquadoinput=60
 MAXMORDINPUT=20
