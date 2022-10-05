@@ -1,0 +1,22 @@
+[project]
+name = "zhai-rt"
+version = "0.1.0"
+dependencies = [
+    "numpy>=1.23",
+    "xarray>=2022.3",
+    "netcdf4>=1.5",
+]
+
+[project.scripts]
+rt-GSFC-LUT = "zhai_rt.rt_GSFC_LUT:main"
+
+[tool.setuptools]
+packages = ["zhai_rt"]
+package-dir = { zhai_rt = "scripts" }
+
+[build-system]
+requires = [
+    "setuptools>=65.0",
+    "scikit-build",
+]
+build-backend = "setuptools.build_meta"

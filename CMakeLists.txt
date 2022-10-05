@@ -2,10 +2,6 @@ cmake_minimum_required(VERSION 3.20)
 
 project(ZhaiRT LANGUAGES Fortran)
 
-# edit the install path to your preferred location
-set(CMAKE_INSTALL_PREFIX "$ENV{VIRTUAL_ENV}")
-# do not edit below
-
 # import CMake configuration for the HDF5 dependencies
 find_package(HDF5
     REQUIRED

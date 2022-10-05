@@ -1,7 +1,6 @@
 build/
-share/
-*.o
-*.mod
-*.exe
-*.out
-*.err
+_skbuild/
+dist/
+MANIFEST.in
+*.egg-info/
+__pycache__/

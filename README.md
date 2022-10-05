@@ -10,10 +10,22 @@ scattering matrix package, a new wrapper for calculating the aerosol reflectance
 table for atmospheric correction, and several scripts that help manage the
 workloads.
 
+## For Users (WIP)
+
+> What follows works on the OEL's Poseidon HPC at GSFC. It is not yet intended
+> for wider use.
+
+TODO: Explain `pip install git...`
+
+TODO: Explain how to configure inputs, and remove that topic from developers
+section.
+
+## For Developers (WIP)
+
 In the following sections we will compile the software, configure the input
 files, and run the code with the executable file.
 
-## Compile
+### Compile
 
 > What follows works on the OEL's Poseidon HPC at GSFC. A more general
 > `CMakeLists.txt` is needed for other platforms, primarily to handle the HDF5
@@ -44,7 +56,7 @@ $ make
 $ make install
 ```
 
-## Generate Configuration Files
+### Generate Configuration Files (deprecated)
 
 Here we will generate RT input files and run the RT code on Poseidon as well as
 generate outputs for each sensor.
@@ -86,7 +98,7 @@ directory.
 Then check run_luts.py to ensure the instrument label is setup correctly for
 MODISa, which is 2.
 
-## Calculate LUTs
+### Calculate LUTs (deprecated)
 
 Run the slurm job:
 
