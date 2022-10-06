@@ -1,135 +1,96 @@
-The following are instructions to compile and run the atmospheric correction look-up-tables on the Poseidon High-Performance Computer. The instructions are adapted from what was delivered by Pengwang Zhai and modified to run on Poseidon.
+# Atmospheric Correction (AC) Look Up Tables (LUT)
 
+The following are instructions to compile and run the atmospheric correction
+look-up-tables on the Poseidon High-Performance Computer. The instructions are
+adapted from what was delivered by Pengwang Zhai and modified to run on
+Poseidon.
 
+This radiative transfer package includes the PACE Simulator, a new aerosol
+scattering matrix package, a new wrapper for calculating the aerosol reflectance
+table for atmospheric correction, and several scripts that help manage the
+workloads.
 
-This radiative transfer package includes the PACE Simulator, a new aerosol scattering matrix package, a new wrapper for calculating the aerosol reflectance table for atmospheric correction, and several scripts that help manage the workloads.
+In the following sections we will compile the software, configure the input
+files, and run the code with the executable file.
 
+## Compile
 
+> What follows works on the OELs Poseidon HPC at GSFC. A more general
+> `CMakeLists.txt` is needed for other platforms, primarilly to handle the HDF5
+> dependency.
 
-Section 1: Compiling
+Configure your preferred intall location by editing the `CMakeLists.txt`
+file where indicated. The default is to put the binaries on a path in a Python
+virutal environment.
 
-Compile the package, configure the input files, and run the code with the executable file.
+To compile, open a terminal and change to the `zhai_rt` workin directory, which
+contains "CMakeLists.txt". Thence ...
 
-To compile, open a terminal and go to:
-
-
-
-Step 1: Setup the environment
-
-1)
-
-In the compile directory, change the following in Makefile
-
-DIRCore is the path for the core Fortran scripts
-
-DIRCore=../src/core/
-
-
-
-DIRMain is the path for the main monochromatic Fortran program
-
-DIRMain=../src/main_program_monochromatic/
-
-
-
-2)
-
-In the compile directory,  change the following in makefile_GSFC_AC_LUT
-
-HDF5DIR = /mnt/beegfs/poseidon/hpc/ocssw-develop/opt
-
-HDF5LIB=-I$(HDF5DIR)/include/shared/
-
-H5FC=$(HDF5DIR)/bin/h5fc
-
-LIBSHDF= $(HDF5LIB) -L$(HDF5DIR)/lib/ -lhdf5 -lhdf5_fortran
-
-
-
-DIRCore=../src/core/
-
-DIRMain=../src/AC_Aerosols_LUT/
-
-Step 2: Compile
-
-If the environment has been setup correctly, then you can compile:
-
-
-
-$ cd compile
-
+```
+$ mkdir build
+$ cd build
+$ cmake ../
+-- The Fortran compiler identification is GNU 8.5.0
+-- Detecting Fortran compiler ABI info
+-- Detecting Fortran compiler ABI info - done
+-- Check for working Fortran compiler: /usr/bin/f95 - skipped
+-- Checking whether /usr/bin/f95 supports Fortran 90
+-- Checking whether /usr/bin/f95 supports Fortran 90 - yes
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /home/icarroll/projects/nngc/zhai_rt/build2
 $ make
+...
+$ make install
+```
 
+## Generate Configuration Files
 
+Here we will generate RT input files and run the RT code on Poseidon as well as
+generate outputs for each sensor.
 
-If it compiles without issues, then we can compile the PACE simulator 
+We will use MODIS Aqua as an example.
 
-$ make -f makefile_PACE_Simulator_DoubleK
+You need to have the `RT` data available at path `PATH` in the examples below.
+Then within the `lut-gen` folder, ensure the following file contents:
 
+- Mie database for MODIS
+  ```
+  $ cat lut-gen/MODIS_MIE_DIR.txt
+  <PATH>/RT/pwzrt/Mie_Database/MODIS_Mie_Database
+  ```
+- pwzrt data
+  ```
+  $ cat lut-gen/auxiliary_directory
+  <PATH>/RT/pwzrt/Data/
+  ```
+- gas absorption tables
+  ```
+  $ cat lut-gen/gas_absorption_coeff_dir
+  <PATH>/RT/pwzrt/Gas_Absorption_Coefficients/
+  ```
 
+To generate RT input files for a sensor, run the `rt_GSFC_LUT_pre.py` script.
 
-Then compile the aerosol LUT code
-
-$ make -f makefile_GSFC_AC_LUT
-
-
-
-Then compile the aerosol LUT code
-
-$ make -f makefile_aerosol_phmx_cal
-
-
-
-	Step 2: Run tables
-
-
-
-	Here we will generate RT input files and run the RT code on Poseidon as well as generate outputs for each sensor.
-
-We will use MODIS Aqua as an example:
-
-
-
+```
 $ cd lut-gen
-
-$ vi MODIS_MIE_DIR.txt
-
-add the path to the Mie tables here: ../share/RT/pwzrt/Mie_Database/MODIS_Mie_Database
-
-$ vi auxiliary_directory
-
-Add in this file the path to Data
-
-../share/RT/pwzrt/Data
-
-$ vi gas_absorption_coeff_dir
-
-Add in this file the path to gas absorption tables
-
-../share/RT/pwzrt/Gas_Absorption_Coefficients
-
-To generate RT input files for a sensor:
-
-$python rt_GSFC_LUT_pre.py
-
-Select instrument: instrument_label=?, enter 1 for OCI, 2 for MODIS, 3 for SeaWifs, 4 for MISR: 
+$ python rt_GSFC_LUT_pre.py
+instrument_label=?, enter 1 for OCI, 2 for MODIS, 3 for SeaWifs, 4 for MISR:
+```
 
 Enter 2 for MODIS
 
+The Python script will create RT input files inside the `lut-gen/MODISa`
+directory.
 
+Then check run_luts.py to ensure the instrument label is setup correctly for
+MODISa, which is 2.
 
-Now the Python script will create RT input files inside the lut-gen directory inside MODISa.
-
-
-
-Then check run_luts.py to ensure the instrument label is setup correctly for MODISa, which is 2.
-
-
+## Calculate LUTs
 
 To run the slurm job, type the following:
 
-
-
+```
+$ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/mnt/beegfs/poseidon/hpc/ocssw-develop/opt/lib
 $ sbatch run_luts.sbatch
-
-
+```
