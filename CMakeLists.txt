@@ -15,9 +15,9 @@ find_package(HDF5
 )
 
 # build customizations
-set(CMAKE_INSTALL_RPATH "${CMAKE_PREFIX_PATH}/lib")
+SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH True)
 set(CMAKE_Fortran_FLAGS "-O3 ${CMAKE_Fortran_FLAGS}") # TODO confirm used
-set(CMAKE_Fortran_MODULE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Mod")
+set(CMAKE_Fortran_MODULE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/Mod")
 
 # rtsos_rao_dg static library
 add_library(rtsos_rao_dg
