@@ -15,15 +15,15 @@ files, and run the code with the executable file.
 
 ## Compile
 
-> What follows works on the OELs Poseidon HPC at GSFC. A more general
-> `CMakeLists.txt` is needed for other platforms, primarilly to handle the HDF5
+> What follows works on the OEL's Poseidon HPC at GSFC. A more general
+> `CMakeLists.txt` is needed for other platforms, primarily to handle the HDF5
 > dependency.
 
 Configure your preferred intall location by editing the `CMakeLists.txt`
 file where indicated. The default is to put the binaries on a path in a Python
 virutal environment.
 
-To compile, open a terminal and change to the `zhai_rt` workin directory, which
+To compile, open a terminal and change to the project root directory, which
 contains "CMakeLists.txt". Thence ...
 
 ```
@@ -51,7 +51,7 @@ generate outputs for each sensor.
 
 We will use MODIS Aqua as an example.
 
-You need to have the `RT` data available at path `PATH` in the examples below.
+You need to have the `RT` data available at `<PATH>` in the examples below.
 Then within the `lut-gen` folder, ensure the following file contents:
 
 - Mie database for MODIS
@@ -88,9 +88,8 @@ MODISa, which is 2.
 
 ## Calculate LUTs
 
-To run the slurm job, type the following:
+Run the slurm job:
 
 ```
-$ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/mnt/beegfs/poseidon/hpc/ocssw-develop/opt/lib
 $ sbatch run_luts.sbatch
 ```
