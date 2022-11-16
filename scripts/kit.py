@@ -164,6 +164,7 @@ class ZhaiRT:
                 for item in coordinates:
                     if item not in dataset.variables:
                         continue
+
                     # FIXME drop '_flattened' ?
                 dataset = xr.merge((dataset, coordinates))
 
