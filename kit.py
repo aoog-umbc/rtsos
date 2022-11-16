@@ -54,7 +54,7 @@ class ZhaiRT:
             program: str,
             params: tuple,
             defaults: xr.Dataset,
-            phony_dims: dict,
+            phony_dims: dict = None,
             ) -> None:
         self.program = program
         self.params = tuple(i.__name__ for i in params)
