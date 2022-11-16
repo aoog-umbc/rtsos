@@ -2,12 +2,13 @@ cmake_minimum_required(VERSION 3.20)
 
 project(ZhaiRT LANGUAGES Fortran)
 
-# import CMake configuration for the HDF5 dependencies
+# import CMake targets that satisfy the HDF5 dependency
 find_package(HDF5
     REQUIRED
     COMPONENTS Fortran
     CONFIG
-    PATHS "/mnt/beegfs/poseidon/hpc/ocssw-develop/opt"
+    PATHS
+      "/mnt/beegfs/poseidon/hpc/ocssw-develop/opt"
 )
 
 # build customizations
@@ -34,6 +35,7 @@ add_library(rtsos_rao_dg
 )
 target_link_libraries(rtsos_rao_dg
     hdf5_fortran-shared
+    # hdf5::hdf5_fortran-shared # TODO update hdf5 build to include namespace
 )
 
 # rtsos_rao_dg executable
@@ -50,6 +52,7 @@ add_library(pace_simulator
 )
 target_link_libraries(pace_simulator
     hdf5_fortran-shared
+    # hdf5::hdf5_fortran-shared # TODO update hdf5 build to include namespace
 )
 
 # rtsos_PACE_Simulator_DoubleK executable
@@ -58,7 +61,8 @@ add_executable(rtsos_PACE_Simulator_DoubleK.exe
     src/pace_simulator/main_PACE_Simulator_DoubleK.f90
 )
 target_link_libraries(rtsos_PACE_Simulator_DoubleK.exe
-    pace_simulator rtsos_rao_dg
+    pace_simulator
+    rtsos_rao_dg
 )
 
 # rtsos_GSFC_AC_LUT.exe executable
