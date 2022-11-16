@@ -16,7 +16,7 @@ def main(argv=None):
         P.wv_pace_ref: 873.0,
         P.tau_ref: [0.1, 0.4],
         P.height_particle: 3.0,
-        P.aerosol: [-1, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20],
+        P.aerosol: -1,
         P.aerofmf: 0.3,
         P.RH: [0.30, 0.50, 0.70, 0.75, 0.80, 0.85, 0.90, 0.95],
         P.ocean_case_select: 0,
@@ -82,9 +82,3 @@ def main(argv=None):
             },
         )
     return rt.execute(args)
-    # TODO
-    # phony_dim_1 wavelength
-    # phony_dim_2 atmospheric levels
-    # phony_dim_3 water dept levels
-    # phony_dim_5
-    # phony_dim_6 stokes components

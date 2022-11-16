@@ -36,13 +36,13 @@ def main(argv=None):
         P.df: [0, 1],
         P.I_SPHERICAL_SHELL_CORRECTION: 0,
         P.atmos_profile: 'afglus.dat',
-    }
+        }
 
     # calculate compound coordinate wndspd
     sigma = np.array(
         [0, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4],
         dtype=np.float32
-    )
+        )
     surface = values[P.I_SURFACE_ROUGHNESS_PARA]
     if surface == 1:
         wndspd = (np.square(sigma)-0.003)/0.00512
@@ -63,14 +63,14 @@ def main(argv=None):
             # TODO confirm theta0 value for diffuse transmission
             ~np.logical_and(dataset['df']==1, dataset['theta0']!=0.),
             drop=True,
-        )
+            )
         .reset_index('theta0-df')
-    )
+        )
 
     # run command line tool
     rt = ZhaiRT(
         'rtsos_GSFC_AC_LUT.exe',
         params=tuple(values),
         defaults=dataset,
-    )
+        )
     return rt.execute(args)
