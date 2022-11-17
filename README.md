@@ -1,29 +1,100 @@
-# Atmospheric Correction (AC) Look Up Tables (LUT)
+# Radiative Transfer Simulations
 
-The following are instructions to compile and run the atmospheric correction
-look-up-tables on the Poseidon High-Performance Computer. The instructions are
-adapted from what was delivered by Pengwang Zhai and modified to run on
-Poseidon.
+The `zhai-rt` package implements radiative transfer simulations for the purpose
+of creating look-up tables (LUTs) for atmospheric correction (AC) or simulating
+datasets from existing or planned sensors (e.g. PACE).
 
 This radiative transfer package includes the PACE Simulator, a new aerosol
 scattering matrix package, a new wrapper for calculating the aerosol reflectance
 table for atmospheric correction, and several scripts that help manage the
 workloads.
 
-## For Users (WIP)
+The following instructions apply for users and developers working on the
+Poseidon High-Performance Computing infrastructure.
+
+## Installation
 
 > What follows works on the OEL's Poseidon HPC at GSFC. It is not yet intended
 > for wider use.
 
-TODO: Explain `pip install git...`
+The `zhai-rt` package can be installed with `pip` from the git repository.
 
-TODO: Explain how to configure inputs, and remove that topic from developers
-section.
+```
+pip install git+https://oceandata.sci.gsfc.nasa.gov/rcs/rt/zhai_rt.git
+```
 
-## For Developers (WIP)
+Presently, the package is source-only, which means that compilation will happen
+locally during installation. The configuration is tested on poseidon, where the
+build dependencies (the compiler toolchain and HDF5 libraries) are available.
 
-In the following sections we will compile the software, configure the input
-files, and run the code with the executable file.
+## Auxilliary Data
+
+In addition to a parameter file, the RT simulations require auxilliary data
+that must be available at the given paths. Typically, you will include in your
+parameter file a path, say `pwzrt`, that is available from your project root
+with the following structure:
+
+```
+$ tree -L 1 pwzrt
+pwzrt/
+├── Data
+├── Gas_Absorption_Coefficients
+└── Mie_Database
+```
+
+## Quickstart
+
+The package adds two command line tools: `rt-GSFC-LUT` and `rt-PACE`, which
+accept the same command line arguments (see, for example `rt-PACE --help`).
+
+To run the PACE simulator over the parameters provided as defaults, only
+provide input and output paths.
+```
+$ rt-PACE data/defaults.nc data/outputs.nc
+```
+
+To run the PACE simulator over non-default parameters, you must provide a
+suitable NetCDF file.
+
+1. Generate a template for the parameter sets over which you wish to run the
+   PACE simulator.
+   ```
+   $ rt-PACE --pre data/defaults.nc
+   ```
+1. Using whatever tools you want, generate a new dataset (say `data/inputs.nc`)
+   with the same variables as the template. New dimensions are allowed, but
+   every coordinate variable must be either scalar or one dimensional.
+1. Choose serial or parallel execution:
+    - To run all parameterizations in one process, provide inputs and outputs file
+      paths.
+      ```
+      $ rt-PACE data/inputs.nc data/outputs.nc
+      ```
+    - To run subsets of the parameterizations as separate jobs, ad the
+      `--cluster` argument to indicate dimensions and indices over which to
+      slice the inputs.
+      ```
+      $ rt-PACE --cluster=RH:0,theta0:0:2 data/inputs.nc data/outputs.nc &
+      $ rt-PACE --cluster=RH:0,theta0:2:4 data/inputs.nc data/outputs.nc &
+      $ rt-PACE --cluster=RH:1,theta0:0:2 data/inputs.nc data/outputs.nc &
+      $ rt-PACE --cluster=RH:1,theta0:2:4 data/inputs.nc data/outputs.nc &
+      ```
+      Note that instead of writing to `data/outputs.nc`, a tree is written under
+      `data/outputs/` with results from each job. Once each jobs is complete, use
+      the `--post` argument to combine existing outputs into a single file.
+      ```
+      $ rt-PACE --post --cluster=RH,theta0:0:4 data/intputs.nc data/outputs.nc
+      ```
+
+## Repository Orientation for Developers
+
+The repository has three components.
+
+1. The `src` folder and `CMakeLists.txt` file create the Fortran binaries that
+   perform the RT simulations.
+1. The `scripts` folder and the `pyproject.toml` and `setup.py` files provide
+   a Python API for the Fortran binaries.
+1. Everything else is documentation.
 
 ### Compile
 
@@ -31,17 +102,13 @@ files, and run the code with the executable file.
 > `CMakeLists.txt` is needed for other platforms, primarily to handle the HDF5
 > dependency.
 
-Configure your preferred intall location by editing the `CMakeLists.txt`
-file where indicated. The default is to put the binaries on a path in a Python
-virutal environment.
-
-To compile, open a terminal and change to the project root directory, which
-contains "CMakeLists.txt". Thence ...
+The `zhai-rt` Python packaging uses `skbuild` during the installation process
+to compile the Fortran code. To compile this software manually, open a terminal
+and change to the project root directory, which contains "CMakeLists.txt".
+Thence ...
 
 ```
-$ mkdir build
-$ cd build
-$ cmake ../
+$ cmake -B build
 -- The Fortran compiler identification is GNU 8.5.0
 -- Detecting Fortran compiler ABI info
 -- Detecting Fortran compiler ABI info - done
@@ -50,58 +117,7 @@ $ cmake ../
 -- Checking whether /usr/bin/f95 supports Fortran 90 - yes
 -- Configuring done
 -- Generating done
--- Build files have been written to: /home/icarroll/projects/nngc/zhai_rt/build2
-$ make
-...
-$ make install
-```
-
-### Generate Configuration Files (deprecated)
-
-Here we will generate RT input files and run the RT code on Poseidon as well as
-generate outputs for each sensor.
-
-We will use MODIS Aqua as an example.
-
-You need to have the `RT` data available at `<PATH>` in the examples below.
-Then within the `lut-gen` folder, ensure the following file contents:
-
-- Mie database for MODIS
-  ```
-  $ cat lut-gen/MODIS_MIE_DIR.txt
-  <PATH>/RT/pwzrt/Mie_Database/MODIS_Mie_Database
-  ```
-- pwzrt data
-  ```
-  $ cat lut-gen/auxiliary_directory
-  <PATH>/RT/pwzrt/Data/
-  ```
-- gas absorption tables
-  ```
-  $ cat lut-gen/gas_absorption_coeff_dir
-  <PATH>/RT/pwzrt/Gas_Absorption_Coefficients/
-  ```
-
-To generate RT input files for a sensor, run the `rt_GSFC_LUT_pre.py` script.
-
-```
-$ cd lut-gen
-$ python rt_GSFC_LUT_pre.py
-instrument_label=?, enter 1 for OCI, 2 for MODIS, 3 for SeaWifs, 4 for MISR:
-```
-
-Enter 2 for MODIS
-
-The Python script will create RT input files inside the `lut-gen/MODISa`
-directory.
-
-Then check run_luts.py to ensure the instrument label is setup correctly for
-MODISa, which is 2.
-
-### Calculate LUTs (deprecated)
-
-Run the slurm job:
-
-```
-$ sbatch run_luts.sbatch
+-- Build files have been written to: <PWD>build
+$ cd build
+$ cmake --build .
 ```
