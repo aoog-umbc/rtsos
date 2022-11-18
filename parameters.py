@@ -19,7 +19,7 @@ class Attributes:
 
 @dataclass(slots=True)
 class Parameters:
-    '''Names and other documentation for parameters in RT codes'''
+    '''names and other documentation for parameters in RTM codes'''
     # The type hints are not to be interpreted as Numpy dtypes, which is instead
     # a member of `Attributes`; it's better to think of Parameters as the
     # metadata about parameters used in RT calculations. That means the defaults
@@ -33,7 +33,7 @@ class Parameters:
         range='0.0:2.5',
         dtype=np.float32,
         )
-    aerofmf: Attributes = Attributes(
+    AerosolFineModeFraction: Attributes = Attributes(
         name='Aerosol Fine Mode Fraction',
         description='only used when Aerosol Model is set to "-1"',
         dtype=np.float32,
@@ -72,7 +72,7 @@ class Parameters:
             'afglsw.dat, afglss.dat, or afglmw.dat'
             ),
         )
-    atmos_zero: Attributes = Attributes(
+    ATMOS_ZERO: Attributes = Attributes(
         dtype=np.int16,
         )
     aux_dir: Attributes = Attributes(
@@ -93,7 +93,7 @@ class Parameters:
     chla: Attributes = Attributes(
         dtype=np.float32,
         )
-    chla_homogeneity: Attributes = Attributes(
+    CHLA_HOMOGENEITY: Attributes = Attributes(
         dtype=np.int16,
         )
     df: Attributes = Attributes(
@@ -146,18 +146,18 @@ class Parameters:
     mie_database_dir: Attributes = Attributes(
         description='path to directory containing Mie database'
         )
-    monochromatic_flag: Attributes = Attributes(
+    MONOCHROMATIC_FLAG: Attributes = Attributes(
         dtype=np.int16,
         )
     ncolinput: Attributes = Attributes(
         dtype=np.int16,
         )
-    NO2_COLUMN: Attributes = Attributes(
+    NO2_COLUMN_DobsonUnit: Attributes = Attributes(
         description='no2 column amount',
         units='Dobson Unit',
         dtype=np.float32,
         )
-    npq_flag: Attributes = Attributes(
+    NonPhotochemicalQuenching_FLAG: Attributes = Attributes(
         dtype=np.int16,
         )
     nquadainput: Attributes = Attributes(
@@ -172,7 +172,7 @@ class Parameters:
     NTHETAV: Attributes = Attributes(
         dtype=np.int16,
         )
-    ocean_case_select: Attributes = Attributes(
+    OCEAN_CASE_SELECT: Attributes = Attributes(
         description=(
             '-1 land, '
             '0 atmosphere only, '
@@ -182,19 +182,19 @@ class Parameters:
             ),
         dtype=np.int16,
         )
-    ocean_fcdom_flag: Attributes = Attributes(
+    OCEAN_FCDOM_FLAG: Attributes = Attributes(
         dtype=np.int16,
         )
-    ocean_fchla_flag: Attributes = Attributes(
+    OCEAN_FCHLA_FLAG: Attributes = Attributes(
         dtype=np.int16,
         )
-    ocean_phmx_one: Attributes = Attributes(
+    OCEAN_PHMX_ONE: Attributes = Attributes(
         dtype=np.int16,
         )
-    ocean_raman_flag: Attributes = Attributes(
+    OCEAN_RAMAN_FLAG: Attributes = Attributes(
         dtype=np.int16,
         )
-    OZONE_COLUMN: Attributes = Attributes(
+    OZONE_COLUMN_DobsonUnit: Attributes = Attributes(
         description='ozone in the whole column',
         units='Dobson Unit',
         source='US standard atmosphere 1976',
@@ -206,7 +206,7 @@ class Parameters:
     phytoplankton_spectral_slope: Attributes = Attributes(
         dtype=np.float32,
         )
-    pressure_surface: Attributes = Attributes(
+    Pressure_Surface_mb: Attributes = Attributes(
         name='surface pressure',
         units='mb',
         dtype=np.float32,
@@ -215,7 +215,7 @@ class Parameters:
         description='pseudospherical flag',
         dtype=np.int16,
         )
-    RH: Attributes = Attributes(
+    Relative_Humidity: Attributes = Attributes(
         name='Relative Humidity',
         dtype=np.float32,
         )
@@ -246,7 +246,7 @@ class Parameters:
     sediment_spectral_slope: Attributes = Attributes(
         dtype=np.float32,
         )
-    SUNGLINT_INPUT: Attributes = Attributes(
+    SUN_GLINT_FLAG: Attributes = Attributes(
         description=(
             '0 include sun glint, '
             '1 no sun glint '
@@ -279,7 +279,7 @@ class Parameters:
     wv_pace_ref: Attributes = Attributes(
         dtype=np.float32,
         )
-    wv_seg_flag: Attributes = Attributes(
+    WAVEBAND_SEG_FLAG: Attributes = Attributes(
         description=(
             '0: all; '
             '1: seg1+3only; '
