@@ -11,7 +11,7 @@ dependencies = [
 
 [project.scripts]
 rt-GSFC-LUT = "zhai_rt.rt_GSFC_LUT:main"
-rt-PACE = "zhai_rt.pace_simulator:main"
+rt-PACE = "zhai_rt.rt_PACE:main"
 
 [tool.setuptools]
 packages = ["zhai_rt"]

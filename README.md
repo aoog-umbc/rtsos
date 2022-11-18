@@ -70,7 +70,7 @@ suitable NetCDF file.
       ```
       $ rt-PACE data/inputs.nc data/outputs.nc
       ```
-    - To run subsets of the parameterizations as separate jobs, ad the
+    - To run subsets of the parameterizations as separate jobs, add the
       `--cluster` argument to indicate dimensions and indices over which to
       slice the inputs.
       ```

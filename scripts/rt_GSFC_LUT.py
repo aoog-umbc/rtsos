@@ -21,16 +21,16 @@ def main(argv=None):
         # P.mie_database_dir: 'data/RT/pwzrt/Mie_Database/Misr_Mie_Database',
         P.aerosol: range(11, 21),
         # intentionly set bizarre aerofms as we don't need it in this work
-        P.aerofmf: -1.0E12,
-        P.RH: [0.3, 0.5, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95],
+        P.AerosolFineModeFraction: -1.0E12,
+        P.Relative_Humidity: [0.3, 0.5, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95],
         # wndspd will be calculated
         P.wndspd: None,
         # theta0 will be set to vary only when `df == 0`
         P.theta0: np.arange(0, 90, 2),
         P.tau865: [0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.4, 0.5],
-        P.pressure_surface: 1013,
+        P.Pressure_Surface_mb: 1013,
         P.H2O_COLUMN: 1.4387,
-        P.OZONE_COLUMN: 345.66,
+        P.OZONE_COLUMN_DobsonUnit: 345.66,
         P.iwhitecap: 0,
         P.I_SURFACE_ROUGHNESS_PARA: 2,
         P.df: [0, 1],
