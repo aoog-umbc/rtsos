@@ -76,7 +76,7 @@ class ZhaiRT:
 
     def execute(self, args: Namespace) -> None:
         # with the `--pre` argument, write inputs and return
-        if not args.inputs.exists():
+        if args.pre or not args.inputs.exists():
             # build coordinates dataset and write it to netCDF
             path = args.inputs
             path.parent.mkdir(parents=True, exist_ok=True)
