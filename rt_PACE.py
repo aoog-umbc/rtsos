@@ -8,9 +8,13 @@ def main(argv=None):
 
     # values to write, in the order below, to the RT input file
     values = {
+        P.NWV: 239,
+        P.WAVELENGTH_MICRON_REF: 0.870,
+        P.CFILE_INSTRUMENT: 'afrt_input_oci.txt',
         P.aux_dir: 'data/RT/pwzrt/Data',
         P.gas_abs_coef_dir: 'data/RT/pwzrt/Gas_Absorption_Coefficients',
-        P.mie_database_dir: 'data/RT/pwzrt/Mie_Database/OCI_Mie_Database',
+        P.mie_database_dir: '',
+        P.MIE_TABLE_CAL: 2,
         P.wndspd: 5.0,
         P.theta0: [45.0, 85.0],
         P.wv_pace_ref: 873.0,
