@@ -76,12 +76,13 @@ class ZhaiRT:
 
     def execute(self, args: Namespace) -> None:
         # with the `--pre` argument, write inputs and return
-        if args.pre:
+        if not args.inputs.exists():
             # build coordinates dataset and write it to netCDF
             path = args.inputs
             path.parent.mkdir(parents=True, exist_ok=True)
             self.defaults.to_netcdf(path=path)
-            return
+            if args.pre:
+                return
         # read existing inputs
         inputs = xr.open_dataset(args.inputs)
         # with the `--cluster` argument, prepare to process inputs/outputs
@@ -178,7 +179,8 @@ class ZhaiRT:
                 for item in one_input.coords:
                     if item not in one_output:
                         continue
-                    if not (one_output[item] == one_input[item]).all():
+                    # TODO issue zhai-rt#2
+                    if (not (one_output[item] == one_input[item]).all()) and (item not in ['OCEAN_RAMAN_FLAG', 'OCEAN_FCHLA_FLAG', 'OCEAN_FCDOM_FLAG']):
                         raise ValueError('Inputs/outputs are not as expected.')
                     # TODO Improve parameter name matching to catch duplicates
                     #      e.g. ATMOS_ZERO
