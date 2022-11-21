@@ -1,0 +1,232 @@
+%%%%%%%%%%%%%%%%%%%%%%% preamble %%%%%%%%%%%%%%%%%%%%%%%%%%%
+\documentclass[10pt,letterpaper]{article}
+\usepackage{opex3}
+\usepackage{amsmath}
+\usepackage{subfigure}
+
+ %\usepackage{ae} %%for Computer Modern fonts
+
+%%%%%%%%%%%%%%%%%%%%%%% begin %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{document}
+
+%%%%%%%%%%%%%%%%%% title page information %%%%%%%%%%%%%%%%%%
+\title{Input and Out Files of the SOS Code}
+
+\author{Peng-Wang Zhai}
+
+\address{Physics Department, UMBC}
+%\footnotemark[5]SSAI MS 475 NASA Langley Research Center, Hampton, VA 23681-2199}
+
+\email{pwzhai@umbc.edu} %% email address is required
+
+% \homepage{http:...} %% author's URL, if desired
+
+%%%%%%%%%%%%%%%%%%% abstract and OCIS codes %%%%%%%%%%%%%%%%
+%% [use \begin{abstract*}...\end{abstract*} if exempt from copyright]
+
+\begin{abstract}
+The input and output files of the SOS code are described this file
+\end{abstract}
+
+
+\section{Files contained in the package}
+In the main directory, there are a few key directories, including \verb"SOSDIR/SOS_Callable/src/", \verb"SOSDIR/SOS_Callable/compile/", and \verb"SOSDIR/SOS_Callable/test/". The string \verb"SOSDIR" is the directory where the radiative transfer package is in. The src directory including all the source code, the compile directory contains the Makefiles, and the test directory are intent to be used as running programs. The basis of all package is \verb"rtsos_rao_dg.f90", which performs monochromatic radiative transfer simulations. All inelastic scattering builds upon that.
+
+\section{Input files of monochromatic simulation}
+The input files are: \verb"sosi.amu", \verb"sosi.dat",  and the Mie input files for each medium. To run the monochromatic radiative transfer simulation, do the following:
+
+\begin{verbatim}
+cd SOSDIR/compile
+make
+cp rtsos_rao_dg.exe ../test/monochromatic/
+cd ../test/monochromatic/
+rtsos_rao_dg.exe inputfile outputfile
+\end{verbatim}
+
+where inputfile is a copy of sosi.dat explained in this document and outputfile is the file name for the output file.
+
+\section{Angle file}
+\verb"sosi.amu" specifies the angle related quantities used by the SOS code.  An example of the file is:
+
+\begin{verbatim}
+1
+120
+10  4
+0.0
+20.
+40.
+60.
+80.
+100.
+120.
+140.
+160.
+180. 
+0
+60.
+120.
+180
+\end{verbatim}
+
+The first line is the number $N_{st}$ of $\theta_{s}$ angles for the solar incident radiation.  The second line to the ${(2+N_{st}-1)}^{th}$ line specify the incident solar angles $\theta_{s}$ at which the radiation calculation is needed.  Each line contains one solar $\theta_{s}$ angle only, with the unit of degrees.  In the example, thetas=120 deg. After the solar zenith angle, following line has two numbers: they are the number of viewing zenith and azimuth angles, respectively.  In the example, the number of viewing zenith angle is Nzv=10 and the number of azimuthal angle is Nphi=4.  Following the number will be Nzv lines which specify the viewing zenith angles.  After viewing zenith angle, it will be Nphi lines which specify a set of azimuthal angles. In the example, the SOS code will calculate a set of viewing zenith angle of 0, 20, ..., 180.  The viewing azimuthal angles are 0, 60, 120 and 180.
+
+\section{Input file sosi.dat}
+\verb"sosi.dat" specifies the system configuration.  Table \ref{tab:sosi} is an example input file.
+\begin{table}
+\caption{Example input file sosi.dat}
+\vspace{0.2 in}
+\centering
+\begin{tabular}{llllllll}
+&-1000 &  0.0  & 0.0   &  0.0   &  0.0    & 0.0   & 0.0   \\
+&1        &  0.1  & 1.0   &  0.0   &  0.0    & 0.0   & 0.0   \\
+&-1000 &  0.0  & 0.0   &  0.0   &  0.0    & 0.0   & 0.0   \\
+&-100   &  7.0  & 1.34 &  0.0   &   0.0   & 0.0   & 0.0   \\
+&-1000 &  0.0  & 0.0   &   0.0  &  0.0    & 0.0   & 0.0   \\
+&2        &  0.1  & 1.0   & 412.0& 215.0 & 0.0   & 0.0   \\
+&-1000 &  0.0  & 0.0   &   0.0  & 0.0     & 0.0   & 0.0   \\
+&-200   &  1.0  & 1.0   &   1.5  &  0.0    & 0.0   & 0.0   \\
+&40      &  30   & 60    &          &           &         &         \\
+&2        &  30     & 10      &          &           &         &         \\
+&ray.pmtx        &        &           & &     &     &               \\
+&fineaerosol.pmtx    &       &    & &         &      &         \\
+\end{tabular}
+\label{tab:sosi}
+\end{table}
+
+There are 12 lines in the example input file.  From the first line to 9th line, each line contains 7 numbers.  The first number is called IPT in the code, which tells what this line is (detector, medium, surface, etc.).  There are four types of objects you can specify through IPT:  Detector, Atmosphere or Ocean scattering layers, Ocean interface, and the Lambertian/(polarized BRDF) bottom.  Table \ref{tab:IPT} shows the meanings of different IPT values:
+
+\begin{table}
+\caption{IPT and its meaning}
+\vspace{0.2 in}
+\centering
+\begin{tabular}{ll}
+IPT=-1000 & Detector \\
+IPT=-100   & Ocean interface\\
+IPT=-101   & Ocean interface as the lower bottom (no ocean medium)\\
+IPT=-200   & Lambertian/flat surface mixed reflection bottom   \\
+IPT=-201   & polarized reflection bottom  \\
+IPT=$>$0  & Atmosphere or Ocean scattering medium
+\end{tabular}
+\label{tab:IPT}
+\end{table}
+
+In this input file, a default coordinate system has been assumed.  The first Atmosphere scattering medium is located at the top of the atmosphere.  The scattering medium line to the line of IPT=-100 (or -200, or -201, or -101) specify the atmosphere configuration.  The line just after the line of IPT=-100 to the line of IPT=-200 configure the oceanic medium.  IPT=-200 means a mixture of Lambertian and flat reflecting surface.  No more atmosphere and ocean medium configuration is allowed beyond the line of IPT=-200 (-101, or -201) because no medium is beyond the bottom.
+
+Including the IPT, there are 7 numbers at each line.  The following proctor is used for interpreting the inputs:
+
+\begin{table}
+\caption{Inputfile fields}
+\vspace{0.2 in}
+\centering
+\begin{tabular}{llllllll}
+&Detector & BN&BN&BN& BN&BN&BN \\
+&IPT  &       TAU&LBDOM&wavelength&Temperature&EFLRSC&ALH \\
+&WaterInterface & WindSpeed & re(mwater)& im(mwater)&GlintFlag&RSR0P& BN \\
+&Lambertian & albedo& flam&re(mbottom)&im(mbottom)&BN&BN \\
+&polarized bottom& pBRDFa&pBRDFk&pBRDFb&pBRDFe&NMBRE&NMBIM
+\end{tabular}
+\label{tab:InputFile}
+\end{table}
+where BN means Blank Number, which ignored by the program; TAU is the optical depth of that layer; LBDOM is the single scattering albedo of that layer; wavelength is in nanometers; Temperature is in Kelvin, EFLRSC is internally used by the inelastic scattering option (by default it could be set to 0); ALH is the atmospheric layer height. ALH is only useful for calculating pseudospherical shell. To perform pseudospherical shell calculation, use the following in your main program:
+
+\verb!USE RTUTILITY, ONLY : PSEUDO_SPHERICAL_SHELL!
+.
+.
+.
+
+\verb!PSEUDO_SPHERICAL_SHELL=.true.!
+
+And set ALH in the atmospheric layers properly.
+
+WindSpeed is the wind speed (m/s); re(mwater) and im(mwater) are the real and imaginary parts of the water refractive index; GlintFlag = 0 includs sun glints while  GlintFlag = 1 does NOT include sun glint; RSR0P is the remote sensing reflectance just above the ocean surface. RSR0P is a user supplied value to calculate how Remote Sensing Reflectance just above ocean water propagate to the sensor level. For normal radiative transfer simulation, RSR0P should be zero by default. RSR0P $>$ 0 should only be used with IPT=-101. 
+For Lambertian surface, the value of  albedo tells the lambertian surface reflection albedo;  flam is the fraction of the surface which is lambertian reflection; The values of re(mbottom) and im(mbottom) are the real and imaginary refractive index of the surface which are used to determine Fresnel reflection when flam is less than 1. 
+
+Once the SOS code reads an IPT of in (-200 -101, -201), it won't accept the four object specification, because there should be nothing below bottom.  The line following the line of IPT=(-200 -101, -201) contains three integers: NCOL, NQUADA, and NQUADO.  NCOL is the number of scattering orders to be performed.  NCOL=10 normally gives fairly good precision. NQUADA and NQUADO are the quadrature numbers needed for the atmosphere and ocean source function integration, respectively.  For the single quadrature code, NQUADO will be ignored.  The next line contains three integers: NUMMIE, MAXLORD, and MAXMORD.  NUMMIE is the number of Mie particle files.  MAXLORD is the maximum L order used to expand the scattering matrices in terms of the Wigner d functions.  MAXMORD is the maximum number of Fourier series order.  There are NUMMIE lines following this line.  Each line specifies the file names of the input files.  The sequence of the file tells the SOS code which IPT this file is associated with.
+
+The example input file specifies the following system with each line:
+\begin{itemize}{}
+\item Line 1: A detector is placed at the top of the atmosphere.
+\item Line 2: An atmospheric layer, with an optical thickness of 0.1, and single scattering albedo of 1, IPT=1
+\item Line 3: A second detector is placed at the bottom of the atmosphere. 
+\item Line 4:  An ocean interface is placed below the atmosphere at the optical depth of 0.1, with the wind speed of 7 m/s, water refractive index is (1.34, 0), sun glint is turned on.
+\item Line 5: A detector is placed at the top of the ocean (just below the ocean interface).
+\item Line 6: An ocean layer is placed below the interface, with optical depth of 0.1, single scattering albedo of 1.0, IPT = 2. Wavelength is 412 nm and temperature is 215 K.
+\item Line 7: A detector is placed at the bottom of the ocean. 
+\item Line 8: A Lambertian bottom is placed at the bottom of the ocean, with reflection albedo of 1.0. The fraction of lambertian reflection is 1.
+\item Line 9:  The total number of scattering is 40, with NQUADA=30, NQUADO=60. 
+\item Line 10: There are two Mie input files, the maximum L order is 30, and the order of Fourier series is 10.
+\item Line 11:  IPT=1   ``ray.pmtx''                will be used
+\item Line 12: IPT=2   ``fineaerosol.pmtx''    will be used
+\end{itemize}
+
+Please note that the package can also calculate polarized radiative transfer in an atmosphere bounded by a Lambertian surface.  To do this, simply do not include the ocean line in the input file (IPT=-100).
+
+\section{A few nots}
+
+ If wind speed is smaller than 0.5 m/s, the code will assume the ocean surface is flat.  Otherwise, the random ocean wave surface will be used.  The wave slope distribution will be Cox \& Munk (1954).
+
+Three truncation scheme are used: delta fit, delta m, and delta m+ are now built in in the package and the users can select from one of such truncation techniques.
+
+White cap parameterization are implemented.  Physically this means that the code can handle a mixture of lambertian reflector and random rough surfaces.
+
+The interpolation schemes are changed from previous version.  The new scheme uses the similar techniques as in: 
+Banghua Yan, Knut Stamnes, Fast yet accurate computation of the complete radiance distribution in the coupled atmosphere–ocean system, Journal of Quantitative Spectroscopy and Radiative Transfer, Volume 76, Issue 2, 15 January 2003, Pages 207-223, ISSN 0022-4073, 10.1016/S0022-4073(02)00054-7.
+(http://www.sciencedirect.com/science/article/pii/S0022407302000547)
+
+New exact analytical treatment of single scattering. This feature have slowed down the code a bit but it is important for water clouds simulations.
+
+
+\section{ Mie input files}
+The SOS code needs users provide the Mie particle files before any simulation.  Please refer to our Optics Express (OE) paper for details.  The SOS package comes with the Rayleigh examples: \verb"ray.pmtx"
+
+\section{Important variables in the code}
+The variables listed below are important.  Users may adjust them to do sensitivity studies:
+
+``DELTATAUA''  and ``DELTATAUO'' are the non dimensional step sizes to do optical depth integration in atmosphere and ocean respectively.  The typical value is 0.2 for these two variables.  However, they have to be at most half of the optical depth of a homogeneous layer.  For example, if the optical depth of a homogeneous atmosphere is 0.1, ``DELTATAUA'' has to be 0.05 at most.  If benchmark values are wanted, use `` DELTATAUA=DELTATAUO=0.01.''
+
+ESUN(1:4) is a column vector which specifies the irradiance Stokes vector of the solar incident source.  Set ``ESUN(1)'' to 1 or $\pi$ according to your normalization convention.
+
+``{\bf \verb+WLR_FLAG+}'' is a logical variable.  If ``\verb+WLR_FLAG=.true.+'', water leaving radiance vectors will be calculated for detectors in the atmosphere.
+``\verb+WLR_FLAG=.false.+'' the total radiance vectors will be calculated for specified detectors.
+
+``\verb+TRUC_FLAG+'' is a logical variable. If  ``\verb+TRUC_FLAG=.true.+'', the delta-fit will be used to truncate the phase function and other scattering elements.  The truncation factor f will be read in from the incident file and renormalize the optical depth and single scattering albedo.  Otherwise, set it to .false.  This variable is recommended to set to .true. always.
+
+LINEXP is a logical variable.  If it is set to be ``.true.'',the linear-exponential approximation will be used.  Otherwise, the linear approximation will be used.  The linear-exponential approximation will be always better than the linear approximation.
+
+GEOSR is a logical variable.  ''GEOSR=.true.''  the geometric series approximation  will be used.
+
+SCL is a logical variable.  If ``SCL=.true.'' the code will produce scalar radiance output for detectors. ``SCL=.false.'', vector radiances will be calculated.
+
+\verb+Mishchenko_Sign+: a logical variable.  If ".true.", the code will use Mishchenko's convention for phase matrices expasion.  The reference is:
+
+
+{\it M. I. Mishchenko, L. D. Travis, and A. A. Lacis, Scattering, Absorption, and Emission of Light by Small Particles
+(Cambridge University Press, Cambridge 2002)), Page 103--104}.
+
+
+If ".false.", the code will use Siewert's convention:
+
+{\it C. E. Siewert, ``On the phase matrix basic to the scattering of polarized light,'' Astron. Astrophys. 109, 195–200 (1982)}.
+
+Please refer to Eqs. (A-12) in the following paper for details:
+
+{\it Peng-Wang Zhai, Yongxiang Hu, Charles R. Trepte, and Patricia L. Lucker, ``A vector radiative transfer model for coupled atmosphere and ocean systems based on successive order of scattering method,'' Opt. Express 17, 2057-2079 (2009) 
+http://www.opticsinfobase.org/oe/abstract.cfm?URI=oe-17-4-2057}
+
+new parameter: DELTAM. 
+! DELTAM = 0 USE DELTA M FIT FOR THE PHASE MATRIX truncation
+!          1 USE DELTA M + FIT
+!          2 USE DELTA FIT
+
+\section{Example}
+The package contains an input file for a Rayleigh case: \verb"sosi.Coulson_Example".  If you do
+
+\verb"cp sosi.Coulson_Example sosi.dat"
+
+then run the code, the output file should be similar to 
+
+\verb"Coulson_Example_Output"
+ 
+\section{Output file}
+Data in this file are pretty much self-explained.  The top part is the header, which shows the various parameters used in the calculation.  The main body is the Stokes parameters I, Q, U, and V, as functions of viewing angles specified by the zenith angle Theta and azimuthal angle Phi.  TAUDETA shows the optical depth of the detector in atmosphere and TAUDETO shows the optical depth of the detector in ocean.
+\end{document}

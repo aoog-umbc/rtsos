@@ -574,8 +574,11 @@ C N .LT. NB, so store B(N) and set higher orders to zero.
 C-------------------------------------------------------------------
                         B(N) = TEMPA
                         NEND = -NEND
+!                        DO 130 L = 1, NEND
+!  130                      B(N+L) = ZERO
                         DO 130 L = 1, NEND
-  130                      B(N+L) = ZERO
+                          B(N+L) = ZERO
+  130                   CONTINUE
                      ELSE
                         IF (NEND .GT. 0) THEN
 C-------------------------------------------------------------------
@@ -1439,16 +1442,22 @@ C----------------------------------------------------------------------
 C  2.5 .LE. ABS(X) .LT. 3.5 
 C----------------------------------------------------------------------
                   FRAC = ZERO
+!                  DO 200 I = 1, 9
+!  200                FRAC = Q2(I) / (P2(I) + Y + FRAC)
                   DO 200 I = 1, 9
-  200                FRAC = Q2(I) / (P2(I) + Y + FRAC)
+                     FRAC = Q2(I) / (P2(I) + Y + FRAC)
+ 200              CONTINUE
                   DAW = (P2(10) + FRAC) / X
                ELSE IF (Y .LT. TWO5) THEN
 C----------------------------------------------------------------------
 C  3.5 .LE. ABS(X) .LT. 5.0 
 C---------------------------------------------------------------------
                   FRAC = ZERO
+!                  DO 300 I = 1, 9
+!  300                FRAC = Q3(I) / (P3(I) + Y + FRAC)
                   DO 300 I = 1, 9
-  300                FRAC = Q3(I) / (P3(I) + Y + FRAC)
+                     FRAC = Q3(I) / (P3(I) + Y + FRAC)
+ 300              CONTINUE
                   DAW = (P3(10) + FRAC) / X
                ELSE
 C----------------------------------------------------------------------
@@ -1456,8 +1465,11 @@ C  5.0 .LE. ABS(X) .LE. XLARGE
 C------------------------------------------------------------------
                   W2 = ONE / X / X
                   FRAC = ZERO
+!                  DO 400 I = 1, 9
+!  400                FRAC = Q4(I) / (P4(I) + Y + FRAC)
                   DO 400 I = 1, 9
-  400                FRAC = Q4(I) / (P4(I) + Y + FRAC)
+                      FRAC = Q4(I) / (P4(I) + Y + FRAC)
+  400             CONTINUE
                   FRAC = P4(10) + FRAC
                   DAW = (HALF + HALF * W2 * FRAC) / X
             END IF

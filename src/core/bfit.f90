@@ -103,7 +103,7 @@ END MODULE BFIT_PARAMETERS
        deltamlocal=0
     endif
 !!   renormalize
-    if (abs(pmom(0)-1.0d0) .lt.0.0001) then
+    if (abs(pmom(0)-1.0d0) .lt.0.001) then
 !        write(*,*) 'pmom(0)=', pmom(0)
         do i=1,NQUAD_TOTAL
           y(i)=y(i)/pmom(0)
@@ -116,6 +116,7 @@ END MODULE BFIT_PARAMETERS
        write(*,*) 'pmom(0)=', pmom(0)
        write(*,*) 'warning pmom(0) is not equal to 1'
        write(*,*) 'double check your phase function input'
+       if (abs(pmom(0)-1.0d0) .gt.0.05) stop
 !       write(*,*) 'Guessing it is due to infinite forward scattering peak'
 !       write(*,*) 'Delta fit is used for this case'
 !       deltamlocal=2
@@ -319,7 +320,7 @@ enddo
 	  enddo
 !	  tmp=ABSDIFF(nstr,y,ysig,apl,a)
 !	  write(*,*)intflag,'th call error and cor=',tmp,cor
-      return
+!      return
     endif
 deallocate(pl,dl00,dl20,dl2p2,dl2n2,b,a,apl,u)
 end
