@@ -36,6 +36,7 @@ class Parameters:
     AerosolFineModeFraction: Attributes = Attributes(
         name='Aerosol Fine Mode Fraction',
         description='only used when Aerosol Model is set to "-1"',
+        range='0:1',
         dtype=np.float32,
         )
     aerosol: Attributes = Attributes(
@@ -91,6 +92,8 @@ class Parameters:
         dtype=np.float32,
         )
     chla: Attributes = Attributes(
+        range='0.04:50',
+        units='mg/m3',
         dtype=np.float32,
         )
     CHLA_HOMOGENEITY: Attributes = Attributes(
@@ -113,10 +116,12 @@ class Parameters:
         description='water vapor in the whole column',
         units='cm',
         source='US standard atmosphere 1976',
+        range='0.01:15',
         dtype=np.float32,
         )
     height_particle: Attributes = Attributes(
         description='scatteror height',
+        range='1:10',
         dtype=np.float32,
         )
     hyspectral_flag: Attributes = Attributes(
@@ -198,6 +203,7 @@ class Parameters:
         description='ozone in the whole column',
         units='Dobson Unit',
         source='US standard atmosphere 1976',
+        range='250:500',
         dtype=np.float32,
         )
     phytoplankton_index_refraction: Attributes = Attributes(
@@ -209,6 +215,7 @@ class Parameters:
     Pressure_Surface_mb: Attributes = Attributes(
         name='surface pressure',
         units='mb',
+        range='850:1050',
         dtype=np.float32,
         )
     pss_flag: Attributes = Attributes(
@@ -217,6 +224,7 @@ class Parameters:
         )
     Relative_Humidity: Attributes = Attributes(
         name='Relative Humidity',
+        range='0.3:0.95',
         dtype=np.float32,
         )
     S_Bp: Attributes = Attributes(
@@ -238,6 +246,7 @@ class Parameters:
         dtype=np.float32,
         )
     sediment_concentration: Attributes = Attributes(
+        range='0:30',
         dtype=np.float32,
         )
     sediment_index_refraction: Attributes = Attributes(
@@ -255,12 +264,14 @@ class Parameters:
         )
     theta0: Attributes = Attributes(
         units='degrees',
+        range='0:80',
         dtype=np.float32,
         )
     tau865: Attributes = Attributes(
         dtype=np.float32,
         )
     tau_ref: Attributes = Attributes(
+        range='0.01:0.4',
         dtype=np.float32,
         )
     wndspd: Attributes = Attributes(
@@ -271,6 +282,7 @@ class Parameters:
             'else if `I_SURFACE_ROUGHNESS_PARA == 2` from Gordon & '
             'Wang 1992'
             ),
+        range='0.1:15',
         dtype=np.float32,
         )
     water_depth_max: Attributes = Attributes(
