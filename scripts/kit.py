@@ -76,7 +76,7 @@ class ZhaiRT:
 
     def execute(self, args: Namespace) -> None:
         # with the `--pre` argument, write inputs and return
-        if not args.inputs.exists():
+        if args.pre or not args.inputs.exists():
             # build coordinates dataset and write it to netCDF
             path = args.inputs
             path.parent.mkdir(parents=True, exist_ok=True)
@@ -128,33 +128,6 @@ class ZhaiRT:
             tmpdir = Path(tmpdir)
             outdir = outputs.parent
             outdir.mkdir(parents=True, exist_ok=True)
-            # TODO all these accessory files to be read from infile
-            with (tmpdir / 'auxiliary_directory').open('w') as stream:
-                path = Path(str(inputs['aux_dir'].data))
-                inputs = inputs.drop_vars('aux_dir')
-                stream.write(f'{path.absolute()}{os.sep}')
-            with (tmpdir / 'gas_absorption_coeff_dir').open('w') as stream:
-                path = Path(str(inputs['gas_abs_coef_dir'].data))
-                inputs = inputs.drop_vars('gas_abs_coef_dir')
-                stream.write(f'{path.absolute()}{os.sep}')
-            try:
-                instrument = inputs['instrument']
-            except KeyError:
-                instrument = 1
-            if instrument == 1:
-                filename = 'OCI_MIE_DIR.txt'
-            elif instrument == 2:
-                filename = 'MODIS_MIE_DIR.txt'
-            elif instrument == 3:
-                filename = 'SEAWIFS_MIE_DIR.txt'
-            elif instrument == 4:
-                filename = 'MISR_MIE_DIR.txt'
-            else:
-                raise
-            with (tmpdir / filename).open('w') as stream:
-                path = Path(str(inputs['mie_database_dir'].data))
-                inputs = inputs.drop_vars('mie_database_dir')
-                stream.write(f'{path.absolute()}{os.sep}')
             # iterate over all variable combinations
             datasets = []
             groups = xr.DataArray(coords=inputs.coords)
@@ -196,8 +169,6 @@ class ZhaiRT:
         '''Write parameters to a text file, and return its path.'''
         lines = []
         for item in self.params:
-            # TODO all these accessory files to be read from infile
-            if item.endswith('_dir'): continue
             param = dataset[item]
             name = param.attrs.get('name', item)
             desc = param.attrs.get('description', '')
