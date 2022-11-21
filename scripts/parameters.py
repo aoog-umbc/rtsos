@@ -90,6 +90,9 @@ class Parameters:
         range='0.0:0.05',
         dtype=np.float32,
         )
+    CFILE_INSTRUMENT: Attributes = Attributes(
+        description='name of AFRT file to use',
+    )
     chla: Attributes = Attributes(
         dtype=np.float32,
         )
@@ -131,11 +134,6 @@ class Parameters:
             ),
         dtype=np.int16,
         )
-    # TODO replace instrument with additional parameters
-    instrument: Attributes = Attributes(
-        description='numeric identifier of the instrument',
-        dtype=np.int16,
-        )
     iwhitecap: Attributes = Attributes(
         description='turn white cap calculation off (0) or on (1)',
         dtype=np.int16,
@@ -146,6 +144,15 @@ class Parameters:
     mie_database_dir: Attributes = Attributes(
         description='path to directory containing Mie database'
         )
+    MIE_TABLE_CAL: Attributes = Attributes(
+        description=(
+            'Set behavior for Mie table calculations to '
+            '1 = calculate and store Mie scattering matrix, then exit, '
+            '2 = calculate and use (w/out storing) Mie scattering matrix, '
+            '3 = use existing Mie scattering matrix'
+        ),
+        dtype=np.int16,
+    )
     MONOCHROMATIC_FLAG: Attributes = Attributes(
         dtype=np.int16,
         )
@@ -160,18 +167,22 @@ class Parameters:
     NonPhotochemicalQuenching_FLAG: Attributes = Attributes(
         dtype=np.int16,
         )
+    NPHIV: Attributes = Attributes(
+        dtype=np.int16,
+        )
     nquadainput: Attributes = Attributes(
         dtype=np.int16,
         )
     nquadoinput: Attributes = Attributes(
         dtype=np.int16,
         )
-    NPHIV: Attributes = Attributes(
-        dtype=np.int16,
-        )
     NTHETAV: Attributes = Attributes(
         dtype=np.int16,
         )
+    NWV: Attributes = Attributes(
+        name='number of wavelegnths',
+        dtype=np.int16,
+    )
     OCEAN_CASE_SELECT: Attributes = Attributes(
         description=(
             '-1 land, '
@@ -276,6 +287,9 @@ class Parameters:
     water_depth_max: Attributes = Attributes(
         dtype=np.float32,
         )
+    WAVELENGTH_MICRON_REF: Attributes = Attributes(
+        dtype=np.float32,
+    )
     wv_pace_ref: Attributes = Attributes(
         dtype=np.float32,
         )

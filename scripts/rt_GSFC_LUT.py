@@ -10,15 +10,14 @@ def main(argv=None):
 
     # values to write, in the order below, to the RT input file
     values = {
-        # TODO replace instrument with additional parameters
-        # the default parameterization is for OCI
-        P.instrument: 1,
+        # the default parameterization is for PACE-OCI
+        P.NWV: 239,
+        P.WAVELENGTH_MICRON_REF: 0.870,
+        P.CFILE_INSTRUMENT: 'afrt_input_oci.txt',
         P.aux_dir: 'data/RT/pwzrt/Data',
         P.gas_abs_coef_dir: 'data/RT/pwzrt/Gas_Absorption_Coefficients',
         P.mie_database_dir: 'data/RT/pwzrt/Mie_Database/OCI_Mie_Database',
-        # P.mie_database_dir: 'data/RT/pwzrt/Mie_Database/MODIS_Mie_Database',
-        # P.mie_database_dir: 'data/RT/pwzrt/Mie_Database/SeaWifs_Mie_Database',
-        # P.mie_database_dir: 'data/RT/pwzrt/Mie_Database/Misr_Mie_Database',
+        P.MIE_TABLE_CAL: 3,
         P.aerosol: range(11, 21),
         # intentionly set bizarre aerofms as we don't need it in this work
         P.AerosolFineModeFraction: -1.0E12,
