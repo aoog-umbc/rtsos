@@ -1,3 +1,21 @@
+MODULE ATMOS_CONFIGURATION_DIRECTORY
+CHARACTER(LEN=180) ::atmos_dir='00000'
+
+CONTAINS
+
+SUBROUTINE atmos_dir_readin
+IMPLICIT NONE
+IF(atmos_dir == '00000')THEN
+	OPEN(unit=1,file='gas_absorption_coeff_dir',status='old');
+	READ(1,'(A)')atmos_dir
+	CLOSE(1)
+ELSE
+	return
+ENDIF
+ENDSUBROUTINE
+
+ENDMODULE ATMOS_CONFIGURATION_DIRECTORY
+
 MODULE Atmosphere_Profile
 IMPLICIT NONE
 
