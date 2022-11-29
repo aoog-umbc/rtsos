@@ -97,7 +97,7 @@ class ZhaiRT:
                 inputs = inputs.isel(coordinates)
             except ValueError as cause:
                 exception = Exception(
-                    '`--cluster` variables must be dimensions of inputs'
+                    '`--cluster` variables must be in `inputs.indexes`'
                     )
                 raise exception from cause
             outdir = reduce(self.paths_by_cluster, coordinates, outdir)
@@ -117,11 +117,11 @@ class ZhaiRT:
             )
             dataset.to_netcdf(args.outputs)
             return
-        # execute the RT simulations in a temp directory
+        # execute the RT simulations in a temp directory then copy to outputs
         for key, value in groupby(inputs, outdir):
             self.rtsos(value.unstack(), key / args.outputs.name)
 
-    def rtsos(self, inputs, outputs) -> None:
+    def rtsos(self, inputs: xr.Dataset, outputs: Path) -> None:
         # within a temporary directory, write the rtsos input files and store
         # outputs from each rtsos calculation, run as a subprocess
         with TemporaryDirectory() as tmpdir:
@@ -166,7 +166,7 @@ class ZhaiRT:
                 infile, outfile = self.infile(tmpdir, one_input)
                 copy(tmpdir / infile, outdir)
                 # run RT as subprocess
-                # TODO wrap Fortran to call the program directly
+                # TODO wrapper for Fortran subroutines
                 subprocess.run(args=[self.program, infile], cwd=tmpdir)
                 # lazy read for outfile metadata
                 one_output = xr.open_dataset(tmpdir / outfile).squeeze()
@@ -180,7 +180,7 @@ class ZhaiRT:
                     if item not in one_output:
                         continue
                     # TODO issue zhai-rt#2
-                    if (not (one_output[item] == one_input[item]).all()) and (item not in ['OCEAN_RAMAN_FLAG', 'OCEAN_FCHLA_FLAG', 'OCEAN_FCDOM_FLAG']):
+                    if (not (one_output[item] == one_input[item]).all()) and (item not in ['MONOCHROMATIC_FLAG', 'OCEAN_RAMAN_FLAG', 'OCEAN_FCHLA_FLAG', 'OCEAN_FCDOM_FLAG']):
                         raise ValueError('Inputs/outputs are not as expected.')
                     # TODO Improve parameter name matching to catch duplicates
                     #      e.g. ATMOS_ZERO
@@ -233,6 +233,7 @@ class ZhaiRT:
         '''Create an array of Path objects with nesting subdirectories
         for the given dimensions and ranges.'''
         # use xr.DataArray for broadcasting by named dimensions
+        # TODO path construction, or maybe division, is oddly slow
         idx = xr.DataArray(
             [Path(str(i)) for i in range(current[next].size)],
             dims=next,
