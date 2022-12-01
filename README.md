@@ -14,29 +14,41 @@ Poseidon High-Performance Computing infrastructure.
 
 ## Installation
 
-> What follows works on the OEL's Poseidon HPC at GSFC. It is not yet intended
-> for wider use.
+Presently, the package is source-only, which means that compilation will happen
+locally during installation. Your system must have a developer tool chain that
+includes a Fortran compiler and CMake.
 
-The `zhai-rt` package can be installed with `pip` from the git repository.
+The `zhai-rt` package depends on the HDF5 Fortran library and does not
+automatically install this dependency. If not possible to install with your system
+package manager, the HDF5 libraries can be installed by Miniconda with
+`conda install hdf5` or by Homebrew with `brew install hdf5`. Both methods
+include the Fortran library component at time of writing.
+
+If the HDF5 Fortran library is already installed on a standard path, then
+the following routine `pip` command should suffice:
 
 ```
 pip install git+https://oceandata.sci.gsfc.nasa.gov/rcs/rt/zhai_rt.git
 ```
 
-Presently, the package is source-only, which means that compilation will happen
-locally during installation. The configuration is tested on poseidon, where the
-build dependencies (the compiler toolchain and HDF5 libraries) are available.
+If the above command fails with `ERROR: Could not build wheels for zhair-rt...`
+and the HDF5 Fortran libaries defintiely exist at a known path, then
+try installing with the `HDF5_ROOT` variable set. For example, if using `conda`
+on a *nix system, with `hdf5` added by Miniconda to the base environment, try
+
+```
+HDF5_ROOT=~/miniconda3 pip install git+https://oceandata.sci.gsfc.nasa.gov/rcs/rt/zhai_rt.git
+```
 
 ## Auxilliary Data
 
-In addition to a parameter file, the RT simulations require auxilliary data
-that must be available at the given paths. Typically, you will include in your
-parameter file a path, say `pwzrt`, that is available from your project root
-with the following structure:
+RT simulations require auxilliary data that must be available at paths given in
+the simulation parameter file. Typically you will have a directory, say `pwzrt`,
+that is available from your project root with the following structure:
 
 ```
-$ tree -L 1 pwzrt
-pwzrt/
+$ tree -L 1 data/RT/pwzrt/
+data/RT/pwzrt/
 ├── Data
 ├── Gas_Absorption_Coefficients
 └── Mie_Database
@@ -98,14 +110,10 @@ The repository has three components.
 
 ### Compile
 
-> What follows works on the OEL's Poseidon HPC at GSFC. A more general
-> `CMakeLists.txt` is needed for other platforms, primarily to handle the HDF5
-> dependency.
-
-The `zhai-rt` Python packaging uses `skbuild` during the installation process
-to compile the Fortran code. To compile this software manually, open a terminal
-and change to the project root directory, which contains "CMakeLists.txt".
-Thence ...
+The `zhai-rt` Python packaging uses `skbuild` following the `pip install ...`
+invocation to compile the Fortran source. To compile the Fortran code manually,
+open a terminal and change to the project root directory, which contains
+"CMakeLists.txt". Thence ...
 
 ```
 $ cmake -B build
@@ -115,6 +123,8 @@ $ cmake -B build
 -- Check for working Fortran compiler: /usr/bin/f95 - skipped
 -- Checking whether /usr/bin/f95 supports Fortran 90
 -- Checking whether /usr/bin/f95 supports Fortran 90 - yes
+-- HDF5 Fortran compiler wrapper is unable to compile a minimal HDF5 program.
+-- Found HDF5: <HDF5_ROOT>/lib/libhdf5_fortran.so;<HDF5_ROOT>/lib/libhdf5.so (found version "1.10.6") found components: Fortran 
 -- Configuring done
 -- Generating done
 -- Build files have been written to: <PWD>build
