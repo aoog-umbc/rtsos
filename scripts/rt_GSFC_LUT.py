@@ -14,10 +14,11 @@ def main(argv=None):
         P.NWV: 239,
         P.WAVELENGTH_MICRON_REF: 0.870,
         P.CFILE_INSTRUMENT: 'afrt_input_oci.txt',
-        P.aux_dir: 'data/RT/pwzrt/Data',
-        P.gas_abs_coef_dir: 'data/RT/pwzrt/Gas_Absorption_Coefficients',
-        P.mie_database_dir: 'data/RT/pwzrt/Mie_Database/OCI_Mie_Database',
-        P.MIE_TABLE_CAL: 3,
+        P.aux_dir: 'data/RT/pwzrt/Data/',
+        P.atmos_dir: 'data/RT/pwzrt/Gas_Absorption_Coefficients/',
+        # TODO resolve when/how to store Mie calculation results for re-use
+        P.Mie_Database_Dir: 'data/RT/pwzrt/Mie_Database/OCI_Mie_Database/',
+        P.MIE_TABLE_CAL: 2,
         P.aerosol: range(11, 21),
         # intentionly set bizarre aerofms as we don't need it in this work
         P.AerosolFineModeFraction: -1.0E12,
@@ -25,7 +26,7 @@ def main(argv=None):
         # wndspd will be calculated
         P.wndspd: None,
         # theta0 will be set to vary only when `df == 0`
-        P.theta0: np.arange(0, 90, 2),
+        P.theta0: range(0, 90, 2),
         P.tau865: [0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.4, 0.5],
         P.Pressure_Surface_mb: 1013,
         P.H2O_COLUMN: 1.4387,

@@ -6,10 +6,9 @@ project(ZhaiRT LANGUAGES Fortran)
 find_package(HDF5
     REQUIRED
     COMPONENTS Fortran
-    CONFIG
-    PATHS
-      "/mnt/beegfs/poseidon/hpc/ocssw-develop/opt"
 )
+include_directories(${HDF5_INCLUDE_DIRS})
+list(APPEND LIBS ${HDF5_Fortran_LIBRARIES})
 
 # build customizations
 SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH True)
@@ -34,8 +33,7 @@ add_library(rtsos_rao_dg
     src/core/surface_glint.f90
 )
 target_link_libraries(rtsos_rao_dg
-    hdf5_fortran-shared
-    # hdf5::hdf5_fortran-shared # TODO update hdf5 build to include namespace
+    ${HDF5_Fortran_LIBRARIES}
 )
 
 # rtsos_rao_dg executable
@@ -51,8 +49,7 @@ add_library(pace_simulator
     src/pace_simulator/PACE_Instrument.f90
 )
 target_link_libraries(pace_simulator
-    hdf5_fortran-shared
-    # hdf5::hdf5_fortran-shared # TODO update hdf5 build to include namespace
+    ${HDF5_Fortran_LIBRARIES}
 )
 
 # rtsos_PACE_Simulator_DoubleK executable
