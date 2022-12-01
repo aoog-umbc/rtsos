@@ -131,3 +131,10 @@ $ cmake -B build
 $ cd build
 $ cmake --build .
 ```
+
+If `cmake -B build` does not succeed with `Could NOT find HDF5`, try calling with the
+`HDF5_ROOT` variable as described in the [Installation](#installation) section above:
+
+```
+$ HDF5_ROOT=~/miniconda3/ cmake -B build
+```
