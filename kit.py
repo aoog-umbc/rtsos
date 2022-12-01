@@ -140,7 +140,8 @@ class ZhaiRT:
                 copy(tmpdir / infile, outdir)
                 # run RT as subprocess
                 # TODO wrap Fortran to call the program directly
-                subprocess.run(args=[self.program, infile], cwd=tmpdir)
+                subprocess.run(args=[self.program, tmpdir / infile], check=True)
+                # TODO handle output when MIE_TABLE_CAL == 1
                 # lazy read for outfile metadata
                 one_output = xr.open_dataset(tmpdir / outfile).squeeze()
                 # add dimension names and missing coordinates
@@ -176,7 +177,7 @@ class ZhaiRT:
                 f'{param.values:<24} # {name}: {desc}'
                 )
         outfile = Path(tokenize(dataset)).with_suffix('.outfile')
-        lines += [f'{outfile}', '']
+        lines += [f'{path / outfile}', '']
         infile = outfile.with_suffix('.infile.txt')
         with (path / infile).open('w') as stream:
             stream.write('\n'.join(lines))
