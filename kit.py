@@ -27,7 +27,7 @@ cli.add_argument(
     '--cluster',
     type=str,
     help=(
-        'comma-separated list of the dimensions by which inputs are split into '
+        'comma-separated list of dimensions by which inputs are split into '
         'nested subdirectories, with optional positions or slices as '
         '`dim:index` or `dim:start:stop` respectively.'
         ),
@@ -88,20 +88,20 @@ class ZhaiRT:
         # with the `--cluster` argument, prepare to process inputs/outputs
         # in subdirectories for each of the supplied dimensions
         if args.cluster:
-            outdir = xr.DataArray(
-                data=args.outputs.with_suffix(''),
-                coords=inputs.coords,
+            outdir, _ = xr.broadcast(
+                xr.DataArray(args.outputs.with_suffix('')),
+                inputs,
                 )
             coordinates = self.split_cluster(args.cluster)
             try:
-                inputs = inputs.isel(coordinates)
-            except ValueError as cause:
+                outdir = reduce(self.paths_by_cluster, coordinates, outdir)
+            except KeyError as cause:
                 exception = Exception(
-                    '`--cluster` variables must be dimensions of inputs'
+                    '`--cluster` value(s) must be in dimensions of inputs'
                     )
                 raise exception from cause
-            outdir = reduce(self.paths_by_cluster, coordinates, outdir)
             outdir = outdir.isel(coordinates)
+            inputs = inputs.isel(coordinates)
         else:
             outdir = xr.DataArray(
                 data=args.outputs.parent,
