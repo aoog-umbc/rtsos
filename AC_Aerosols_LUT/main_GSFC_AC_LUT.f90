@@ -263,19 +263,25 @@ READ(1,'(A)')CFIlE_AP              ! file name of the atmospheric profiles
 READ(1,'(A)')OUTFILE                ! file name for output
 close(1)
 
-CFILE_INSTRUMENT=trim(CFILE_INSTRUMENT(1:index(CFILE_INSTRUMENT,'#')-1))
-aux_dir=trim(aux_dir(1:index(aux_dir,'#')-1))
-atmos_dir=trim(atmos_dir(1:index(atmos_dir,'#')-1))
-Mie_Database_Dir=trim(Mie_Database_Dir(1:index(Mie_Database_Dir,'#')-1))
-CFIlE_AP=trim(CFIlE_AP(1:index(CFIlE_AP,'#')-1))
-OUTFILE=trim(OUTFILE(1:index(OUTFILE,'#')-1))
+IF(index(CFILE_INSTRUMENT,'#')>1) &
+  CFILE_INSTRUMENT=trim(CFILE_INSTRUMENT(1:index(CFILE_INSTRUMENT,'#')-1))
+IF(index(aux_dir,'#')>1) &
+  aux_dir=trim(aux_dir(1:index(aux_dir,'#')-1))
+IF(index(atmos_dir,'#')>1) &
+  atmos_dir=trim(atmos_dir(1:index(atmos_dir,'#')-1))
+IF(index(Mie_Database_Dir,'#')>1) &
+   Mie_Database_Dir=trim(Mie_Database_Dir(1:index(Mie_Database_Dir,'#')-1))
+IF(index(CFIlE_AP,'#')>1) &
+   CFIlE_AP=trim(CFIlE_AP(1:index(CFIlE_AP,'#')-1))
+IF(index(OUTFILE,'#')>1) &
+   OUTFILE=trim(OUTFILE(1:index(OUTFILE,'#')-1))
 IF(MIE_TABLE_CAL==1)TAU_REF=1.0D0
 
 write(*,*)'atmos_dir=',atmos_dir
 write(*,*)'Mie_Database_Dir=',Mie_Database_Dir
 write(*,*)'MIE_TABLE_CAL=',MIE_TABLE_CAL
 write(*,*)'aux_dir=',aux_dir
-write(*,*)'atmospheric prifle file:',CFILE_AP
+write(*,*)'atmospheric profile file:',CFILE_AP
 write(*,*)'OUTFILE=',OUTFILE
 
 CFILE_INSTRUMENT=TRIM(aux_dir)//trim(CFILE_INSTRUMENT)
