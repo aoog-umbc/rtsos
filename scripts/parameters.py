@@ -66,6 +66,9 @@ class Parameters:
             ),
         dtype=np.int16,
         )
+    atmos_dir: Attributes = Attributes(
+        description='path to directory containing gas absorbption data'
+        )
     atmos_profile: Attributes = Attributes(
         description=(
             'valid atmosphere profiles are: afglus.dat, '
@@ -109,9 +112,6 @@ class Parameters:
     gas_abs_flag: Attributes = Attributes(
         dtype=np.int16,
         )
-    gas_abs_coef_dir: Attributes = Attributes(
-        description='path to directory containing gas absorbption data'
-        )
     H2O_COLUMN: Attributes = Attributes(
         description='water vapor in the whole column',
         units='cm',
@@ -141,7 +141,7 @@ class Parameters:
     MAXMORDINPUT: Attributes = Attributes(
         dtype=np.int16,
         )
-    mie_database_dir: Attributes = Attributes(
+    Mie_Database_Dir: Attributes = Attributes(
         description='path to directory containing Mie database'
         )
     MIE_TABLE_CAL: Attributes = Attributes(
