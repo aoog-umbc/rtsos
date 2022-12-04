@@ -110,16 +110,16 @@ INTEGER :: WV_SEG_FLAG !wv_seg_flag, 0: all; 1: seg1+3only; 2: seg2only; 3: seg1
 REAL*8 :: AirSensor_Height
 CHARACTER*360 :: aux_dir='00000'
 
-CONTAINS
-SUBROUTINE aux_dir_readin
-IF(aux_dir=='00000')THEN
-  OPEN(UNIT=1,FILE='./auxiliary_directory',STATUS='OLD',ACTION='READ')
-  READ(1,'(A)')aux_dir
-  CLOSE(1)
-ELSE
-  RETURN
-ENDIF
-ENDSUBROUTINE
+!CONTAINS
+!SUBROUTINE aux_dir_readin
+!IF(aux_dir=='00000')THEN
+!  OPEN(UNIT=1,FILE='./auxiliary_directory',STATUS='OLD',ACTION='READ')
+!  READ(1,'(A)')aux_dir
+!  CLOSE(1)
+!ELSE
+!  RETURN
+!ENDIF
+!ENDSUBROUTINE
 
 ENDMODULE GLOBAL_DATA
 
@@ -251,6 +251,7 @@ DFUNCALPHA_VAL= (EXPOFAC+1)*(DK(2)+ALPHA_VAL)**EXPOFAC-(DK(3)+ALPHA_VAL)**EXPOFA
 END SUBROUTINE FUNCALPHA
 
 PROGRAM SOSINT
+USE ATMOS_CONFIGURATION_DIRECTORY
 USE GLOBAL_DATA
 USE MIE_PHMX_PACE
 USE RAMANDATA
@@ -503,10 +504,26 @@ READ(1,*)INTTMP
         SPHERICAL_SHELL_SINGLESCATTERING_CORRECTION=.false.
 		PSEUDO_SPHERICAL_SHELL=.FALSE.
 	ENDIF
-READ(1,*)CFIlE_AP    ! Atmosphere number density profile
-READ(1,*)CFILE_AEROSOLS ! AEROSOL PHASE MATRIX FILE
-READ(1,*)OUTFILE
+
+READ(1,'(A)')aux_dir
+READ(1,'(A)')atmos_dir
+
+READ(1,'(A)')CFIlE_AP    ! Atmosphere number density profile
+READ(1,'(A)')CFILE_AEROSOLS ! AEROSOL PHASE MATRIX FILE
+READ(1,'(A)')OUTFILE
 CLOSE(1)
+
+IF(index(aux_dir,'#')>1) &
+  aux_dir=trim(aux_dir(1:index(aux_dir,'#')-1))
+IF(index(atmos_dir,'#')>1) &
+  atmos_dir=trim(atmos_dir(1:index(atmos_dir,'#')-1))
+IF(index(CFIlE_AP,'#')>1) &
+   CFIlE_AP=trim(CFIlE_AP(1:index(CFIlE_AP,'#')-1))
+IF(index(CFILE_AEROSOLS,'#')>1) &
+   CFILE_AEROSOLS=trim(CFILE_AEROSOLS(1:index(CFILE_AEROSOLS,'#')-1))
+IF(index(OUTFILE,'#')>1) &
+   OUTFILE=trim(OUTFILE(1:index(OUTFILE,'#')-1))
+
 
 IF(WV_SEG_FLAG<0 .OR. WV_SEG_FLAG>4) STOP 'CHECK WV_SEG_FLAG INPUT'
 
@@ -600,7 +617,7 @@ DIFFUSE_TRANSMITTANCE=.false.
 MU_IN=-1.0d0*ABS(COS(THETA0/180.D0*PI))
 NORDER_INELASTIC_SCATTERING=1
 
-call aux_dir_readin
+!call aux_dir_readin
 
 CALL WV_LBL_SETUP
 !CALL PACE_FWHM_INIT
@@ -714,7 +731,7 @@ ALLOCATE(RECDATASTREAM(NREC,7),PNDLY(NTLYERA),                                  
          MRR2_Save(NUMMIEUSE,NWV_BAND),MRI2_Save(NUMMIEUSE,NWV_BAND), &
          MRR_NonSpherical(NWV_BAND),MRI_NonSpherical(NWV_BAND))
 
-CALL SUNLREADIN
+CALL SUNLREADIN(aux_dir)
 
 CALL WATER_ABSORPTION_READ
 CALL WATER_ABSORPTION_LEE_READ
@@ -3217,7 +3234,7 @@ IF(OCEAN_CASE_SELECT .NE. 2)THEN
   BSTCLOCAL=0.0d0
   BBSTCfracLOCAL=0.0d0
 ENDIF
-
+CHLA_VERTICAL_PROFILE=-999.0
 !LOOP_LAYERS: DO ITLYERW=1,NWATER_DEPTH
 LOOP_LAYERS: DO ITLYERW=1,NTLYERO+1
   CALL CHLAPROFILE(WATER_DEPTH(ITLYERW),CHLa,CHLaLOCAL)
@@ -3809,7 +3826,7 @@ ELSEIF(AP_SELECT==2)THEN
 ! 0.370 0.266 0.151 0.442 0.002 0.014 0.025 0.000
 
   SF_COEFF=0.287d0
-  call aux_dir_readin
+!  call aux_dir_readin
   OPEN(UNIT=1,FILE=TRIM(aux_dir)//'/ap_PicoMicro.txt',STATUS='OLD',ACTION='READ')
   READ(1,*)
   DO IREAD=1,NWV_AP_COMPONENTS
@@ -4325,7 +4342,7 @@ USE GLOBAL_DATA
 IMPLICIT NONE
 INTEGER :: IREAD
 
-call aux_dir_readin
+!call aux_dir_readin
 
 OPEN(UNIT=1,FILE=trim(aux_dir)//'/aw_seawater.txt',STATUS='OLD',ACTION='READ')
 DO IREAD=1,4
@@ -4343,7 +4360,7 @@ USE GLOBAL_DATA
 IMPLICIT NONE
 INTEGER :: IREAD
 REAL*8 :: RTMP
-call aux_dir_readin
+!call aux_dir_readin
 
 OPEN(UNIT=1,FILE=trim(aux_dir)//'/mason_2015.txt',STATUS='OLD',ACTION='READ')
 DO IREAD=1,10
@@ -4364,7 +4381,7 @@ USE GLOBAL_DATA
 IMPLICIT NONE
 INTEGER :: IREAD
 REAL*8 :: RTMP
-call aux_dir_readin
+!call aux_dir_readin
 
 OPEN(UNIT=1,FILE=trim(aux_dir)//'/aw_proctol_IOCCG2018.txt',STATUS='OLD',ACTION='READ')
 DO IREAD=1,13
@@ -4385,7 +4402,7 @@ SUBROUTINE WATER_ABSORPTION_READ
 USE GLOBAL_DATA
 IMPLICIT NONE
 INTEGER :: IREAD
-call aux_dir_readin
+!call aux_dir_readin
 OPEN(UNIT=1,FILE=TRIM(aux_dir)//'/water_coef.txt',STATUS='OLD',ACTION='READ')
 DO IREAD=1,30
   READ(1,*)
