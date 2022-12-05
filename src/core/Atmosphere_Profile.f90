@@ -1,4 +1,23 @@
+MODULE ATMOS_CONFIGURATION_DIRECTORY
+CHARACTER(LEN=180) ::atmos_dir='00000'
+
+CONTAINS
+
+SUBROUTINE atmos_dir_readin
+IMPLICIT NONE
+IF(atmos_dir == '00000')THEN
+	OPEN(unit=1,file='gas_absorption_coeff_dir',status='old');
+	READ(1,'(A)')atmos_dir
+	CLOSE(1)
+ELSE
+	return
+ENDIF
+ENDSUBROUTINE
+
+ENDMODULE ATMOS_CONFIGURATION_DIRECTORY
+
 MODULE Atmosphere_Profile
+USE  ATMOS_CONFIGURATION_DIRECTORY
 IMPLICIT NONE
 
 INTEGER,PARAMETER :: NPGRID_Atmosphere_Profile=50
@@ -24,21 +43,18 @@ CONTAINS
 SUBROUTINE Atmosphere_Profile_READIN(atmos_profile_file)
 
 CHARACTER*180,INTENT(in) ::atmos_profile_file
-
-CHARACTER*180 ::atmos_dir,atmos_ch4_file,atmos_profile_file_full
+CHARACTER*180 ::atmos_profile_dir
+CHARACTER*180 :: atmos_ch4_file,atmos_profile_file_full
 INTEGER,PARAMETER :: NHEADER=2
 REAL*8,DIMENSION(9) :: RARRY
 
 INTEGER :: ITEMP
 
-OPEN(unit=1,file='gas_absorption_coeff_dir',status='old');
-READ(1,'(A)')atmos_dir
-CLOSE(1)
-atmos_dir=TRIM(atmos_dir)//'/atmmod/'
+atmos_profile_dir=TRIM(atmos_dir)//'/atmmod/'
 !atmos_profile_file='afglus.dat';
-atmos_profile_file_full=trim(atmos_dir)//trim(atmos_profile_file);
+atmos_profile_file_full=trim(atmos_profile_dir)//trim(atmos_profile_file);
 atmos_ch4_file='afglus_ch4_vmr.dat';
-atmos_ch4_file=trim(atmos_dir)//trim(atmos_ch4_file);
+atmos_ch4_file=trim(atmos_profile_dir)//trim(atmos_ch4_file);
 
 !write(*,*)'atmos_profile_file_full=',atmos_profile_file_full
 
