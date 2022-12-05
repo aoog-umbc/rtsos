@@ -91,7 +91,7 @@ REAL*8 :: RATIO_INCR,RH_simu,AeroFMF
 INTEGER:: NTLYER,NTLYERA,NTLYERO
 REAL*8, ALLOCATABLE,DIMENSION(:,:) :: TAU_TG,TAU_ARSL_TOTAL,&
                                       MRR1,MRI1,MRR2,MRI2
-! TAUR(IWV,ICALIPSO), 
+! TAUR(IWV,ICALIPSO),
 !         : RAYLEIGH OPTICAL DEPTH AT WAVLENTGH WV(IWV) AT LAYER(ILAYER)
 !TAU_TG(IWV,ILAYER): ABSORPTIVE OPTICAL DEPTH FOR TRACE GAS
 
@@ -259,7 +259,7 @@ READ(1,*)INTTMP
         SPHERICAL_SHELL_SINGLESCATTERING_CORRECTION=.true.
 	ENDIF
 
-READ(1,'(A)')CFIlE_AP              ! file name of the atmospheric profiles
+READ(1,'(A)')CFILE_AP              ! file name of the atmospheric profiles
 READ(1,'(A)')OUTFILE                ! file name for output
 close(1)
 
@@ -271,8 +271,8 @@ IF(index(atmos_dir,'#')>1) &
   atmos_dir=trim(atmos_dir(1:index(atmos_dir,'#')-1))
 IF(index(Mie_Database_Dir,'#')>1) &
    Mie_Database_Dir=trim(Mie_Database_Dir(1:index(Mie_Database_Dir,'#')-1))
-IF(index(CFIlE_AP,'#')>1) &
-   CFIlE_AP=trim(CFIlE_AP(1:index(CFIlE_AP,'#')-1))
+IF(index(CFILE_AP,'#')>1) &
+   CFILE_AP=trim(CFILE_AP(1:index(CFILE_AP,'#')-1))
 IF(index(OUTFILE,'#')>1) &
    OUTFILE=trim(OUTFILE(1:index(OUTFILE,'#')-1))
 IF(MIE_TABLE_CAL==1)TAU_REF=1.0D0
@@ -281,10 +281,10 @@ write(*,*)'atmos_dir=',atmos_dir
 write(*,*)'Mie_Database_Dir=',Mie_Database_Dir
 write(*,*)'MIE_TABLE_CAL=',MIE_TABLE_CAL
 write(*,*)'aux_dir=',aux_dir
-write(*,*)'atmospheric profile file:',CFILE_AP
+write(*,*)'atmospheric profile file=',CFILE_AP
 write(*,*)'OUTFILE=',OUTFILE
 
-CFILE_INSTRUMENT=TRIM(aux_dir)//trim(CFILE_INSTRUMENT)
+CFILE_INSTRUMENT=TRIM(aux_dir)//'/'//trim(CFILE_INSTRUMENT)
 
 SURFACE_GLINT_FLAG = .TRUE.
 
@@ -326,14 +326,14 @@ FLAM=1.0
 ! aerosol profile will be given by Braslau, JAM, 1973
 NTLYERA=NDET-2
 
-CALL Atmosphere_Profile_READIN(CFIlE_AP)
+CALL Atmosphere_Profile_READIN(CFILE_AP)
 CALL Surface_Pressure_Rescale(PRESSURE_SURFACE)
 CALL GAS_COLUMN_RESCALE(OZONE_COLUMN,H2O_COLUMN)
 
 ALLOCATE(ALT_LYRA(NTLYERA+1),TAUR(NWV,NTLYERA),DEPOL_A(NWV,NTLYERA))
 
 ! USE ALT_DET AS ALT_LYRA, IF DIFFERENT SET OF ALT_LYRA IS NEEDED
-! LET NTLYERA= A NUMBER, AND GIVE ALT_LYRA IN THE FOLLOWING 
+! LET NTLYERA= A NUMBER, AND GIVE ALT_LYRA IN THE FOLLOWING
 ! ALT_DET HAS TO BE A SUBSET OF ALT_LYRA.
 
 ALT_LYRA=ALT_DET
@@ -371,7 +371,7 @@ NQUADOINPUT=60
 NUMMIEUSE=1
 MAXLORDINPUT=48
 MAXMORDINPUT=30
-NMBREINPUT=1.338 
+NMBREINPUT=1.338
 NMBIMINPUT=0.0
 IF(DIFFUSE_TRANSMITTANCE)THEN
   NCOLINPUT=30
@@ -439,7 +439,7 @@ INQUIRE(FILE=OUTFILE, EXIST=file_e)
 IF(file_e) stop 'output file exist'
 
 DO IWV=1,NWV+1
-  IF(IAEROSOL==1)THEN !rural 
+  IF(IAEROSOL==1)THEN !rural
        MRR1(IWV,:)=MR_TRPOSPHERE(IWV,IRH)
        MRI1(IWV,:)=MI_TRPOSPHERE(IWV,IRH)
        MRR2(IWV,:)=MR_RURALC(IWV,IRH)
@@ -586,13 +586,13 @@ ENDDO
  !    WRITE(*,*)'FINE MODE NUMBER DENSITY=',sum(ARSLND1)
  !    WRITE(*,*)'COARSE MODE NUMBER DENSITY=',sum(ARSLND2)
   ENDIF
-  
+
 
  ! CONVERT TO EFFECT RADIUS AND VARIANCE BEFORE CALL SPHER_INTERFACE
   VEFF1=VEFF1*VEFF1
   VEFF2=VEFF2*VEFF2
-      
-  REFF1=REFF1*EXP(2.5D0*VEFF1) 
+
+  REFF1=REFF1*EXP(2.5D0*VEFF1)
   REFF2=REFF2*EXP(2.5D0*VEFF2)
   VEFF1=EXP(VEFF1)-1.0D0
   VEFF2=EXP(VEFF2)-1.0D0
@@ -1266,7 +1266,7 @@ SUBROUTINE SPHER_INTERFACE(NDISTR,REFFI,VEFFI,LAM,MRR,MRI,AA1,BB1,AA2,BB2,GAMMAI
 
 USE RTUTILITY,ONLY : NUMMIEANGMAX,PI
 
-IMPLICIT REAL*8 (A-H,O-Z)                           
+IMPLICIT REAL*8 (A-H,O-Z)
 INTEGER ::  NANGMIE_LOCAL
 REAL*8,DIMENSION(NUMMIEANGMAX,0:6)::PHMXMIE_LOCAL
 
@@ -1283,10 +1283,10 @@ REAL*8 AL1(NPL),AL2(NPL),AL3(NPL),AL4(NPL),BET1(NPL),BET2(NPL)
 !      AA2=3.44D0
 !      BB1=DLOG(1.96D0)*DLOG(1.96D0)
 !      BB2=DLOG(2.37D0)*DLOG(2.37D0)
-!      GAM=1D0                                                               
-!      LAM=0.63D0                                            
-!      MRR=1.53 D0                                               
-!      MRI=0.008 D0                                            
+!      GAM=1D0
+!      LAM=0.63D0
+!      MRR=1.53 D0
+!      MRI=0.008 D0
 !      NDISTR=3
 !      NK=100
 !      N=100
@@ -1295,65 +1295,65 @@ REAL*8 AL1(NPL),AL2(NPL),AL3(NPL),AL4(NPL),BET1(NPL),BET2(NPL)
       R2=30.0D0
 
        IF(NDISTR==1) THEN
-!     NDISTR = 1 - modified gamma distribution                         
-!          [Eq. (5.242) of Ref. 1]                                        
-!              AA=alpha                                                
-!              BB=r_c                                                  
-!              GAM=gamma                                               
+!     NDISTR = 1 - modified gamma distribution
+!          [Eq. (5.242) of Ref. 1]
+!              AA=alpha
+!              BB=r_c
+!              GAM=gamma
 
             AA=GAMMAI-1
             BB=AA*REFFI/(GAMMAI+2.0D0)
             GAM=1.0D0
-            
+
        ELSE IF(NDISTR==2) THEN
-!C     NDISTR = 2 - log normal distribution                             
-!C          [Eq. (5.243) of Ref. 1]                                        
-!C              AA=r_g                                                  
-!C              BB=[ln(sigma_g)]**2                                      
+!C     NDISTR = 2 - log normal distribution
+!C          [Eq. (5.243) of Ref. 1]
+!C              AA=r_g
+!C              BB=[ln(sigma_g)]**2
             BB=log(VEFFI+1.0D0)
             AA=REFFI*EXP(-2.5d0*BB)
 
        ELSE IF(NDISTR==3) THEN
-!C     NDISTR = 3 - power law distribution                              
-!C          [Eq. (5.244) of Ref. 1]                                        
-!C               AA=r_eff (effective radius)                            
-!C               BB=v_eff (effective variance)                          
-!C               Parameters R1 and R2 (see below) are calculated        
-!C               automatically for given AA and BB                      
+!C     NDISTR = 3 - power law distribution
+!C          [Eq. (5.244) of Ref. 1]
+!C               AA=r_eff (effective radius)
+!C               BB=v_eff (effective variance)
+!C               Parameters R1 and R2 (see below) are calculated
+!C               automatically for given AA and BB
                 AA=REFFI
                 BB=VEFFI
 
        ELSE IF(NDISTR==4) THEN
-!C     NDISTR = 4 - gamma distribution                                  
-!C          [Eq. (5.245) of Ref. 1]                                        
-!C               AA=a                                                   
-!C               BB=b      
+!C     NDISTR = 4 - gamma distribution
+!C          [Eq. (5.245) of Ref. 1]
+!C               AA=a
+!C               BB=b
 !http://www.ess.uci.edu/~cmclinden/link/xx/node22.html
 !HANSEN AND TRAVIS 1974 EQ. 2.56
-                AA=REFFI  
+                AA=REFFI
                 BB=VEFFI
-                                                     
+
        ELSE IF(NDISTR==5) THEN
-!C     NDISTR = 5 - modified power law distribution                     
-!C          [Eq. (5.246) of Ref. 1]                                        
-!C              BB=alpha          
+!C     NDISTR = 5 - modified power law distribution
+!C          [Eq. (5.246) of Ref. 1]
+!C              BB=alpha
                BB=GAMMAI
        ELSE IF(NDISTR==6) THEN
-!C     NDISTR = 6 - bimodal volume log normal distribution              
-!C              [Eq. (5.247) of Ref. 1]             
-!C              AA1=r_g1                                                
-!C              BB1=[ln(sigma_g1)]**2                                   
-!C              AA2=r_g2                                                
-!C              BB2=[ln(sigma_g2)]**2                                   
-!C              GAM=gamma                                               
+!C     NDISTR = 6 - bimodal volume log normal distribution
+!C              [Eq. (5.247) of Ref. 1]
+!C              AA1=r_g1
+!C              BB1=[ln(sigma_g1)]**2
+!C              AA2=r_g2
+!C              BB2=[ln(sigma_g2)]**2
+!C              GAM=gamma
                GAM=GAMMAI
 !C
        ELSE IF(NDISTR==7) THEN
 !C    Added by Zhai, Pengwang Oct. 29 2008
-!C     NDISTR = 7 - Junge distribution                              
+!C     NDISTR = 7 - Junge distribution
 !C          [n(r)=Constant*r^{-s}; s=4]
 !C               Parameters R1 and R2 (see below)
-!C               BB=JUNGE EXPONENTIAL FACTOR s                           
+!C               BB=JUNGE EXPONENTIAL FACTOR s
                 BB=GAMMAI
        ELSE
           STOP 'NDISTR<1 OR > 7'
@@ -1367,13 +1367,13 @@ REAL*8 AL1(NPL),AL2(NPL),AL3(NPL),AL4(NPL),BET1(NPL),BET2(NPL)
       CALL SPHER (AA,BB,GAM,LAM,MRR,MRI,R1,R2,N,NP,NDISTR,             &
             NK,L1,AL1,AL2,AL3,AL4,BET1,BET2,CEXT,CSCAT,AREA,VOL,RVW,  &
             RMEAN,REFFO,VEFFO,AA1,BB1,AA2,BB2,DDELT)
-    
+
       QE=CEXT/AREA
       LMAX=L1-1
 
       LMAXI=LMAX
       CALL MATR (AL1,AL2,AL3,AL4,BET1,BET2,LMAX,NUMMIEANGMAX,NANGMIE_LOCAL,PHMXMIE_LOCAL)
-      
+
 
 !      WRITE (*,1001) AREA,VOL,RVW,RMEAN
 ! 1001 FORMAT ('<G> = ',D12.6,'  <V> = ',D12.6,'  Rvw = ',D12.6,&
@@ -1384,10 +1384,10 @@ REAL*8 AL1(NPL),AL2(NPL),AL3(NPL),AL4(NPL),BET1(NPL),BET2(NPL)
 !             BET1(INTTMP),BET2(INTTMP)
 !  ENDDO
 !write(*,*)'testing over'
-  
+
       RETURN
-      END SUBROUTINE SPHER_INTERFACE      
-  
+      END SUBROUTINE SPHER_INTERFACE
+
 !  SUBROUTINE COEFFMIXING(MAXLORD,AL1,AL2,AL3,AL4,BET1,BET2, &
 !           TAURfracLOCAL, NTLYERA,MAXLORDINPUT,COEFFDATASTREAM,ILYR)
 !  INTEGER,INTENT(IN) :: MAXLORD,NTLYERA,MAXLORDINPUT,ILYR
@@ -1399,7 +1399,7 @@ REAL*8 AL1(NPL),AL2(NPL),AL3(NPL),AL4(NPL),BET1(NPL),BET2(NPL)
 !  INTEGER :: IL
 
 !  RAYCOEFF(0,1)=1.0d0   ! betal
-!  RAYCOEFF(1,1)=-0.0d0  
+!  RAYCOEFF(1,1)=-0.0d0
 !  RAYCOEFF(2,1)=0.5d0
 
 !  RAYCOEFF(0,2)=0.0d0    !alphal
@@ -1417,7 +1417,7 @@ REAL*8 AL1(NPL),AL2(NPL),AL3(NPL),AL4(NPL),BET1(NPL),BET2(NPL)
 !  RAYCOEFF(0,5)=0.0d0    !gammal
 !  RAYCOEFF(1,5)=0.0d0
 !  RAYCOEFF(2,5)=-1.2247449d0
-  
+
 !  RAYCOEFF(0,6)=0.0d0    !epsilonl
 !  RAYCOEFF(1,6)=0.0d0
 !  RAYCOEFF(2,6)=0.0d0
@@ -1430,7 +1430,7 @@ REAL*8 AL1(NPL),AL2(NPL),AL3(NPL),AL4(NPL),BET1(NPL),BET2(NPL)
 !    COEFFDATASTREAM(ILYR,IL,5)=-(1.0D0-TAURfracLOCAL)*BET1(IL)+TAURfracLOCAL*RAYCOEFF(IL,5)
 !    COEFFDATASTREAM(ILYR,IL,6)=(1.0D0-TAURfracLOCAL)*BET2(IL)+TAURfracLOCAL*RAYCOEFF(IL,6)
 !  ENDDO
-  
+
 !  DO IL=3,MAXLORDINPUT
 !    COEFFDATASTREAM(ILYR,IL,1)=(1.0D0-TAURfracLOCAL)*AL1(IL)
 !    COEFFDATASTREAM(ILYR,IL,2)=(1.0D0-TAURfracLOCAL)*AL2(IL)
@@ -1439,7 +1439,7 @@ REAL*8 AL1(NPL),AL2(NPL),AL3(NPL),AL4(NPL),BET1(NPL),BET2(NPL)
 !    COEFFDATASTREAM(ILYR,IL,5)=-(1.0D0-TAURfracLOCAL)*BET1(IL)
 !    COEFFDATASTREAM(ILYR,IL,6)=(1.0D0-TAURfracLOCAL)*BET2(IL)
 !  ENDDO
-  
+
 !  END SUBROUTINE COEFFMIXING
 
 !  SUBROUTINE RAYCOEFFASSIGN(NTLYERA,MAXLORDINPUT,COEFFDATASTREAM,ILYR)
@@ -1449,7 +1449,7 @@ REAL*8 AL1(NPL),AL2(NPL),AL3(NPL),AL4(NPL),BET1(NPL),BET2(NPL)
 !  INTEGER :: IL
 
 !  RAYCOEFF(0,1)=1.0d0   ! betal
-!  RAYCOEFF(1,1)=-0.0d0  
+!  RAYCOEFF(1,1)=-0.0d0
 !  RAYCOEFF(2,1)=0.5d0
 
 !  RAYCOEFF(0,2)=0.0d0    !alphal
@@ -1467,7 +1467,7 @@ REAL*8 AL1(NPL),AL2(NPL),AL3(NPL),AL4(NPL),BET1(NPL),BET2(NPL)
 !  RAYCOEFF(0,5)=0.0d0    !gammal
 !  RAYCOEFF(1,5)=0.0d0
 !  RAYCOEFF(2,5)=-1.2247449d0
-  
+
 !  RAYCOEFF(0,6)=0.0d0    !epsilonl
 !  RAYCOEFF(1,6)=0.0d0
 !  RAYCOEFF(2,6)=0.0d0
@@ -1480,83 +1480,83 @@ REAL*8 AL1(NPL),AL2(NPL),AL3(NPL),AL4(NPL),BET1(NPL),BET2(NPL)
 !    COEFFDATASTREAM(ILYR,IL,5)=RAYCOEFF(IL,5)
 !    COEFFDATASTREAM(ILYR,IL,6)=RAYCOEFF(IL,6)
 !  ENDDO
- 
+
 !  END SUBROUTINE RAYCOEFFASSIGN
 
-! templates for assign values for spher.f                  
+! templates for assign values for spher.f
 !  SUBROUTINE SPHERINIT(NDISTR,REFFI,VEFFI,AA1,BB1,AA2,BB2,GAMMAI)
 !  INTEGER :: NDISTR
 !  REAL*8 :: REFFI,VEFFI,AA1,BB1,AA2,BB2,GAMMAI
 
 !C MIE CALCULATION INPUTS
 
-!C     NDISTR = 1 !- modified gamma distribution                         
-!C          [Eq. (5.242) of Ref. 1]                                        
-!C              AA=alpha                                                
-!C              BB=r_c                                                  
-!C              GAM=gamma          
+!C     NDISTR = 1 !- modified gamma distribution
+!C          [Eq. (5.242) of Ref. 1]
+!C              AA=alpha
+!C              BB=r_c
+!C              GAM=gamma
 !C    IN ORDER TO GIVE THE ABOVE ASSIGNMENTS WE NEED TO DO:
 !C    UNCOMMENT THE FOLLOWING TWO LINES IF WANT MODIFIED GAMMA DISTRIBUTION
 !             REFFI=1.0D0 ! ASSIGN EFFECTIVE RADIUS
 !             GAMMAI= ! SOME VALUE OF ALPHA+1, WHERE ALPHA IS THE ONE IN Eq. (5.242)
 
-!  NDISTR=2  ! log normal distribution                       
-!C          [Eq. (5.243) of Ref. 1]                                        
-!C              AA=r_g                                                  
-!C              BB=[ln(sigma_g)]**2                                      
+!  NDISTR=2  ! log normal distribution
+!C          [Eq. (5.243) of Ref. 1]
+!C              AA=r_g
+!C              BB=[ln(sigma_g)]**2
 !C    UNCOMMENT THE FOLLOWING TWO LINES IF WANT ! log normal distribution
 !            REFFI=0.1D0*exp(2.5d0)
 !            VEFFI=exp(1.0d0)-1.0D0
 !            REFFI=0.15D0
 !            VEFFI=0.2d0
 
-!     NDISTR = 3 !- power law distribution                              
-!C          [Eq. (5.244) of Ref. 1]                                        
-!C               AA=r_eff (effective radius)                            
-!C               BB=v_eff (effective variance)                          
-!C               Parameters R1 and R2 (see below) are calculated        
-!C               automatically for given AA and BB                      
+!     NDISTR = 3 !- power law distribution
+!C          [Eq. (5.244) of Ref. 1]
+!C               AA=r_eff (effective radius)
+!C               BB=v_eff (effective variance)
+!C               Parameters R1 and R2 (see below) are calculated
+!C               automatically for given AA and BB
 !C    UNCOMMENT THE FOLLOWING TWO LINES IF WANT ! power law distribution
 !                REFFI=1.0D0
 !                VEFFI=0.1D0
 
-!      NDISTR = 4 !- gamma distribution                                  
-!C          [Eq. (5.245) of Ref. 1]                                        
-!C               AA=a                                                   
-!C               BB=b      
+!      NDISTR = 4 !- gamma distribution
+!C          [Eq. (5.245) of Ref. 1]
+!C               AA=a
+!C               BB=b
 !http://www.ess.uci.edu/~cmclinden/link/xx/node22.html
 !HANSEN AND TRAVIS 1974 EQ. 2.56
 !C    UNCOMMENT THE FOLLOWING TWO LINES IF WANT !- gamma distribution
 !                REFFI=1.0D0
 !                VEFFI=0.2D0
-                                                     
-!     NDISTR = 5 !- modified power law distribution                     
-!C          [Eq. (5.246) of Ref. 1]                                        
-!C              BB=alpha          
+
+!     NDISTR = 5 !- modified power law distribution
+!C          [Eq. (5.246) of Ref. 1]
+!C              BB=alpha
 !C    UNCOMMENT THE FOLLOWING Three LINES IF WANT !- gamma distribution
 !               R1=      ! R1in Eq. 5. 246 in Mishchenko's book
 !               GAMMAI=  ! ALPHA in Eq. 5. 246 in Mishchenko's book
 !               R2=      ! R2 in Eq. 5. 246 in Mishchenko's book
 
-!     NDISTR = 6 !- bimodal volume log normal distribution              
-!C              [Eq. (5.247) of Ref. 1]             
-!C              AA1=r_g1                                                
-!C              BB1=[ln(sigma_g1)]**2                                   
-!C              AA2=r_g2                                                
-!C              BB2=[ln(sigma_g2)]**2                                   
-!C              GAMMAI=gamma                                               
-!C    UNCOMMENT THE FOLLOWING FIVE LINES IF WANT !-bimodal volume log normal distribution 
+!     NDISTR = 6 !- bimodal volume log normal distribution
+!C              [Eq. (5.247) of Ref. 1]
+!C              AA1=r_g1
+!C              BB1=[ln(sigma_g1)]**2
+!C              AA2=r_g2
+!C              BB2=[ln(sigma_g2)]**2
+!C              GAMMAI=gamma
+!C    UNCOMMENT THE FOLLOWING FIVE LINES IF WANT !-bimodal volume log normal distribution
 !              AA1=
-!              BB1=                                 
-!              AA2=                                               
-!              BB2=                                   
-!              GAMMAI=                                              
+!              BB1=
+!              AA2=
+!              BB2=
+!              GAMMAI=
 
-!     NDISTR = 7 !- Junge distribution   
+!     NDISTR = 7 !- Junge distribution
 !C    Added by Zhai, Pengwang Oct. 29 2008
 !C          [n(r)=Constant*r^{-s}; s=4]
 !C               Parameters R1 and R2 (see below)
-!C               GAMMAI=JUNGE EXPONENTIAL FACTOR s                           
+!C               GAMMAI=JUNGE EXPONENTIAL FACTOR s
 !C    UNCOMMENT THE FOLLOWING LINES IF WANT !- Junge distribution
 !                  GAMMAI=4
 !END SUBROUTINE SPHERINIT
@@ -1624,20 +1624,20 @@ REAL*8:: BLANK
 INTEGER ::INDXDETECTOR,INDXLAMB,INDXOCEAN,INDXOCEAN1
 INTEGER :: NTLYERO
 !TAURfrac(ILAYER), RAYLEIGH SCATTERING FRACTION
-!TAULYR(ILAYER): TOTAL OPTICAL DEPTH  AT WAVLENTGH WV(IWV) AT LAYER(ILAYER) 
+!TAULYR(ILAYER): TOTAL OPTICAL DEPTH  AT WAVLENTGH WV(IWV) AT LAYER(ILAYER)
 !LBDOLYR(ILAYER): EFFECTIVE SINGLE SCATTERING ALBEDO
 INTEGER :: IMIE, NANGMIE_LOCAL
 REAL*8,DIMENSION(NUMMIEANGMAX,0:6):: PHMXMIE_LOCAL1,PHMXMIE_LOCAL2
 REAL*8,DIMENSION(:,:,:),ALLOCATABLE:: PHMXDATA_TMP1,PHMXDATA_TMP2
 ! MIE CALCULATION RELATED PARAMETERS
-! if possible, do not modify NMIE and NPL. 
-! If it is necessary, change it all through spher.f 
+! if possible, do not modify NMIE and NPL.
+! If it is necessary, change it all through spher.f
 INTEGER :: NDISTR
 REAL*8 :: AA1,BB1,AA2,BB2,GAMMAI,REFFO,VEFFO,AREA,CEXT1,CSCAT1,CEXT2,CSCAT2
 
 !integer time_array_0(8), time_array_1(8)
 !real start_time, finish_time
-      
+
 INTEGER :: ITLYERA,ITLYER,IREC
 REAL*8 :: finemoderatio,RTMP,RTMP1
 
@@ -1779,7 +1779,7 @@ DO IREC=1,2*(NTLYERA+1)
   ENDIF
   ITLYERA=IREC/2
   IF(ITLYERA==NTLYERA+1)THEN
-! OCEAN INTERFACE 
+! OCEAN INTERFACE
     IF(WNDSPD>=0.0D0)THEN
 	  RECDATASTREAM(IREC,1)=INDXOCEAN
       RECDATASTREAM(IREC,2)=WNDSPD
@@ -1805,7 +1805,7 @@ DO IREC=1,2*(NTLYERA+1)
 !call date_and_time(values=time_array_1)
 !      finish_time = time_array_1 (5) * 3600 + time_array_1 (6) * 60 &
 !           + time_array_1 (7) + 0.001 * time_array_1 (8)
-!write(*,*)'spher_interface elapse =',finish_time - start_time          
+!write(*,*)'spher_interface elapse =',finish_time - start_time
     ! aerosol optical depth
 
   TAULYR(ITLYERA)=CEXT1*ARSLND1(ITLYERA)+CEXT2*ARSLND2(ITLYERA)
@@ -1897,7 +1897,7 @@ DO ILYERA=1,NTLYERA
    ENDDO
    PNDLY(ILYERA)=BEXPFAC(IHEIGHT)*EXP(-AEXPFAC(IHEIGHT)*(ALTMID-HEIGHT(IHEIGHT+1)))
  ELSE
-   STOP 'WARNING ALTMID<0' 
+   STOP 'WARNING ALTMID<0'
  ENDIF
 !  WRITE(*,*)ALTMID,PNDLY(ILYERA)
 ENDDO
@@ -1930,7 +1930,7 @@ REAL*8 :: MUF,DELTA_DEPOL,DELTA_DEPOLP
 
 DELTA_DEPOL=(1.0D0-DEPOLRATIO)/(1.0D0+DEPOLRATIO/2.0D0)
 DELTA_DEPOLP=(1.0D0-2.0D0*DEPOLRATIO)/(1.0D0-DEPOLRATIO)
-   
+
 DO ISCATANG=1,NUMMIEANGINPUT(ITLYER)
   MUF=COS(PHMXDATASTREAM(ITLYER,ISCATANG,0)*FACTOR)
   PHMXDATASTREAM(ITLYER,ISCATANG,1)=0.75D0*DELTA_DEPOL*(1.0D0+MUF*MUF) &
@@ -1938,7 +1938,7 @@ DO ISCATANG=1,NUMMIEANGINPUT(ITLYER)
   PHMXDATASTREAM(ITLYER,ISCATANG,2)=0.75D0*DELTA_DEPOL*(1.0D0+MUF*MUF)
   PHMXDATASTREAM(ITLYER,ISCATANG,3)=1.5D0*DELTA_DEPOL*MUF
   PHMXDATASTREAM(ITLYER,ISCATANG,4)=1.5D0*DELTA_DEPOL*DELTA_DEPOLP*MUF
-  
+
   PHMXDATASTREAM(ITLYER,ISCATANG,5)=-0.75D0*DELTA_DEPOL*(1.0D0-MUF*MUF)
   PHMXDATASTREAM(ITLYER,ISCATANG,6)=0.0D0
 ENDDO
@@ -1969,7 +1969,7 @@ DO ISCATANG=1,NUMMIEANGINPUT(ITLYER)
   RAYPHMX_LOCAL(2)=0.75D0*DELTA_DEPOL*(1.0D0+MUF*MUF)
   RAYPHMX_LOCAL(3)=1.5D0*DELTA_DEPOL*MUF
   RAYPHMX_LOCAL(4)=1.5D0*DELTA_DEPOL*DELTA_DEPOLP*MUF
-  
+
   RAYPHMX_LOCAL(5)=-0.75D0*DELTA_DEPOL*(1.0D0-MUF*MUF)
   RAYPHMX_LOCAL(6)=0.0D0
   PHMXDATASTREAM(ITLYER,ISCATANG,1:6)=TAURfracLOCAL*RAYPHMX_LOCAL(1:6) + &
