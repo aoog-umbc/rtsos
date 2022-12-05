@@ -4,12 +4,13 @@ from pathlib import Path
 from shutil import copy
 from tempfile import TemporaryDirectory
 from typing import Iterable
-import os
 import subprocess
 
 from dask.base import tokenize
 import xarray as xr
 import numpy as np
+
+from .parameters import Parameters as P
 
 
 cli = ArgumentParser()
@@ -67,7 +68,7 @@ class ZhaiRT:
             program: str,
             params: tuple,
             defaults: xr.Dataset,
-            dims: dict = {},
+            dims: dict,
             ) -> None:
         self.program = program
         self.params = tuple(i.__name__ for i in params)
@@ -88,10 +89,11 @@ class ZhaiRT:
         # with the `--cluster` argument, prepare to process inputs/outputs
         # in subdirectories for each of the supplied dimensions
         if args.cluster:
-            outdir, _ = xr.broadcast(
-                xr.DataArray(args.outputs.with_suffix('')),
-                inputs,
-                )
+            outdir = xr.DataArray(args.outputs.with_suffix(''))
+        else:
+            outdir = xr.DataArray(args.outputs.parent)
+        outdir, _ = xr.broadcast(outdir, inputs)
+        if args.cluster:
             coordinates = self.split_cluster(args.cluster)
             try:
                 outdir = reduce(self.paths_by_cluster, coordinates, outdir)
@@ -102,11 +104,6 @@ class ZhaiRT:
                 raise exception from cause
             outdir = outdir.isel(coordinates)
             inputs = inputs.isel(coordinates)
-        else:
-            outdir = xr.DataArray(
-                data=args.outputs.parent,
-                coords=inputs.coords,
-                )
         # with the `--post` argument, combine existing RT outputs and return
         if args.post:
             paths = np.unique(outdir)
@@ -130,8 +127,9 @@ class ZhaiRT:
             outdir.mkdir(parents=True, exist_ok=True)
             # iterate over all variable combinations
             datasets = []
-            groups = xr.DataArray(coords=inputs.coords)
-            groups.data = np.arange(groups.size).reshape(groups.shape)
+            groups, _ = xr.broadcast(xr.DataArray(0), inputs)
+            groups = groups.copy()
+            groups.loc[...] = np.arange(groups.size).reshape(groups.shape)
             for _, one_input in groupby(inputs, groups):
                 one_input = one_input.unstack().squeeze()
                 # convert the now zero-dimensional dataset to a parameter file
@@ -141,30 +139,35 @@ class ZhaiRT:
                 # run RT as subprocess
                 # TODO wrap Fortran to call the program directly
                 subprocess.run(args=[self.program, tmpdir / infile], check=True)
-                # TODO handle output when MIE_TABLE_CAL == 1
+                # in case only Mie tables, no outfile, are produced
+                name = P.MIE_TABLE_CAL.__name__
+                if name in one_input and one_input[name] == 1:
+                    continue
                 # lazy read for outfile metadata
                 one_output = xr.open_dataset(tmpdir / outfile).squeeze()
                 # add dimension names and missing coordinates
                 one_output = one_output.swap_dims(self.dims)
-                for item in self.dims.values():
-                    if item not in one_output:
-                        one_output.coords[item] = range(one_output.dims[item])
                 # drop params duplicated in rt outputs
                 for item in one_input.coords:
                     if item not in one_output:
                         continue
                     # TODO issue zhai-rt#2
-                    if (not (one_output[item] == one_input[item]).all()) and (item not in ['OCEAN_RAMAN_FLAG', 'OCEAN_FCHLA_FLAG', 'OCEAN_FCDOM_FLAG']):
+                    if item in ['OCEAN_RAMAN_FLAG', 'OCEAN_FCHLA_FLAG', 'OCEAN_FCDOM_FLAG']:
+                        one_input = one_input.drop_vars(item)
+                        continue
+                    if np.isnan(one_input[item]):
+                        one_input = one_input.drop_vars(item)
+                    elif one_input[item] == one_output[item]:
+                        one_output = one_output.drop_vars(item)
+                    else:
                         raise ValueError('Inputs/outputs are not as expected.')
-                    # TODO Improve parameter name matching to catch duplicates
-                    #      e.g. ATMOS_ZERO
-                    one_output = one_output.drop_vars(item)
                 # expand all scalar coords to allow `xr.combine_by_coords`
                 one_input = one_input.expand_dims(tuple(one_input.coords))
                 datasets.append(xr.merge((one_output, one_input)))
-            # write the concatenated datasets to the outputs directory, with
-            # length one coordinates returned to scalars
-            xr.combine_by_coords(datasets).squeeze().to_netcdf(path=outputs)
+            if datasets:
+                # write the concatenated datasets to the outputs directory, with
+                # length one coordinates returned to scalars
+                xr.combine_by_coords(datasets).squeeze().to_netcdf(path=outputs)
 
     def infile(self, path: Path, dataset: xr.Dataset) -> Path:
         '''Write parameters to a text file, and return its path.'''
@@ -177,7 +180,7 @@ class ZhaiRT:
                 f'{param.values:<24} # {name}: {desc}'
                 )
         outfile = Path(tokenize(dataset)).with_suffix('.outfile')
-        lines += [f'{path / outfile}', '']
+        lines += [f'{path / outfile} #', '']
         infile = outfile.with_suffix('.infile.txt')
         with (path / infile).open('w') as stream:
             stream.write('\n'.join(lines))
