@@ -8,25 +8,18 @@ def main(argv=None):
 
     # values to write, in the order below, to the RT input file
     values = {
-        P.NWV: 239,
-        P.WAVELENGTH_MICRON_REF: 0.870,
-        P.CFILE_INSTRUMENT: 'afrt_input_oci.txt',
-        P.aux_dir: 'data/RT/pwzrt/Data',
-        P.atmos_dir: 'data/RT/pwzrt/Gas_Absorption_Coefficients',
-        P.Mie_Database_Dir: '',
-        P.MIE_TABLE_CAL: 2,
-        P.wndspd: 5.0,
-        P.theta0: [45.0, 85.0],
-        P.wv_pace_ref: 873.0,
-        P.tau_ref: [0.1, 0.4],
-        P.height_particle: 3.0,
-        P.aerosol: -1,
+        P.Wind_Speed: 5.0,
+        P.Solar_Zenith_Angle: [20.0, 60.0],
+        P.wv_pace_ref: 532.0,
+        P.tau_ref: [0.1, 0.3],
+        P.height_particle: 6.0,
+        P.Aerosol_Model_Number: -1,
         P.AerosolFineModeFraction: 0.3,
         P.Relative_Humidity: [0.30, 0.50, 0.70, 0.75, 0.80, 0.85, 0.90, 0.95],
         P.OCEAN_CASE_SELECT: 0,
         P.albedo_ground: 0.3,
         P.water_depth_max: 200.0,
-        P.chla: [0.01, 0.03, 0.1, 0.3, 1.0, 3, 10, 30],
+        P.chla: [0.03, 0.3, 3, 10, 30],
         P.phytoplankton_index_refraction: 1.02,
         P.phytoplankton_spectral_slope: 3.0,
         P.sediment_index_refraction: 1.2,
@@ -41,7 +34,7 @@ def main(argv=None):
         P.ncolinput: 40,
         P.nquadainput: 40,
         P.nquadoinput: 60,
-        P.MAXMORDINPUT: 20,
+        P.MAXMORDINPUT: 40,
         P.NTHETAV: 36,
         P.NPHIV: 19,
         P.CHLA_HOMOGENEITY: 1,
@@ -63,9 +56,11 @@ def main(argv=None):
         P.WAVEBAND_SEG_FLAG: 0,
         P.AirSensor_Height: 2.2,
         P.pss_flag: 0,
-        P.atmos_profile: 'afglus.dat',
+        P.Aux_Dir: 'data/RT/pwzrt/Data',
+        P.Atmos_Dir: 'data/RT/pwzrt/Gas_Absorption_Coefficients',
+        P.CFILE_AP: 'afglus.dat',
         # for Aerosol Model "-1", there is no aerosol_phasematrix_file
-        P.aerosol_phasematrix_file: '',
+        P.Aerosol_Phasematrix_File: '',
         }
 
     # create a dataset to hold the inputs as coordinates
@@ -78,15 +73,14 @@ def main(argv=None):
         params=tuple(values),
         defaults=dataset,
         dims={
-            # TODO confirm 'WaveLength_Simulation' over 'WaveLength_PACE'
+            # TODO diff btwn 'WaveLength_Simulation' and 'WaveLength_PACE'?
             'phony_dim_1': 'WaveLength_Simulation',
             'phony_dim_2': 'Atmosphere_Layer_Altitudes',
             'phony_dim_3': 'WATER_DEPTH_LEVELS',
             'phony_dim_4': 'PhiV',
-            'phony_dim_5': 'dim_5',
+            'phony_dim_5': 'Optical_Depth',
             'phony_dim_6': 'Stokes_Component',
             'phony_dim_7': 'ThetaV',
             },
         )
-    # TODO confirm singleton inputs.nc still works
     rt.execute(args)
