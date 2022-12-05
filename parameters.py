@@ -11,10 +11,10 @@ class Attributes:
 
     name: str = None
     description: str = None
-    dtype: npt.DTypeLike = None
     units: str = None
     range: str = None
     source: str = None
+    dtype: npt.DTypeLike = str
 
 
 @dataclass(slots=True)
@@ -39,7 +39,7 @@ class Parameters:
         range='0:1',
         dtype=np.float32,
         )
-    aerosol: Attributes = Attributes(
+    Aerosol_Model_Number: Attributes = Attributes(
         name='Aerosol Model',
         description=(
             '-99 read aerosol pmhx in from file, '
@@ -51,7 +51,7 @@ class Parameters:
             ),
         dtype=np.int16,
         )
-    aerosol_phasematrix_file: Attributes = Attributes(
+    Aerosol_Phasematrix_File: Attributes = Attributes(
         )
     AirSensor_Height: Attributes = Attributes(
         units='km',
@@ -67,16 +67,14 @@ class Parameters:
             ),
         dtype=np.int16,
         )
-    atmos_profile: Attributes = Attributes(
-        description=(
-            'valid atmosphere profiles are: afglus.dat, '
-            'afglsw.dat, afglss.dat, or afglmw.dat'
-            ),
+    Atmos_Dir: Attributes = Attributes(
+        description='path to directory containing gas absorbption data'
         )
     ATMOS_ZERO: Attributes = Attributes(
+        description='1=True, 0=False',
         dtype=np.int16,
         )
-    aux_dir: Attributes = Attributes(
+    Aux_Dir: Attributes = Attributes(
         description=(
             'path to directory containing auxiliary data files '
             '(e.g. afrt_input_oci.txt)'
@@ -91,6 +89,16 @@ class Parameters:
         range='0.0:0.05',
         dtype=np.float32,
         )
+    CFILE_AP: Attributes = Attributes(
+        name='filename for atmospheric profile data',
+        description=(
+            'valid atmosphere profiles are: afglus.dat, '
+            'afglsw.dat, afglss.dat, or afglmw.dat'
+            ),
+        )
+    CFILE_INSTRUMENT: Attributes = Attributes(
+        description='name of AFRT file to use',
+    )
     chla: Attributes = Attributes(
         range='0.04:50',
         units='mg/m3',
@@ -98,8 +106,9 @@ class Parameters:
         )
     CHLA_HOMOGENEITY: Attributes = Attributes(
         dtype=np.int16,
+        description='1=True, 0=False',
         )
-    df: Attributes = Attributes(
+    Diffuse_Transmittance_Flag: Attributes = Attributes(
         description=(
             'calculate regular reflectance (0) or '
             'diffuse transmittance (1)'
@@ -107,10 +116,8 @@ class Parameters:
         dtype=np.int16,
         )
     gas_abs_flag: Attributes = Attributes(
+        description='1=True, 0=False',
         dtype=np.int16,
-        )
-    gas_abs_coef_dir: Attributes = Attributes(
-        description='path to directory containing gas absorbption data'
         )
     H2O_COLUMN: Attributes = Attributes(
         description='water vapor in the whole column',
@@ -125,6 +132,7 @@ class Parameters:
         dtype=np.float32,
         )
     hyspectral_flag: Attributes = Attributes(
+        description='1=True, 0=False',
         dtype=np.int16,
         )
     I_SURFACE_ROUGHNESS_PARA: Attributes = Attributes(
@@ -136,11 +144,6 @@ class Parameters:
             ),
         dtype=np.int16,
         )
-    # TODO replace instrument with additional parameters
-    instrument: Attributes = Attributes(
-        description='numeric identifier of the instrument',
-        dtype=np.int16,
-        )
     iwhitecap: Attributes = Attributes(
         description='turn white cap calculation off (0) or on (1)',
         dtype=np.int16,
@@ -148,10 +151,20 @@ class Parameters:
     MAXMORDINPUT: Attributes = Attributes(
         dtype=np.int16,
         )
-    mie_database_dir: Attributes = Attributes(
+    Mie_Database_Dir: Attributes = Attributes(
         description='path to directory containing Mie database'
         )
+    MIE_TABLE_CAL: Attributes = Attributes(
+        description=(
+            'Set behavior for Mie table calculations to '
+            '1 = calculate and store Mie scattering matrix, then exit, '
+            '2 = calculate and use (w/out storing) Mie scattering matrix, '
+            '3 = use existing Mie scattering matrix'
+        ),
+        dtype=np.int16,
+    )
     MONOCHROMATIC_FLAG: Attributes = Attributes(
+        description='1=True, 0=False',
         dtype=np.int16,
         )
     ncolinput: Attributes = Attributes(
@@ -163,6 +176,10 @@ class Parameters:
         dtype=np.float32,
         )
     NonPhotochemicalQuenching_FLAG: Attributes = Attributes(
+        description='1=True, 0=False',
+        dtype=np.int16,
+        )
+    NPHIV: Attributes = Attributes(
         dtype=np.int16,
         )
     nquadainput: Attributes = Attributes(
@@ -171,12 +188,13 @@ class Parameters:
     nquadoinput: Attributes = Attributes(
         dtype=np.int16,
         )
-    NPHIV: Attributes = Attributes(
-        dtype=np.int16,
-        )
     NTHETAV: Attributes = Attributes(
         dtype=np.int16,
         )
+    NWV: Attributes = Attributes(
+        name='number of wavelegnths',
+        dtype=np.int16,
+    )
     OCEAN_CASE_SELECT: Attributes = Attributes(
         description=(
             '-1 land, '
@@ -188,15 +206,19 @@ class Parameters:
         dtype=np.int16,
         )
     OCEAN_FCDOM_FLAG: Attributes = Attributes(
+        description='1=True, 0=False',
         dtype=np.int16,
         )
     OCEAN_FCHLA_FLAG: Attributes = Attributes(
+        description='1=True, 0=False',
         dtype=np.int16,
         )
     OCEAN_PHMX_ONE: Attributes = Attributes(
+        description='1=True, 0=False',
         dtype=np.int16,
         )
     OCEAN_RAMAN_FLAG: Attributes = Attributes(
+        description='1=True, 0=False',
         dtype=np.int16,
         )
     OZONE_COLUMN_DobsonUnit: Attributes = Attributes(
@@ -219,7 +241,8 @@ class Parameters:
         dtype=np.float32,
         )
     pss_flag: Attributes = Attributes(
-        description='pseudospherical flag',
+        name='pseudospherical flag',
+        description='1: turn on, 0: turn off',
         dtype=np.int16,
         )
     Relative_Humidity: Attributes = Attributes(
@@ -258,23 +281,24 @@ class Parameters:
     SUN_GLINT_FLAG: Attributes = Attributes(
         description=(
             '0 include sun glint, '
-            '1 no sun glint '
+            '1 no sun glint'
             ),
         dtype=np.int16,
         )
-    theta0: Attributes = Attributes(
+    Solar_Zenith_Angle: Attributes = Attributes(
         units='degrees',
         range='0:80',
         dtype=np.float32,
         )
     tau865: Attributes = Attributes(
+        # TODO duplicates tau_ref?
         dtype=np.float32,
         )
     tau_ref: Attributes = Attributes(
         range='0.01:0.4',
         dtype=np.float32,
         )
-    wndspd: Attributes = Attributes(
+    Wind_Speed: Attributes = Attributes(
         name='Wind Speed',
         description=(
             'if `I_SURFACE_ROUGHNESS_PARA == 1`, inverse wind speed '
@@ -288,6 +312,9 @@ class Parameters:
     water_depth_max: Attributes = Attributes(
         dtype=np.float32,
         )
+    WAVELENGTH_MICRON_REF: Attributes = Attributes(
+        dtype=np.float32,
+    )
     wv_pace_ref: Attributes = Attributes(
         dtype=np.float32,
         )
@@ -296,7 +323,7 @@ class Parameters:
             '0: all; '
             '1: seg1+3only; '
             '2: seg2only; '
-            '3 seg1+2+3; '
+            '3: seg1+2+3; '
             '4: seg4only'
             ),
         dtype=np.int16,
