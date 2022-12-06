@@ -10,7 +10,7 @@ dependencies = [
 ]
 
 [project.scripts]
-rt-GSFC-LUT = "zhai_rt.rt_GSFC_LUT:main"
+rt-AC-LUT = "zhai_rt.rt_AC_LUT:main"
 rt-PACE = "zhai_rt.rt_PACE:main"
 
 [tool.setuptools]

@@ -56,7 +56,7 @@ data/RT/pwzrt/
 
 ## Quickstart
 
-The package adds two command line tools: `rt-GSFC-LUT` and `rt-PACE`, which
+The package adds two command line tools: `rt-AC-LUT` and `rt-PACE`, which
 accept the same command line arguments (see, for example `rt-PACE --help`).
 
 To run the PACE simulator over the parameters provided as defaults, only
@@ -124,7 +124,7 @@ $ cmake -B build
 -- Checking whether /usr/bin/f95 supports Fortran 90
 -- Checking whether /usr/bin/f95 supports Fortran 90 - yes
 -- HDF5 Fortran compiler wrapper is unable to compile a minimal HDF5 program.
--- Found HDF5: <HDF5_ROOT>/lib/libhdf5_fortran.so;<HDF5_ROOT>/lib/libhdf5.so (found version "1.10.6") found components: Fortran 
+-- Found HDF5: <HDF5_ROOT>/lib/libhdf5_fortran.so;<HDF5_ROOT>/lib/libhdf5.so (found version "1.10.6") found components: Fortran
 -- Configuring done
 -- Generating done
 -- Build files have been written to: <PWD>build
