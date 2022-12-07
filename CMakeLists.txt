@@ -3,6 +3,9 @@ cmake_minimum_required(VERSION 3.20)
 project(ZhaiRT LANGUAGES Fortran)
 
 # import CMake targets that satisfy the HDF5 dependency
+if(DEFINED ENV{CONDA_PREFIX})
+    list(APPEND CMAKE_PREFIX_PATH $ENV{CONDA_PREFIX})
+endif()
 find_package(HDF5
     REQUIRED
     COMPONENTS Fortran
