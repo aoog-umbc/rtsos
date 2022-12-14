@@ -1,43 +1,49 @@
 # Radiative Transfer Simulations
 
-The `zhai-rt` package implements radiative transfer simulations for the purpose
+The `zhai-rt` package implements a radiative transfer model (RTM) for the purpose
 of creating look-up tables (LUTs) for atmospheric correction (AC) or simulating
-datasets from existing or planned sensors (e.g. PACE).
+TOA irradiances observed by existing or planned sensors (e.g. PACE).
 
-This radiative transfer package includes the PACE Simulator, a new aerosol
-scattering matrix package, a new wrapper for calculating the aerosol reflectance
-table for atmospheric correction, and several scripts that help manage the
-workloads.
+The package includes the PACE simulator, an aerosol scattering matrix package,
+a wrapper for calculating the aerosol reflectance table for atmospheric
+correction, and a Python wrapper to parameterize and run the RTM.
 
-The following instructions apply for users and developers working on the
-Poseidon High-Performance Computing infrastructure.
+The following instructions are known to work on the Poseidon High-Performance Computing
+infrastructure, and lightly tested on macOS.
+
+## Prerequistes
+
+- Python >= 3.9
+- HDF5 >= 1.10
+- CMake >= 3.20
+- a modern Fortran compiler (e.g. gfortran)
+
+The `zhai-rt` package requires Python >= 3.9, and has additional Python dependencies
+that are included during the installation process.
+
+The `zhai-rt` package depends on the HDF5 >= 1.10 Fortran library and does not
+automatically include this dependency during installation. If not possible to
+install HDF5 with your system package manager, the HDF5 library can be installed
+by Miniconda with `conda install hdf5` or by Homebrew with `brew install hdf5`. Both
+methods include the Fortran library component at time of writing.
 
 ## Installation
 
+The `zhai-rt` package should be installed using Python's `pip` installer but is not
+published on the Python package index (the default repository searched by `pip install`).
+If the dependencies are present in a standard location, install with:
+
+```
+$ pip install git+https://oceandata.sci.gsfc.nasa.gov/rcs/rt/zhai_rt.git
+```
+
 Presently, the package is source-only, which means that compilation will happen
-locally during installation. Your system must have a developer tool chain that
-includes a Fortran compiler and CMake.
-
-The `zhai-rt` package depends on the HDF5 Fortran library and does not
-automatically install this dependency. If not possible to install with your system
-package manager, the HDF5 libraries can be installed by Miniconda with
-`conda install hdf5` or by Homebrew with `brew install hdf5`. Both methods
-include the Fortran library component at time of writing.
-
-If the HDF5 Fortran library is already installed on a standard path, then
-the following routine `pip` command should suffice:
+locally during installation. If compilation fails, indicated by
+`ERROR: Could not build wheels for zhair-rt...` and the HDF5 Fortran libaries
+defintiely exist at a known path, then try installing with the `HDF5_ROOT` variable set.
 
 ```
-pip install git+https://oceandata.sci.gsfc.nasa.gov/rcs/rt/zhai_rt.git
-```
-
-If the above command fails with `ERROR: Could not build wheels for zhair-rt...`
-and the HDF5 Fortran libaries defintiely exist at a known path, then
-try installing with the `HDF5_ROOT` variable set. For example, if using `conda`
-on a *nix system, with `hdf5` added by Miniconda to the base environment, try
-
-```
-HDF5_ROOT=~/miniconda3 pip install git+https://oceandata.sci.gsfc.nasa.gov/rcs/rt/zhai_rt.git
+HDF5_ROOT=/path/to/env pip install git+https://oceandata.sci.gsfc.nasa.gov/rcs/rt/zhai_rt.git
 ```
 
 ## Auxilliary Data
@@ -56,7 +62,7 @@ data/RT/pwzrt/
 
 ## Quickstart
 
-The package adds two command line tools: `rt-GSFC-LUT` and `rt-PACE`, which
+The package adds two command line tools: `rt-AC-LUT` and `rt-PACE`, which
 accept the same command line arguments (see, for example `rt-PACE --help`).
 
 To run the PACE simulator over the parameters provided as defaults, only
@@ -133,8 +139,5 @@ $ cmake --build .
 ```
 
 If `cmake -B build` does not succeed with `Could NOT find HDF5`, try calling with the
-`HDF5_ROOT` variable as described in the [Installation](#installation) section above:
-
-```
-$ HDF5_ROOT=~/miniconda3/ cmake -B build
+`HDF5_ROOT` variable as described in the [Installation](#installation) section above.
 ```
