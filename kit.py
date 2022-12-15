@@ -68,12 +68,10 @@ class ZhaiRT:
             program: str,
             params: tuple,
             defaults: xr.Dataset,
-            dims: dict,
             ) -> None:
         self.program = program
         self.params = tuple(i.__name__ for i in params)
         self.defaults = defaults
-        self.dims = dims
 
     def execute(self, args: Namespace) -> None:
         # with the `--pre` argument, write inputs and return
@@ -111,7 +109,7 @@ class ZhaiRT:
                 paths=[i / args.outputs.name for i in paths],
                 combine='nested',
                 concat_dim=tuple(outdir.dims)[:len(paths.shape)],
-            )
+                )
             dataset.to_netcdf(args.outputs)
             return
         # execute the RT simulations in a temp directory then copy to outputs
@@ -144,9 +142,8 @@ class ZhaiRT:
                 if name in one_input and one_input[name] == 1:
                     continue
                 # lazy read for outfile metadata
-                one_output = xr.open_dataset(tmpdir / outfile).squeeze()
-                # add dimension names and missing coordinates
-                one_output = one_output.swap_dims(self.dims)
+                # FIXME use netCDF4-python see Unidata/netCDF4-python#1226
+                one_output = xr.open_dataset(tmpdir / outfile, engine='h5netcdf')
                 # drop params duplicated in rt outputs
                 for item in one_input.coords:
                     if item not in one_output:
@@ -162,12 +159,18 @@ class ZhaiRT:
                     else:
                         raise ValueError('Inputs/outputs are not as expected.')
                 # expand all scalar coords to allow `xr.combine_by_coords`
-                one_input = one_input.expand_dims(tuple(one_input.coords))
-                datasets.append(xr.merge((one_output, one_input)))
+                one_output = (xr
+                    .merge((one_input, one_output))
+                    .expand_dims(tuple(one_input.coords))
+                    )
+                datasets.append(one_output)
             if datasets:
                 # write the concatenated datasets to the outputs directory, with
                 # length one coordinates returned to scalars
-                xr.combine_by_coords(datasets).squeeze().to_netcdf(path=outputs)
+                return (xr
+                    .combine_by_coords(datasets)
+                    .to_netcdf(path=outputs)
+                    )
 
     def infile(self, path: Path, dataset: xr.Dataset) -> Path:
         '''Write parameters to a text file, and return its path.'''
@@ -180,7 +183,7 @@ class ZhaiRT:
                 f'{param.values:<24} # {name}: {desc}'
                 )
         outfile = Path(tokenize(dataset)).with_suffix('.outfile')
-        lines += [f'{path / outfile} #', '']
+        lines += [f'{path / outfile}', '']
         infile = outfile.with_suffix('.infile.txt')
         with (path / infile).open('w') as stream:
             stream.write('\n'.join(lines))
@@ -212,7 +215,7 @@ class ZhaiRT:
         idx = xr.DataArray(
             [Path(str(i)) for i in range(current[next].size)],
             dims=next,
-        )
+            )
         # note that Path objects represent concatenation by division
         subdir = next / idx
         return current / subdir

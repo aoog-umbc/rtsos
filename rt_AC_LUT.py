@@ -79,12 +79,5 @@ def main(argv=None):
         'rtsos_GSFC_AC_LUT.exe',
         params=tuple(values),
         defaults=dataset,
-        dims={
-            'phony_dim_1': 'Optical_Depth',
-            'phony_dim_2': 'Atmosphere_Layer_Altitudes',
-            'phony_dim_3': 'WaveLength',
-            'phony_dim_4': 'PhiV',
-            'phony_dim_5': 'ThetaV',
-            },
         )
     return rt.execute(args)
