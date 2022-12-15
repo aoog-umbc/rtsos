@@ -8,10 +8,10 @@ if(DEFINED ENV{CONDA_PREFIX})
 endif()
 find_package(HDF5
     REQUIRED
-    COMPONENTS Fortran
+    COMPONENTS Fortran HL
 )
-include_directories(${HDF5_INCLUDE_DIRS})
-list(APPEND LIBS ${HDF5_Fortran_LIBRARIES})
+include_directories(${HDF5_Fortran_INCLUDE_DIRS})
+list(APPEND LIBS ${HDF5_Fortran_LIBRARIES} ${HDF5_Fortran_HL_LIBRARIES})
 
 # build customizations
 SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH True)
@@ -36,7 +36,7 @@ add_library(rtsos_rao_dg
     src/core/surface_glint.f90
 )
 target_link_libraries(rtsos_rao_dg
-    ${HDF5_Fortran_LIBRARIES}
+    ${LIBS}
 )
 
 # rtsos_rao_dg executable
@@ -52,7 +52,7 @@ add_library(pace_simulator
     src/pace_simulator/PACE_Instrument.f90
 )
 target_link_libraries(pace_simulator
-    ${HDF5_Fortran_LIBRARIES}
+    ${LIBS}
 )
 
 # rtsos_PACE_Simulator_DoubleK executable
