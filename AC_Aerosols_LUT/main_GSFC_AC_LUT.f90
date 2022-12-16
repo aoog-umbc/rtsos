@@ -934,8 +934,7 @@ CALL h5dwrite_f(dset, H5T_NATIVE_REAL, f_ptr, hdferr)
 CALL h5dclose_f(dset, hdferr)
 CALL h5sclose_f(space, hdferr)
 
-dimscl=(/ NWV /) ! c_dim_nwv
-
+dimscl=(/ NWV /)
 CALL h5screate_simple_f(1, dimscl, space, hdferr)
 CALL h5dcreate_f(file, 'WaveLength', H5T_IEEE_F32LE, space, c_dim_nwv, hdferr)
   ALLOCATE(HDF5RARR(NWV))
@@ -945,6 +944,7 @@ CALL h5dcreate_f(file, 'WaveLength', H5T_IEEE_F32LE, space, c_dim_nwv, hdferr)
 CALL h5dsset_scale_f(c_dim_nwv, hdferr)
 CALL h5sclose_f(space, hdferr)
 
+dimscl=(/ NWV /)
 ALLOCATE(HDF5RARR(NWV))
 HDF5RARR=RINDX_WATER
 CALL h5screate_simple_f(1, dimscl, space, hdferr)
@@ -955,6 +955,7 @@ CALL h5dclose_f(dset, hdferr)
 CALL h5sclose_f(space, hdferr)
 DEALLOCATE(HDF5RARR)
 
+dimscl=(/ NWV /)
 ALLOCATE(HDF5RARR(NWV))
 HDF5RARR=MRR1(1:NWV,IMIE)
 CALL h5screate_simple_f(1, dimscl, space, hdferr)
@@ -965,6 +966,7 @@ CALL h5dclose_f(dset, hdferr)
 CALL h5sclose_f(space, hdferr)
 DEALLOCATE(HDF5RARR)
 
+dimscl=(/ NWV /)
 ALLOCATE(HDF5RARR(NWV))
 HDF5RARR=MRI1(1:NWV,IMIE)
 CALL h5screate_simple_f(1, dimscl, space, hdferr)
@@ -975,6 +977,7 @@ CALL h5dclose_f(dset, hdferr)
 CALL h5sclose_f(space, hdferr)
 DEALLOCATE(HDF5RARR)
 
+dimscl=(/ NWV /)
 ALLOCATE(HDF5RARR(NWV))
 HDF5RARR=MRR2(1:NWV,IMIE)
 CALL h5screate_simple_f(1, dimscl, space, hdferr)
@@ -985,6 +988,7 @@ CALL h5dclose_f(dset, hdferr)
 CALL h5sclose_f(space, hdferr)
 DEALLOCATE(HDF5RARR)
 
+dimscl=(/ NWV /)
 ALLOCATE(HDF5RARR(NWV))
 HDF5RARR=MRI2(1:NWV,IMIE)
 CALL h5screate_simple_f(1, dimscl, space, hdferr)
@@ -995,8 +999,7 @@ CALL h5dclose_f(dset, hdferr)
 CALL h5sclose_f(space, hdferr)
 DEALLOCATE(HDF5RARR)
 
-dimscl=(/ NDET-1 /) ! c_dim_alt
-
+dimscl=(/ NDET-1 /)
 ALLOCATE(HDF5RARR(NDET-1))
 HDF5RARR=ALT_DET
 CALL h5screate_simple_f(1, dimscl, space, hdferr)
@@ -1006,13 +1009,13 @@ CALL h5dsset_scale_f(c_dim_alt, hdferr)
 CALL h5sclose_f(space, hdferr)
 DEALLOCATE(HDF5RARR)
 
-dims= (/ NWV, NTLYERA /) ! c_dim_nwv, c_dim_ntlyera
-
+dims= (/ NWV, NTLYERA /)
 CALL h5screate_f(H5S_NULL_F, space, hdferr)
 CALL h5dcreate_f(file, 'NTLYERA', H5T_IEEE_F32LE, space, c_dim_ntlyera, hdferr)
 CALL h5dsset_scale_f(c_dim_ntlyera, hdferr)
 CALL h5sclose_f(space, hdferr)
 
+dims= (/ NWV, NTLYERA /)
 ALLOCATE(HDF5RARR2DIM(NWV, NTLYERA))
 HDF5RARR2DIM=TAU_ARSL_TOTAL
 CALL h5screate_simple_f(2, dims, space, hdferr)
@@ -1024,6 +1027,7 @@ CALL h5dclose_f(dset, hdferr)
 CALL h5sclose_f(space, hdferr)
 DEALLOCATE(HDF5RARR2DIM)
 
+dims= (/ NWV, NTLYERA /)
 ALLOCATE(HDF5RARR2DIM(NWV, NTLYERA))
 HDF5RARR2DIM=TAUR
 CALL h5screate_simple_f(2, dims, space, hdferr)
@@ -1035,6 +1039,7 @@ CALL h5dclose_f(dset, hdferr)
 CALL h5sclose_f(space, hdferr)
 DEALLOCATE(HDF5RARR2DIM)
 
+dims= (/ NWV, NTLYERA /)
 ALLOCATE(HDF5RARR2DIM(NWV, NTLYERA))
 HDF5RARR2DIM=DEPOL_A
 CALL h5screate_simple_f(2, dims, space, hdferr)
@@ -1046,8 +1051,7 @@ CALL h5dclose_f(dset, hdferr)
 CALL h5sclose_f(space, hdferr)
 DEALLOCATE(HDF5RARR2DIM)
 
-dimscl=(/ NTLYERA /) ! c_dim_ntlyera
-
+dimscl=(/ NTLYERA /)
 ALLOCATE(HDF5RARR(NTLYERA))
 HDF5RARR=ARSLND1
 CALL h5screate_simple_f(1, dimscl, space, hdferr)
@@ -1058,6 +1062,7 @@ CALL h5dclose_f(dset, hdferr)
 CALL h5sclose_f(space, hdferr)
 DEALLOCATE(HDF5RARR)
 
+dimscl=(/ NTLYERA /)
 ALLOCATE(HDF5RARR(NTLYERA))
 HDF5RARR=ARSLND2
 CALL h5screate_simple_f(1, dimscl, space, hdferr)
@@ -1068,8 +1073,7 @@ CALL h5dclose_f(dset, hdferr)
 CALL h5sclose_f(space, hdferr)
 DEALLOCATE(HDF5RARR)
 
-dimscl=(/ NTHETA /) ! c_dim_thetav
-
+dimscl=(/ NTHETA /)
 ALLOCATE(HDF5RARR(NTHETA))
 HDF5RARR=ACOS(MUOUT)/PI*180.D0
 CALL h5screate_simple_f(1, dimscl, space, hdferr)
@@ -1079,8 +1083,7 @@ CALL h5dsset_scale_f(c_dim_thetav, hdferr)
 CALL h5sclose_f(space, hdferr)
 DEALLOCATE(HDF5RARR)
 
-dimscl=(/ NPHI /) ! c_dim_phiv
-
+dimscl=(/ NPHI /)
 ALLOCATE(HDF5RARR(NPHI))
 !HDF5RARR=180.0-PHIOUT*180.0d0/PI
 HDF5RARR=PHIOUT*180.0d0/PI
@@ -1091,8 +1094,7 @@ CALL h5dsset_scale_f(c_dim_phiv, hdferr)
 CALL h5sclose_f(space, hdferr)
 DEALLOCATE(HDF5RARR)
 
-dimscl=(/ NWV /) ! c_dim_nwv
-
+dimscl=(/ NWV /)
 ALLOCATE(HDF5RARR(NWV))
 HDF5RARR=DIRADFULL(1,:,1)
 CALL h5screate_simple_f(1, dimscl, space, hdferr)
@@ -1103,6 +1105,7 @@ CALL h5dclose_f(dset, hdferr)
 CALL h5sclose_f(space, hdferr)
 DEALLOCATE(HDF5RARR)
 
+dimscl=(/ NWV /)
 ALLOCATE(HDF5RARR(NWV))
 HDF5RARR=DIRADFULL(1,:,2)
 CALL h5screate_simple_f(1, dimscl, space, hdferr)
@@ -1113,8 +1116,7 @@ CALL h5dclose_f(dset, hdferr)
 CALL h5sclose_f(space, hdferr)
 DEALLOCATE(HDF5RARR)
 
-dims3 = (/ NWV, NTHETA, NPHI /) ! c_dim_nwv, c_dim_thetav, c_dim_phiv
-
+dims3 = (/ NWV, NTHETA, NPHI /)
 ALLOCATE(HDF5RARR3DIM(NWV,NTHETA,NPHI))
 HDF5RARR3DIM=DSTOKESFULL(1,:,:,:,1)
 CALL h5screate_simple_f(3, dims3, space, hdferr)
@@ -1127,6 +1129,7 @@ CALL h5dclose_f(dset, hdferr)
 CALL h5sclose_f(space, hdferr)
 DEALLOCATE(HDF5RARR3DIM)
 
+dims3 = (/ NWV, NTHETA, NPHI /)
 ALLOCATE(HDF5RARR3DIM(NWV,NTHETA,NPHI))
 HDF5RARR3DIM=DSTOKESFULL(1,:,:,:,2)
 CALL h5screate_simple_f(3, dims3, space, hdferr)
@@ -1139,6 +1142,7 @@ CALL h5dclose_f(dset, hdferr)
 CALL h5sclose_f(space, hdferr)
 DEALLOCATE(HDF5RARR3DIM)
 
+dims3 = (/ NWV, NTHETA, NPHI /)
 ALLOCATE(HDF5RARR3DIM(NWV,NTHETA,NPHI))
 HDF5RARR3DIM=DSTOKESFULL(1,:,:,:,3)
 CALL h5screate_simple_f(3, dims3, space, hdferr)
@@ -1151,6 +1155,7 @@ CALL h5dclose_f(dset, hdferr)
 CALL h5sclose_f(space, hdferr)
 DEALLOCATE(HDF5RARR3DIM)
 
+dims3 = (/ NWV, NTHETA, NPHI /)
 ALLOCATE(HDF5RARR3DIM(NWV,NTHETA,NPHI))
 HDF5RARR3DIM=DSTOKESFULL_TOA_Glint(:,:,:,1)
 CALL h5screate_simple_f(3, dims3, space, hdferr)
@@ -1163,6 +1168,7 @@ CALL h5dclose_f(dset, hdferr)
 CALL h5sclose_f(space, hdferr)
 DEALLOCATE(HDF5RARR3DIM)
 
+dims3 = (/ NWV, NTHETA, NPHI /)
 ALLOCATE(HDF5RARR3DIM(NWV,NTHETA,NPHI))
 HDF5RARR3DIM=DSTOKESFULL_TOA_Glint(:,:,:,2)
 CALL h5screate_simple_f(3, dims3, space, hdferr)
@@ -1175,6 +1181,7 @@ CALL h5dclose_f(dset, hdferr)
 CALL h5sclose_f(space, hdferr)
 DEALLOCATE(HDF5RARR3DIM)
 
+dims3 = (/ NWV, NTHETA, NPHI /)
 ALLOCATE(HDF5RARR3DIM(NWV,NTHETA,NPHI))
 HDF5RARR3DIM=DSTOKESFULL_TOA_Glint(:,:,:,3)
 CALL h5screate_simple_f(3, dims3, space, hdferr)
@@ -1187,6 +1194,7 @@ CALL h5dclose_f(dset, hdferr)
 CALL h5sclose_f(space, hdferr)
 DEALLOCATE(HDF5RARR3DIM)
 
+dimscl= (/NWV/)
 ALLOCATE(HDF5RARR(NWV))
 HDF5RARR=DIRADFULL(NDET-1,:,1)
 CALL h5screate_simple_f(1, dimscl, space, hdferr)
@@ -1197,6 +1205,7 @@ CALL h5dclose_f(dset, hdferr)
 CALL h5sclose_f(space, hdferr)
 DEALLOCATE(HDF5RARR)
 
+dimscl= (/NWV/)
 ALLOCATE(HDF5RARR(NWV))
 HDF5RARR=DIRADFULL(NDET-1,:,2)
 CALL h5screate_simple_f(1, dimscl, space, hdferr)
@@ -1207,7 +1216,7 @@ CALL h5dclose_f(dset, hdferr)
 CALL h5sclose_f(space, hdferr)
 DEALLOCATE(HDF5RARR)
 
-
+dims3 = (/ NWV, NTHETA, NPHI /)
 ALLOCATE(HDF5RARR3DIM(NWV,NTHETA,NPHI))
 HDF5RARR3DIM=DSTOKESFULL(NDET-1,:,:,:,1)
 CALL h5screate_simple_f(3, dims3, space, hdferr)
@@ -1220,6 +1229,7 @@ CALL h5dclose_f(dset, hdferr)
 CALL h5sclose_f(space, hdferr)
 DEALLOCATE(HDF5RARR3DIM)
 
+dims3 = (/ NWV, NTHETA, NPHI /)
 ALLOCATE(HDF5RARR3DIM(NWV,NTHETA,NPHI))
 HDF5RARR3DIM=DSTOKESFULL(NDET-1,:,:,:,2)
 CALL h5screate_simple_f(3, dims3, space, hdferr)
@@ -1232,6 +1242,7 @@ CALL h5dclose_f(dset, hdferr)
 CALL h5sclose_f(space, hdferr)
 DEALLOCATE(HDF5RARR3DIM)
 
+dims3 = (/ NWV, NTHETA, NPHI /)
 ALLOCATE(HDF5RARR3DIM(NWV,NTHETA,NPHI))
 HDF5RARR3DIM=DSTOKESFULL(NDET-1,:,:,:,3)
 CALL h5screate_simple_f(3, dims3, space, hdferr)
@@ -1244,6 +1255,7 @@ CALL h5dclose_f(dset, hdferr)
 CALL h5sclose_f(space, hdferr)
 DEALLOCATE(HDF5RARR3DIM)
 
+dimscl= (/NWV/)
 ALLOCATE(HDF5RARR(NWV))
 HDF5RARR=DIRADFULL(NDET,:,1)
 CALL h5screate_simple_f(1, dimscl, space, hdferr)
@@ -1254,6 +1266,7 @@ CALL h5dclose_f(dset, hdferr)
 CALL h5sclose_f(space, hdferr)
 DEALLOCATE(HDF5RARR)
 
+dimscl= (/NWV/)
 ALLOCATE(HDF5RARR(NWV))
 HDF5RARR=DIRADFULL(NDET,:,2)
 CALL h5screate_simple_f(1, dimscl, space, hdferr)
@@ -1264,6 +1277,7 @@ CALL h5dclose_f(dset, hdferr)
 CALL h5sclose_f(space, hdferr)
 DEALLOCATE(HDF5RARR)
 
+dims3 = (/ NWV, NTHETA, NPHI /)
 ALLOCATE(HDF5RARR3DIM(NWV,NTHETA,NPHI))
 HDF5RARR3DIM=DSTOKESFULL(NDET,:,:,:,1)
 CALL h5screate_simple_f(3, dims3, space, hdferr)
@@ -1276,6 +1290,7 @@ CALL h5dclose_f(dset, hdferr)
 CALL h5sclose_f(space, hdferr)
 DEALLOCATE(HDF5RARR3DIM)
 
+dims3 = (/ NWV, NTHETA, NPHI /)
 ALLOCATE(HDF5RARR3DIM(NWV,NTHETA,NPHI))
 HDF5RARR3DIM=DSTOKESFULL(NDET,:,:,:,2)
 CALL h5screate_simple_f(3, dims3, space, hdferr)
@@ -1288,6 +1303,7 @@ CALL h5dclose_f(dset, hdferr)
 CALL h5sclose_f(space, hdferr)
 DEALLOCATE(HDF5RARR3DIM)
 
+dims3 = (/ NWV, NTHETA, NPHI /)
 ALLOCATE(HDF5RARR3DIM(NWV,NTHETA,NPHI))
 HDF5RARR3DIM=DSTOKESFULL(NDET,:,:,:,3)
 CALL h5screate_simple_f(3, dims3, space, hdferr)
