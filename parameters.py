@@ -20,15 +20,15 @@ class Attributes:
 @dataclass(slots=True)
 class Parameters:
     '''names and other documentation for parameters in RTM codes'''
-    # The type hints are not to be interpreted as Numpy dtypes, which is instead
-    # a member of `Attributes`; it's better to think of Parameters as the
-    # metadata about parameters used in RT calculations. That means the defaults
-    # below are almost always used, and essentially serve as documentation.
+    # This dataclass is for parameter metadata, not the parameter values,
+    # used in RT calculations. That means the defaults below are almost always
+    # used and essentially serve as built-in model documentation.
     # The purpose of `slots=True` is to produce Class attributes that are
     # visible to IDEs which provide tab completion, i.e. `Parameters.<tab>`.
     # TODO clean up metadata
 
     adg440: Attributes = Attributes(
+        description='used when ocean_case_select == 3',
         units='1/m',
         range='0.0:2.5',
         dtype=np.float32,
@@ -81,11 +81,13 @@ class Parameters:
             )
         )
     bbp660_BackscatterCoeff: Attributes = Attributes(
+        description='used when ocean_case_select == 3',
         units='1/m',
         range='0.0:0.1',
         dtype=np.float32,
         )
     Bp660_BackscatterFraction: Attributes = Attributes(
+        description='used when ocean_case_select == 3',
         range='0.0:0.05',
         dtype=np.float32,
         )
@@ -100,6 +102,7 @@ class Parameters:
         description='name of AFRT file to use',
     )
     chla: Attributes = Attributes(
+        description='used when ocean_case_select in (1, 2, 3)',
         range='0.04:50',
         units='mg/m3',
         dtype=np.float32,
@@ -229,9 +232,11 @@ class Parameters:
         dtype=np.float32,
         )
     phytoplankton_index_refraction: Attributes = Attributes(
+        description='used when ocean_case_select == 2',
         dtype=np.float32,
         )
     phytoplankton_spectral_slope: Attributes = Attributes(
+        description='used when ocean_case_select == 2',
         dtype=np.float32,
         )
     Pressure_Surface_mb: Attributes = Attributes(
@@ -251,31 +256,43 @@ class Parameters:
         dtype=np.float32,
         )
     S_Bp: Attributes = Attributes(
-        description='power spectral slope of backscattering fraction',
-        units='1/m',
+        description=(
+            'power spectral slope of backscattering fraction, '
+            'used when ocean_case_select == 3'
+            ),
+        units='1/nm',
         range='-0.2:0.2',
         dtype=np.float32,
         )
     Sbp: Attributes = Attributes(
-        description='power spectral slope of backscattering coefficient',
-        units='1/m',
+        description=(
+            'power spectral slope of backscattering coefficient, '
+            'used when ocean_case_select == 3'
+            ),
+        units='1/nm',
         range='0.0:0.5',
         dtype=np.float32,
         )
     Sdg: Attributes = Attributes(
-        description='exponential spectral slope of dg absorption',
-        units='1/m',
+        description=(
+            'exponential spectral slope of dg absorption, '
+            'used when ocean_case_select == 3'
+            ),
+        units='1/nm',
         range='0.01:0.02',
         dtype=np.float32,
         )
     sediment_concentration: Attributes = Attributes(
+        description='used when ocean_case_select == 2',
         range='0:30',
         dtype=np.float32,
         )
     sediment_index_refraction: Attributes = Attributes(
+        description='used when ocean_case_select == 2',
         dtype=np.float32,
         )
     sediment_spectral_slope: Attributes = Attributes(
+        description='used when ocean_case_select == 2',
         dtype=np.float32,
         )
     SUN_GLINT_FLAG: Attributes = Attributes(

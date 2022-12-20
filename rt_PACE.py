@@ -72,17 +72,5 @@ def main(argv: str = None) -> None:
         'rtsos_PACE_Simulator_DoubleK.exe',
         params=tuple(values),
         defaults=dataset,
-        dims={
-            # TODO diff btwn 'WaveLength_Simulation' and 'WaveLength_PACE'?
-            'phony_dim_1': 'WaveLength_Simulation',
-            'phony_dim_2': 'Atmosphere_Layer_Altitudes',
-            'phony_dim_3': 'WATER_DEPTH_LEVELS',
-            'phony_dim_4': 'dim_4',
-            # TODO do these change with parameters?
-            'phony_dim_5': 'PhiV',
-            'phony_dim_6': 'Optical_Depth',
-            'phony_dim_7': 'Stokes_Component',
-            'phony_dim_8': 'ThetaV',
-            },
         )
     rt.execute(args)
