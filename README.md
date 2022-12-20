@@ -1,3 +1,9 @@
+**TLDR:** No need to clone this repo, [install](#installation) it instead.
+```
+$ pip install git+https://oceandata.sci.gsfc.nasa.gov/rcs/rt/zhai_rt.git
+$ rt-AC-LUT --help
+```
+
 # Radiative Transfer Simulations
 
 The `zhai-rt` package implements a radiative transfer model (RTM) for the purpose
