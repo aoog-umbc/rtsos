@@ -16,7 +16,7 @@ def main(argv=None):
         P.CFILE_INSTRUMENT: 'afrt_input_oci.txt',
         P.Aux_Dir: 'data/RT/pwzrt/Data',
         P.Atmos_Dir: 'data/RT/pwzrt/Gas_Absorption_Coefficients',
-        P.Mie_Database_Dir: 'data/Mie',
+        P.Mie_Database_Dir: 'Mie_Database',
         P.MIE_TABLE_CAL: 2,
         P.Aerosol_Model_Number: range(11, 21),
         P.AerosolFineModeFraction: np.nan,

@@ -84,14 +84,13 @@ class ZhaiRT:
                 return
         # read existing inputs
         inputs = xr.open_dataset(args.inputs)
-        # with the `--cluster` argument, prepare to process inputs/outputs
-        # in subdirectories for each of the supplied dimensions
+        parent = xr.DataArray(args.outputs.parent)
+        outdir, _ = xr.broadcast(parent, inputs)
+        # with the `--cluster` argument, prepare to process a subset of inputs
+        # in subdirectories, defined by the dimension(s) given with cluster
         if args.cluster:
-            outdir = xr.DataArray(args.outputs.with_suffix(''))
-        else:
-            outdir = xr.DataArray(args.outputs.parent)
-        outdir, _ = xr.broadcast(outdir, inputs)
-        if args.cluster:
+            parent = xr.DataArray(args.outputs.with_suffix(''))
+            outdir, _ = xr.broadcast(parent, inputs)
             coordinates = self.split_cluster(args.cluster)
             try:
                 outdir = reduce(self.paths_by_cluster, coordinates, outdir)
@@ -113,7 +112,7 @@ class ZhaiRT:
             dataset.to_netcdf(args.outputs)
             return
         # execute the RT simulations in a temp directory then copy to outputs
-        for key, value in groupby(inputs, outdir):
+        for key, value in groupby(dataset=inputs, groups=outdir):
             self.rtsos(value.unstack(), key / args.outputs.name)
 
     def rtsos(self, inputs: xr.Dataset, outputs: Path) -> None:
@@ -125,10 +124,12 @@ class ZhaiRT:
             outdir.mkdir(parents=True, exist_ok=True)
             # iterate over all variable combinations
             datasets = []
-            groups, _ = xr.broadcast(xr.DataArray(0), inputs)
-            groups = groups.copy()
-            groups.loc[...] = np.arange(groups.size).reshape(groups.shape)
-            for _, one_input in groupby(inputs, groups):
+            shape = tuple(inputs.dims.values())
+            each_input = xr.DataArray(
+                data=np.arange(np.prod(shape)).reshape(shape),
+                coords=inputs.coords,
+                )
+            for _, one_input in groupby(dataset=inputs, groups=each_input):
                 one_input = one_input.unstack().squeeze()
                 # convert the now zero-dimensional dataset to a parameter file
                 # that gets copied to the folder with the combined outputs
@@ -137,38 +138,37 @@ class ZhaiRT:
                 # run RT as subprocess
                 # TODO wrap Fortran to call the program directly
                 subprocess.run(args=[self.program, tmpdir / infile], check=True)
-                # in case only Mie tables, no outfile, are produced
+                # expect no output if instructed to only calculate Mie tables
                 name = P.MIE_TABLE_CAL.__name__
                 if name in one_input and one_input[name] == 1:
                     continue
                 # lazy read for outfile metadata
                 # FIXME use netCDF4-python see Unidata/netCDF4-python#1226
                 one_output = xr.open_dataset(tmpdir / outfile, engine='h5netcdf')
-                # drop params duplicated in rt outputs
+                # drop parameters duplicated in rt outputs
                 for item in one_input.coords:
                     if item not in one_output:
                         continue
-                    # TODO issue zhai-rt#2
-                    if item in ['OCEAN_RAMAN_FLAG', 'OCEAN_FCHLA_FLAG', 'OCEAN_FCDOM_FLAG']:
-                        one_input = one_input.drop_vars(item)
-                        continue
-                    if np.isnan(one_input[item]):
-                        one_input = one_input.drop_vars(item)
-                    elif one_input[item] == one_output[item]:
+                    if one_input[item] == one_output[item]:
+                        # keep item as coordinate
                         one_output = one_output.drop_vars(item)
+                    elif np.isnan(one_input[item]):
+                        one_input = one_input.drop_vars(item)
                     else:
+                        # TODO issue zhai-rt#2
+                        if item in ['MONOCHROMATIC_FLAG', 'OCEAN_RAMAN_FLAG', 'OCEAN_FCHLA_FLAG', 'OCEAN_FCDOM_FLAG']:
+                            raise Exception('zhai-rt#2')
                         raise ValueError('Inputs/outputs are not as expected.')
                 # expand all scalar coords to allow `xr.combine_by_coords`
-                one_output = (xr
-                    .merge((one_input, one_output))
-                    .expand_dims(tuple(one_input.coords))
-                    )
+                one_input = one_input.expand_dims(tuple(one_input.coords))
+                one_output = xr.merge((one_input, one_output))
                 datasets.append(one_output)
             if datasets:
                 # write the concatenated datasets to the outputs directory, with
                 # length one coordinates returned to scalars
                 return (xr
                     .combine_by_coords(datasets)
+                    .squeeze()
                     .to_netcdf(path=outputs)
                     )
 

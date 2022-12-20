@@ -1,11 +1,12 @@
 [project]
 name = "zhai-rt"
-version = "0.1.1"
+version = "0.1.2"
 requires-python = ">=3.9"
 dependencies = [
     "numpy>=1.23",
     "xarray>=2022.3",
-    "netcdf4>=1.5",
+    "netcdf4>=1.6.1",
+    "h5netcdf @ git+https://git@github.com/itcarroll/h5netcdf@null_dimension_scale",
     "dask>=2022.10.2",
 ]
 
