@@ -53,12 +53,50 @@ cli.add_argument(
 
 
 def groupby(dataset: xr.Dataset, groups: xr.DataArray) -> Iterable[tuple]:
-    '''Compensate for xr.Dataset.groupby's inability to handle the edge case
-    of zero-dimensional grouping.'''
-    if dataset.dims:
-        return dataset.groupby(groups)
+    '''Return subsets selected from `dataset` at the coordinates of each unique
+    value present in `groups`.'''
+    if groups.dims:
+        # yield from the iterable created by xr.DataArray.groupby
+        groups = groups.groupby(groups)
+        for key, value in groups:
+            subset = dataset.sel(value.unstack().indexes)
+            yield key, subset
     else:
+        # compensate for xr.DataArray.groupby's inability to handle no dims
         return ((groups.item(), dataset), )
+
+
+def split_cluster(arg: str) -> dict:
+    ''''Split the comma separated elements of `arg`, which are key, value
+    pairs for the returned dictionary, parsing the value for later use
+    in xr.Dataset indexing.'''
+    cluster = {}
+    for item in arg.split(','):
+        key, *value = item.split(':')
+        value = tuple(int(i) for i in value)
+        if value:
+            if len(value) == 1:
+                value = value[0]
+                cluster[key] = slice(value, value + 1)
+            else:
+                cluster[key] = slice(*value)
+        else:
+            cluster[key] = slice(None)
+    return cluster
+
+
+def paths_by_cluster(current: xr.DataArray, next: str) -> xr.DataArray:
+    '''Create an array of Path objects with nesting subdirectories
+    for the given dimensions and ranges.'''
+    # use xr.DataArray for broadcasting by named dimensions
+    # TODO path construction, or maybe division, is oddly slow
+    idx = xr.DataArray(
+        [Path(str(i)) for i in range(current[next].size)],
+        dims=next,
+        )
+    # note that Path objects represent concatenation by division
+    subdir = next / idx
+    return current / subdir
 
 
 class ZhaiRT:
@@ -91,9 +129,9 @@ class ZhaiRT:
         if args.cluster:
             parent = xr.DataArray(args.outputs.with_suffix(''))
             outdir, _ = xr.broadcast(parent, inputs)
-            coordinates = self.split_cluster(args.cluster)
+            coordinates = split_cluster(args.cluster)
             try:
-                outdir = reduce(self.paths_by_cluster, coordinates, outdir)
+                outdir = reduce(paths_by_cluster, coordinates, outdir)
             except KeyError as cause:
                 exception = Exception(
                     '`--cluster` value(s) must be dimensions of inputs'
@@ -107,13 +145,13 @@ class ZhaiRT:
             dataset = xr.open_mfdataset(
                 paths=[i / args.outputs.name for i in paths],
                 combine='nested',
-                concat_dim=tuple(outdir.dims)[:len(paths.shape)],
+                concat_dim=outdir.dims[-len(paths.shape):],
                 )
             dataset.to_netcdf(args.outputs)
             return
         # execute the RT simulations in a temp directory then copy to outputs
         for key, value in groupby(dataset=inputs, groups=outdir):
-            self.rtsos(value.unstack(), key / args.outputs.name)
+            self.rtsos(value, key / args.outputs.name)
 
     def rtsos(self, inputs: xr.Dataset, outputs: Path) -> None:
         # within a temporary directory, write the rtsos input files and store
@@ -122,7 +160,7 @@ class ZhaiRT:
             tmpdir = Path(tmpdir)
             outdir = outputs.parent
             outdir.mkdir(parents=True, exist_ok=True)
-            # iterate over all variable combinations
+            # iterate over all coordinate combinations
             datasets = []
             shape = tuple(inputs.dims.values())
             each_input = xr.DataArray(
@@ -130,10 +168,9 @@ class ZhaiRT:
                 coords=inputs.coords,
                 )
             for _, one_input in groupby(dataset=inputs, groups=each_input):
-                one_input = one_input.unstack().squeeze()
-                # convert the now zero-dimensional dataset to a parameter file
+                # convert a zero-dimensional dataset to a parameter file
                 # that gets copied to the folder with the combined outputs
-                infile, outfile = self.infile(tmpdir, one_input)
+                infile, outfile = self.infile(tmpdir, one_input.squeeze())
                 copy(tmpdir / infile, outdir)
                 # run RT as subprocess
                 # TODO wrap Fortran to call the program directly
@@ -159,18 +196,14 @@ class ZhaiRT:
                         if item in ['MONOCHROMATIC_FLAG', 'OCEAN_RAMAN_FLAG', 'OCEAN_FCHLA_FLAG', 'OCEAN_FCDOM_FLAG']:
                             raise Exception('zhai-rt#2')
                         raise ValueError('Inputs/outputs are not as expected.')
-                # expand all scalar coords to allow `xr.combine_by_coords`
-                one_input = one_input.expand_dims(tuple(one_input.coords))
+                # combine coords from one_input with variables and coords
+                # from one_output, and store for concatenation across each_input
                 one_output = xr.merge((one_input, one_output))
                 datasets.append(one_output)
             if datasets:
                 # write the concatenated datasets to the outputs directory, with
                 # length one coordinates returned to scalars
-                return (xr
-                    .combine_by_coords(datasets)
-                    .squeeze()
-                    .to_netcdf(path=outputs)
-                    )
+                return xr.combine_by_coords(datasets).to_netcdf(path=outputs)
 
     def infile(self, path: Path, dataset: xr.Dataset) -> Path:
         '''Write parameters to a text file, and return its path.'''
@@ -188,34 +221,3 @@ class ZhaiRT:
         with (path / infile).open('w') as stream:
             stream.write('\n'.join(lines))
         return infile, outfile.with_suffix('.outfile.h5')
-
-    @staticmethod
-    def split_cluster(arg: str) -> dict:
-        ''''Split the comma separated elements of `arg`, which are key, value
-        pairs for the returned dictionary, parsing the value for later use
-        in xr.Dataset indexing.'''
-        cluster = {}
-        for item in arg.split(','):
-            key, *value = item.split(':')
-            value = tuple(int(i) for i in value)
-            if len(value) == 0:
-                cluster[key] = slice(None)
-            elif len(value) == 1:
-                cluster[key] = value[0]
-            else:
-                cluster[key] = slice(*value)
-        return cluster
-
-    @staticmethod
-    def paths_by_cluster(current: xr.DataArray, next: str) -> xr.DataArray:
-        '''Create an array of Path objects with nesting subdirectories
-        for the given dimensions and ranges.'''
-        # use xr.DataArray for broadcasting by named dimensions
-        # TODO path construction, or maybe division, is oddly slow
-        idx = xr.DataArray(
-            [Path(str(i)) for i in range(current[next].size)],
-            dims=next,
-            )
-        # note that Path objects represent concatenation by division
-        subdir = next / idx
-        return current / subdir
