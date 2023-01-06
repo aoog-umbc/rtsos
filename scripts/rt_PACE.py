@@ -8,21 +8,18 @@ def main(argv: str = None) -> None:
 
     # values to write, in the order below, to the RT input file
     values = {
-        P.aux_dir: 'data/RT/pwzrt/Data',
-        P.gas_abs_coef_dir: 'data/RT/pwzrt/Gas_Absorption_Coefficients',
-        P.mie_database_dir: 'data/RT/pwzrt/Mie_Database/OCI_Mie_Database',
-        P.wndspd: 5.0,
-        P.theta0: 45.0,
-        P.wv_pace_ref: 873.0,
-        P.tau_ref: 0.1,
+        P.Wind_Speed: 5.0,
+        P.Solar_Zenith_Angle: [20.0, 60.0],
+        P.wv_pace_ref: 532.0,
+        P.tau_ref: [0.1, 0.3],
         P.height_particle: 6.0,
-        P.aerosol: -1,
+        P.Aerosol_Model_Number: -1,
         P.AerosolFineModeFraction: 0.3,
         P.Relative_Humidity: 0.3,
         P.OCEAN_CASE_SELECT: 1,
         P.albedo_ground: 0.3,
         P.water_depth_max: 200.0,
-        P.chla: 0.01,
+        P.chla: [0.03, 0.3, 3, 10, 30],
         P.phytoplankton_index_refraction: 1.02,
         P.phytoplankton_spectral_slope: 3.0,
         P.sediment_index_refraction: 1.2,
@@ -59,9 +56,11 @@ def main(argv: str = None) -> None:
         P.WAVEBAND_SEG_FLAG: 0,
         P.AirSensor_Height: 2.2,
         P.pss_flag: 0,
-        P.atmos_profile: 'afglus.dat',
+        P.Aux_Dir: 'data/RT/pwzrt/Data',
+        P.Atmos_Dir: 'data/RT/pwzrt/Gas_Absorption_Coefficients',
+        P.CFILE_AP: 'afglus.dat',
         # for Aerosol Model "-1", there is no aerosol_phasematrix_file
-        P.aerosol_phasematrix_file: '',
+        P.Aerosol_Phasematrix_File: '',
         }
 
     # create a dataset to hold the inputs as coordinates
@@ -73,17 +72,5 @@ def main(argv: str = None) -> None:
         'rtsos_PACE_Simulator_DoubleK.exe',
         params=tuple(values),
         defaults=dataset,
-        dims={
-            # TODO confirm 'WaveLength_Simulation' over 'WaveLength_PACE'
-            # TODO do these change with parameters?
-            'phony_dim_1': 'WaveLength_Simulation',
-            'phony_dim_2': 'Atmosphere_Layer_Altitudes',
-            'phony_dim_3': 'WATER_DEPTH_LEVELS',
-            'phony_dim_4': 'dim_4',
-            'phony_dim_5': 'PhiV',
-            'phony_dim_6': 'dim_6',
-            'phony_dim_7': 'Stokes_Component',
-            'phony_dim_8': 'ThetaV',
-            },
         )
     rt.execute(args)

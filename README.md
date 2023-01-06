@@ -136,7 +136,7 @@ $ cmake -B build
 -- Checking whether /usr/bin/f95 supports Fortran 90
 -- Checking whether /usr/bin/f95 supports Fortran 90 - yes
 -- HDF5 Fortran compiler wrapper is unable to compile a minimal HDF5 program.
--- Found HDF5: <HDF5_ROOT>/lib/libhdf5_fortran.so;<HDF5_ROOT>/lib/libhdf5.so (found version "1.10.6") found components: Fortran 
+-- Found HDF5: <HDF5_ROOT>/lib/libhdf5_fortran.so;<HDF5_ROOT>/lib/libhdf5.so (found version "1.10.6") found components: Fortran
 -- Configuring done
 -- Generating done
 -- Build files have been written to: <PWD>build
