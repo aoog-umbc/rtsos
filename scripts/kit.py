@@ -57,8 +57,7 @@ def groupby(dataset: xr.Dataset, groups: xr.DataArray) -> Iterable[tuple]:
     value present in `groups`.'''
     if groups.dims:
         # yield from the iterable created by xr.DataArray.groupby
-        groups = groups.groupby(groups)
-        for key, value in groups:
+        for key, value in groups.groupby(groups):
             subset = dataset.sel(value.unstack().indexes)
             yield key, subset
     else:
@@ -164,7 +163,8 @@ class ZhaiRT:
             datasets = []
             shape = tuple(inputs.dims.values())
             each_input = xr.DataArray(
-                data=np.arange(np.prod(shape)).reshape(shape),
+                # FIXME dtype should be int (the default), but see https://github.com/pydata/xarray/issues/7423
+                data=np.arange(np.prod(shape), dtype=float).reshape(shape),
                 coords=inputs.coords,
                 )
             for _, one_input in groupby(dataset=inputs, groups=each_input):
