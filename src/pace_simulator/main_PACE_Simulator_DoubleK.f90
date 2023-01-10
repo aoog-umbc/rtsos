@@ -3961,13 +3961,12 @@ ELSE
   APTCLOCAL=0.0d0 ! negligible absorption for ap at wavelength > 700 nm
 ENDIF
 
-IF(OCEAN_CASE_SELECT==1)THEN
-  IF(BIOCASE1_SELECT==1) THEN
+IF(OCEAN_CASE_SELECT==1 .or. OCEAN_CASE_SELECT==2)THEN
 	IF(abs(CHLaVal)<0.001D0)THEN
 	   BBPTCfracLOCAL=0.01d0; ! used in Westberry, Boss, and Lee 2013
 	ELSE
-       ! backscattering fraction at 550 nm and assume it is spectrally flat
-       ! derived from Morel, JGR, 2001, Eq. 13.
+	   ! backscattering fraction at 550 nm and assume it is spectrally flat
+	   ! derived from Morel, JGR, 2001, Eq. 13.
 	   BBPTCfracLOCAL=0.002+0.01*(0.5-0.25*log10(CHLaVal))
 	ENDIF
 
@@ -3977,14 +3976,19 @@ IF(OCEAN_CASE_SELECT==1)THEN
 	ELSE
 		 BPTC_exp_coeff=0.5*(LOG10(CHLaVal)-0.3)
 	ENDIF
-	! See Eq.12 in Morel and Maritorena, JGR, 2001
+
+! See Eq.12 in Morel and Maritorena, JGR, 2001
 	BPTC550=0.416*CHLaVal**0.766
 	!BPTC660=0.347*CHLaVal**0.766
 	! See Eq.13 in Morel and Maritorena, JGR, 2001
-    RTMP=(WAVELENGTH_MICRON/0.55)**BPTC_exp_coeff
+	RTMP=(WAVELENGTH_MICRON/0.55)**BPTC_exp_coeff
 	BBPTCLOCAL=BPTC550*(0.002d0+0.01d0*(0.50d0-0.25d0*log10(CHLaVal))*RTMP)
-	BPTCLOCAL=BBPTCLOCAL/BBPTCfracLOCAL
-	CPTCLOCAL=BPTCLOCAL+APTCLOCAL
+ENDIF
+
+IF(OCEAN_CASE_SELECT==1)THEN
+  IF(BIOCASE1_SELECT==1) THEN
+		BPTCLOCAL=BBPTCLOCAL/BBPTCfracLOCAL
+		CPTCLOCAL=BPTCLOCAL+APTCLOCAL
   ELSE
     ! the random number bio-optical model scheme with RNDNMBR-0.5d0
         RNDNMBR=0.5d0
@@ -4011,16 +4015,14 @@ ELSE IF(OCEAN_CASE_SELECT==3)THEN
    CPTCLOCAL=BPTCLOCAL+APTCLOCAL
 ENDIF
 
-IF(OCEAN_CASE_SELECT .NE. 0)THEN
-IF(BPTCLOCAL<=0.0D0) THEN
-    WRITE(*,*)'WARNING CPTCLOCAL<APTCLOCAL'
+IF(OCEAN_CASE_SELECT > 0 .and. (BPTCLOCAL<=0.0D0 .or. BBPTCLOCAL > BPTCLOCAL)) THEN
+    WRITE(*,*)'WARNING CPTCLOCAL<APTCLOCAL or BPTCLOCAL<BBPTCLOCAL'
     WRITE(*,*)'CPTCLOCAL,APTCLOCAL=',CPTCLOCAL,APTCLOCAL
     WRITE(*,*)'Seting BPTCLOCAL=0.0'
     CPTCLOCAL=APTCLOCAL
     BPTCLOCAL=0.0d0
     BBPTCLOCAL=0.0d0
     BBPTCfracLOCAL=0.01d0
-ENDIF
 ENDIF
 
 
