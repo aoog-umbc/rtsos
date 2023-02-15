@@ -55,29 +55,27 @@ def main(argv=None):
 
     # replace independent sza and dt dimensions with a compound
     # dimension and coordinates
-    dataset = dataset.stack({
-        'sza-dt': ('Solar_Zenith_Angle', 'Diffuse_Transmittance_Flag'),
-        })
+    dataset = dataset.stack(
+        dimensions={
+            'sza-dt': ('Solar_Zenith_Angle', 'Diffuse_Transmittance_Flag'),
+            },
+        create_index=False, # XArray cannot write a MultiIndex to NetCDF
+        )
     dataset = (
         dataset.where(
-            # TODO confirm sza value for diffuse transmission
             ~np.logical_and(
                 dataset['Diffuse_Transmittance_Flag'] == 1,
                 dataset['Solar_Zenith_Angle'] != 0.0,
                 ),
             drop=True,
             )
-        .reset_index('sza-dt')
         )
-    dataset['Solar_Zenith_Angle'] = (
-        dataset['Solar_Zenith_Angle']
-        .astype(dataset['Solar_Zenith_Angle'].dtype)
-        )
+    dataset.coords['sza-dt'] = range(dataset.sizes['sza-dt'])
 
     # run command line tool
-    rt = ZhaiRT(
-        'rtsos_GSFC_AC_LUT.exe',
+    zhairt = ZhaiRT(
+        program='rtsos_GSFC_AC_LUT.exe',
         params=tuple(values),
         defaults=dataset,
         )
-    return rt.execute(args)
+    zhairt(args)
