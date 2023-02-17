@@ -157,7 +157,10 @@ class ZhaiRT:
             for key, value in groupby(dataset=inputs, groups=outdirs):
                 _, postdirs = reduce_by_coords(coordinates, value, key)
                 paths = np.unique(postdirs / args.outputs.name).tolist()
+                # HINT https://github.com/Unidata/netcdf-c/issues/2458
                 dataset = xr.open_mfdataset(paths=paths, combine='by_coords')
+                if hasattr(self, 'post'):
+                    dataset = self.post(dataset)
                 dataset.to_netcdf(key / args.outputs.name)
             return
         # execute the RT simulations in a temp directory then copy to outputs

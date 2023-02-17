@@ -35,7 +35,7 @@ class Parameters:
         )
     AerosolFineModeFraction: Attributes = Attributes(
         name='Aerosol Fine Mode Fraction',
-        description='only used when Aerosol Model is set to "-1"',
+        description='only used when Aerosol Model Number is set to "-1"',
         range='0:1',
         dtype=np.float32,
         )
@@ -307,7 +307,7 @@ class Parameters:
         range='0:80',
         dtype=np.float32,
         )
-    tau865: Attributes = Attributes(
+    Tau_NIR: Attributes = Attributes(
         # TODO duplicates tau_ref?
         dtype=np.float32,
         )
