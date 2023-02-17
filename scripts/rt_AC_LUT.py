@@ -1,10 +1,70 @@
 import numpy as np
+import xarray as xr
 
 from .kit import cli, ZhaiRT
 from .parameters import Parameters as P
 
 
+class AC_LUT(ZhaiRT):
+
+    def post(self, dataset):
+        # drop unneeded coordinates
+        dataset = dataset.where(dataset['ThetaV'] < 90.0, drop=True)
+        # "unstack" the sza-dt dimension into separate datasets
+        idx = dataset[P.Diffuse_Transmittance_Flag.__name__] == 1
+        renamed = {
+            'Radiance_TOA': 'LT_TOA',
+            'Radiance_BOA': 'LT_BOA',
+            }
+        dt = (
+            dataset
+            .sel({'sza-dt': idx})
+            .squeeze('sza-dt')
+            .rename(renamed)
+            .drop_vars([P.Diffuse_Transmittance_Flag.__name__, 'sza-dt'])
+            )
+        dt = dt[list(renamed.values())]
+        renamed = {
+            'Radiance_TOA': 'Lt',
+            'Q_TOA': 'LQ',
+            'U_TOA': 'LU',
+            'Radiance_TOA_Glint': 'TLg',
+            'Q_TOA_Glint': 'TQg',
+            'U_TOA_Glint': 'TUg',
+            'Irrad_Down_TOA': 'diff_irrad',
+            }
+        sza = (
+            dataset
+            .sel({'sza-dt': ~idx})
+            .swap_dims({'sza-dt': P.Solar_Zenith_Angle.__name__})
+            .rename(renamed)
+            .drop_vars([P.Diffuse_Transmittance_Flag.__name__, 'sza-dt'])
+            )
+        # calculate aggregrates
+        noeffect = {P.Wind_Speed.__name__: 0, P.Solar_Zenith_Angle.__name__: 0}
+        sza['aot'] = (
+            sza['Tau_Aerosol_Extinction']
+            .isel(noeffect)
+            .sum(dim='NTLYERA')
+            )
+        sza['rot'] = (
+            sza['Tau_Rayleigh_Extinction']
+            .isel(noeffect)
+            .sum(dim='NTLYERA')
+            )
+        sza['depol'] = (
+            sza['Rayleigh_Depolarization_Ratio']
+            .isel(noeffect)
+            .mean(dim='NTLYERA')
+            )
+        # finish creating sza
+        sza = sza[list(renamed.values()) + ['aot', 'rot', 'depol']]
+        # return the two datasets merged back together
+        return xr.merge((dt, sza))
+
+
 def main(argv=None):
+
     # parse command line arguments
     args = cli.parse_args(argv)
 
@@ -25,7 +85,7 @@ def main(argv=None):
         P.Wind_Speed: None,
         # SZA will be set to vary only when `Diffuse_Transmittance_Flag == 0`
         P.Solar_Zenith_Angle: range(0, 90, 2),
-        P.tau865: [0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.4, 0.5],
+        P.Tau_NIR: [0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.4, 0.5],
         P.Pressure_Surface_mb: 1013,
         P.H2O_COLUMN: 1.4387,
         P.OZONE_COLUMN_DobsonUnit: 345.66,
@@ -53,29 +113,39 @@ def main(argv=None):
     params = P()
     dataset = params.to_dataset(values)
 
-    # replace independent sza and dt dimensions with a compound
-    # dimension and coordinates
-    dataset = dataset.stack(
-        dimensions={
-            'sza-dt': ('Solar_Zenith_Angle', 'Diffuse_Transmittance_Flag'),
-            },
-        create_index=False, # XArray cannot write a MultiIndex to NetCDF
-        )
+    # replace independent sza and dt dimensions with a new index
+    dim = {
+        'sza-dt': (
+            P.Solar_Zenith_Angle.__name__,
+            P.Diffuse_Transmittance_Flag.__name__,
+            ),
+    }
+    dataset = dataset.stack(dimensions=dim, create_index=False)
     dataset = (
         dataset.where(
             ~np.logical_and(
-                dataset['Diffuse_Transmittance_Flag'] == 1,
-                dataset['Solar_Zenith_Angle'] != 0.0,
+                dataset[P.Diffuse_Transmittance_Flag.__name__] == 1,
+                dataset[P.Solar_Zenith_Angle.__name__] != 0.0,
                 ),
             drop=True,
             )
         )
-    dataset.coords['sza-dt'] = range(dataset.sizes['sza-dt'])
+    dataset['sza-dt'] = dataset.get_index('sza-dt')
+
+    # combine Aerosol_Model_Number and Relative_Humidity into one index
+    dim = {
+        'am': (
+            P.Aerosol_Model_Number.__name__,
+            P.Relative_Humidity.__name__,
+            )
+    }
+    dataset = dataset.stack(dimensions=dim, create_index=False)
+    dataset['am'] = dataset.get_index('am')
 
     # run command line tool
-    zhairt = ZhaiRT(
+    ac_lut = AC_LUT(
         program='rtsos_GSFC_AC_LUT.exe',
         params=tuple(values),
         defaults=dataset,
         )
-    zhairt(args)
+    ac_lut(args)
