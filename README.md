@@ -1,4 +1,4 @@
-**TLDR:** No need to clone this repo, [install](#installation) it instead.
+**TLDR:** No need to clone this repo, install it instead.
 ```
 $ pip install git+https://oceandata.sci.gsfc.nasa.gov/rcs/rt/zhai_rt.git
 $ rt-AC-LUT --help
@@ -14,24 +14,24 @@ The package includes the PACE simulator, an aerosol scattering matrix package,
 a wrapper for calculating the aerosol reflectance table for atmospheric
 correction, and a Python wrapper to parameterize and run the RTM.
 
-The following instructions are known to work on the Poseidon High-Performance Computing
-infrastructure, and lightly tested on macOS.
+The following instructions are known to work on the Poseidon High-Performance
+Computing infrastructure, and lightly tested on macOS.
 
 ## Prerequistes
 
-- Python >= 3.9
+- Python >= 3.10
 - HDF5 >= 1.10
 - CMake >= 3.20
 - a modern Fortran compiler (e.g. gfortran)
 
-The `zhai-rt` package requires Python >= 3.9, and has additional Python dependencies
-that are included during the installation process.
+The `zhai-rt` package requires Python >= 3.10, and has additional Python
+dependencies that are included during the installation process.
 
-The `zhai-rt` package depends on the HDF5 >= 1.10 Fortran library and does not
+The `zhai-rt` package requires the HDF5 >= 1.10 Fortran library and does not
 automatically include this dependency during installation. If not possible to
 install HDF5 with your system package manager, the HDF5 library can be installed
-by Miniconda with `conda install hdf5` or by Homebrew with `brew install hdf5`. Both
-methods include the Fortran library component at time of writing.
+by Miniconda with `conda install hdf5` or by Homebrew with `brew install hdf5`.
+Both methods include the Fortran library component at time of writing.
 
 ## Installation
 
@@ -46,7 +46,8 @@ $ pip install git+https://oceandata.sci.gsfc.nasa.gov/rcs/rt/zhai_rt.git
 Presently, the package is source-only, which means that compilation will happen
 locally during installation. If compilation fails, indicated by
 `ERROR: Could not build wheels for zhair-rt...` and the HDF5 Fortran libaries
-defintiely exist at a known path, then try installing with the `HDF5_ROOT` variable set.
+defintiely exist at a known path, then try installing with the `HDF5_ROOT`
+variable set.
 
 ```
 HDF5_ROOT=/path/to/env pip install git+https://oceandata.sci.gsfc.nasa.gov/rcs/rt/zhai_rt.git
@@ -55,15 +56,16 @@ HDF5_ROOT=/path/to/env pip install git+https://oceandata.sci.gsfc.nasa.gov/rcs/r
 ## Auxilliary Data
 
 RT simulations require auxilliary data that must be available at paths given in
-the simulation parameter file. Typically you will have a directory, say `pwzrt`,
-that is available from your project root with the following structure:
+the simulation parameter file. Typically you will have a directory, say
+`data/RT`, available at your project root with the following structure:
 
 ```
-$ tree -L 1 data/RT/pwzrt/
-data/RT/pwzrt/
-├── Data
-├── Gas_Absorption_Coefficients
-└── Mie_Database
+$ tree -L 2 data/RT/
+data/RT/
+├── bfranz
+│   └── afrt
+└── pwzrt
+    └── Gas_Absorption_Coefficients
 ```
 
 ## Quickstart
@@ -73,6 +75,7 @@ accept the same command line arguments (see, for example `rt-PACE --help`).
 
 To run the PACE simulator over the parameters provided as defaults, only
 provide input and output paths.
+
 ```
 $ rt-PACE data/defaults.nc data/outputs.nc
 ```
@@ -98,16 +101,16 @@ suitable NetCDF file.
       `--cluster` argument to indicate dimensions and indices over which to
       slice the inputs.
       ```
-      $ rt-PACE --cluster=RH:0,theta0:0:2 data/inputs.nc data/outputs.nc &
-      $ rt-PACE --cluster=RH:0,theta0:2:4 data/inputs.nc data/outputs.nc &
-      $ rt-PACE --cluster=RH:1,theta0:0:2 data/inputs.nc data/outputs.nc &
-      $ rt-PACE --cluster=RH:1,theta0:2:4 data/inputs.nc data/outputs.nc &
+      $ rt-PACE --cluster=RH:0,theta0:0-2 data/inputs.nc data/outputs.nc
+      $ rt-PACE --cluster=RH:0,theta0:2-4 data/inputs.nc data/outputs.nc
+      $ rt-PACE --cluster=RH:1,theta0:0-2 data/inputs.nc data/outputs.nc
+      $ rt-PACE --cluster=RH:1,theta0:2-4 data/inputs.nc data/outputs.nc
       ```
       Note that instead of writing to `data/outputs.nc`, a tree is written under
       `data/outputs/` with results from each job. Once each jobs is complete, use
       the `--post` argument to combine existing outputs into a single file.
       ```
-      $ rt-PACE --post --cluster=RH,theta0:0:4 data/intputs.nc data/outputs.nc
+      $ rt-PACE --post=RH:0-1,theta0:0-4 data/intputs.nc data/outputs.nc
       ```
 
 ## Repository Orientation for Developers
@@ -144,5 +147,6 @@ $ cd build
 $ cmake --build .
 ```
 
-If `cmake -B build` does not succeed with `Could NOT find HDF5`, try calling with the
-`HDF5_ROOT` variable as described in the [Installation](#installation) section above.
+If `cmake -B build` does not succeed with `Could NOT find HDF5`, try calling
+with the `HDF5_ROOT` variable as described in the [Installation](#installation)
+section above.
