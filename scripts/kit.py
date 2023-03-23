@@ -6,11 +6,15 @@ from tempfile import TemporaryDirectory
 from typing import Iterable
 import subprocess
 
-from dask.base import tokenize
-import xarray as xr
+import dask
 import numpy as np
+import xarray as xr
 
 from .parameters import Parameters as P
+
+
+# TODO Slurm, threading, and https://github.com/pydata/xarray/issues/7549
+dask.config.set(scheduler="synchronous")
 
 
 cli = ArgumentParser()
@@ -20,34 +24,34 @@ cli.add_argument(
     help='write radiative transfer model (RTM) defaults to inputs',
     )
 cli.add_argument(
-    '--post',
-    action='store_true',
-    help='combine existing RTM outputs (e.g. created with `--cluster`)',
-    )
-cli.add_argument(
     '--cluster',
     type=str,
     help=(
         'comma-separated list of dimensions by which inputs are split into '
-        'nested subdirectories, with optional positions or slices as '
-        '`dim:index` or `dim:start:stop` respectively.'
+        'nested subdirectories, with optional positions or inclusive ranges as '
+        '`dim:index` or `dim:start-stop` respectively.'
         ),
+    )
+cli.add_argument(
+    '--post',
+    type=str,
+    help='dimensions by which cluster outputs (i.e. a previous call with '
+         '`--cluster`) are combined, formatted as for `--cluster`',
     )
 cli.add_argument(
     'inputs',
     type=Path,
     help=(
-        'path for RTM input files (to read and/or write), or with `--post` '
-        'the RTM output files to be post-processed'
+        'path for RTM input file, a NetCDF whose coordinates are parameters '
+        'over which the model will generate outputs'
         ),
     )
 cli.add_argument(
     'outputs',
-    nargs="?",
+    nargs='?',
     type=Path,
     help=(
-        'path for RTM output files (not required with `--pre`), or '
-        'with `--post` the path for combined outputs'
+        'path for RTM output files (ignored, if given, with `--pre`)'
         ),
     )
 
@@ -65,37 +69,59 @@ def groupby(dataset: xr.Dataset, groups: xr.DataArray) -> Iterable[tuple]:
         return ((groups.item(), dataset), )
 
 
-def split_cluster(arg: str) -> dict:
-    ''''Split the comma separated elements of `arg`, which are key, value
+def split_list_arg(arg: str) -> dict:
+    '''Split the comma separated elements of `arg`, which are key, value
     pairs for the returned dictionary, parsing the value for later use
     in xr.Dataset indexing.'''
     cluster = {}
     for item in arg.split(','):
         key, *value = item.split(':')
-        value = tuple(int(i) for i in value)
         if value:
-            if len(value) == 1:
-                value = value[0]
-                cluster[key] = slice(value, value + 1)
+            start, *stop = value[0].split('-')
+            start = int(start)
+            if stop:
+                stop = int(stop[0])
             else:
-                cluster[key] = slice(*value)
+                stop = start
+            stop = stop + 1
         else:
-            cluster[key] = slice(None)
+            start = 0
+            stop = None
+        cluster[key] = slice(start, stop)
     return cluster
 
 
-def paths_by_cluster(current: xr.DataArray, next: str) -> xr.DataArray:
+def paths_by_coords(current: xr.DataArray, next: tuple[(str, slice)]) -> xr.DataArray:
     '''Create an array of Path objects with nesting subdirectories
     for the given dimensions and ranges.'''
     # use xr.DataArray for broadcasting by named dimensions
     # TODO path construction, or maybe division, is oddly slow
+    dim = next[0]
+    offset = next[1].start
     idx = xr.DataArray(
-        [Path(str(i)) for i in range(current[next].size)],
-        dims=next,
+        [Path(str(i + offset)) for i in range(current[dim].size)],
+        dims=dim,
         )
     # note that Path objects represent concatenation by division
-    subdir = next / idx
+    subdir = dim / idx
     return current / subdir
+
+
+def reduce_by_coords(
+        coords: dict,
+        inputs: xr.Dataset,
+        outdirs: Path,
+    ) -> tuple[(xr.Dataset, xr.DataArray)]:
+    try:
+        inputs = inputs.isel(coords)
+    except KeyError as cause:
+        exception = Exception(
+            '`--cluster` and `--post` value(s) must be dimensions of inputs'
+            )
+        raise exception from cause
+    outdirs, _ = xr.broadcast(xr.DataArray(outdirs), inputs)
+    outdirs = reduce(paths_by_coords, coords.items(), outdirs)
+    return inputs, outdirs
 
 
 class ZhaiRT:
@@ -110,7 +136,7 @@ class ZhaiRT:
         self.params = tuple(i.__name__ for i in params)
         self.defaults = defaults
 
-    def execute(self, args: Namespace) -> None:
+    def __call__(self, args: Namespace) -> None:
         # with the `--pre` argument, write inputs and return
         if args.pre or not args.inputs.exists():
             # build coordinates dataset and write it to netCDF
@@ -122,34 +148,26 @@ class ZhaiRT:
         # read existing inputs
         inputs = xr.open_dataset(args.inputs)
         parent = xr.DataArray(args.outputs.parent)
-        outdir, _ = xr.broadcast(parent, inputs)
+        outdirs, _ = xr.broadcast(parent, inputs)
         # with the `--cluster` argument, prepare to process a subset of inputs
         # in subdirectories, defined by the dimension(s) given with cluster
         if args.cluster:
-            parent = xr.DataArray(args.outputs.with_suffix(''))
-            outdir, _ = xr.broadcast(parent, inputs)
-            coordinates = split_cluster(args.cluster)
-            try:
-                outdir = reduce(paths_by_cluster, coordinates, outdir)
-            except KeyError as cause:
-                exception = Exception(
-                    '`--cluster` value(s) must be dimensions of inputs'
-                    )
-                raise exception from cause
-            outdir = outdir.isel(coordinates)
-            inputs = inputs.isel(coordinates)
+            coordinates = split_list_arg(args.cluster)
+            outdirs = args.outputs.with_suffix('')
+            inputs, outdirs = reduce_by_coords(coordinates, inputs, outdirs)
         # with the `--post` argument, combine existing RT outputs and return
         if args.post:
-            paths = np.unique(outdir)
-            dataset = xr.open_mfdataset(
-                paths=[i / args.outputs.name for i in paths],
-                combine='nested',
-                concat_dim=outdir.dims[-len(paths.shape):],
-                )
-            dataset.to_netcdf(args.outputs)
+            coordinates = split_list_arg(args.post)
+            for key, value in groupby(dataset=inputs, groups=outdirs):
+                _, postdirs = reduce_by_coords(coordinates, value, key)
+                paths = np.unique(postdirs / args.outputs.name).tolist()
+                dataset = xr.open_mfdataset(paths=paths, combine='by_coords')
+                if hasattr(self, 'post'):
+                    dataset = self.post(dataset)
+                dataset.to_netcdf(key / args.outputs.name)
             return
         # execute the RT simulations in a temp directory then copy to outputs
-        for key, value in groupby(dataset=inputs, groups=outdir):
+        for key, value in groupby(dataset=inputs, groups=outdirs):
             self.rtsos(value, key / args.outputs.name)
 
     def rtsos(self, inputs: xr.Dataset, outputs: Path) -> None:
@@ -215,7 +233,7 @@ class ZhaiRT:
             lines.append(
                 f'{param.values:<24} # {name}: {desc}'
                 )
-        outfile = Path(tokenize(dataset)).with_suffix('.outfile')
+        outfile = Path(dask.base.tokenize(dataset)).with_suffix('.outfile')
         lines += [f'{path / outfile}', '']
         infile = outfile.with_suffix('.infile.txt')
         with (path / infile).open('w') as stream:

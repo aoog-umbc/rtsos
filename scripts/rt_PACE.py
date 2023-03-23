@@ -68,9 +68,9 @@ def main(argv: str = None) -> None:
     dataset = params.to_dataset(values)
 
     # run command line tool
-    rt = ZhaiRT(
-        'rtsos_PACE_Simulator_DoubleK.exe',
+    zhairt = ZhaiRT(
+        program='rtsos_PACE_Simulator_DoubleK.exe',
         params=tuple(values),
         defaults=dataset,
         )
-    rt.execute(args)
+    zhairt(args)
