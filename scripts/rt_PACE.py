@@ -65,7 +65,7 @@ def main(argv: str = None) -> None:
 
     # create a dataset to hold the inputs as coordinates
     params = P()
-    dataset = params.to_dataset(values)
+    dataset = params.make_dataset(values)
 
     # run command line tool
     zhairt = ZhaiRT(

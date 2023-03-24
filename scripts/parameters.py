@@ -1,45 +1,34 @@
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass, field, fields
+from typing import Any
 
 import numpy as np
 import numpy.typing as npt
 import xarray as xr
 
 
-@dataclass
-class Attributes:
-    '''metadata associated with a model parameter'''
-
-    name: str = None
-    description: str = None
-    units: str = None
-    range: str = None
-    source: str = None
-    dtype: npt.DTypeLike = str
-
-
 @dataclass(slots=True)
 class Parameters:
     '''names and other documentation for parameters in RTM codes'''
-    # This dataclass is for parameter metadata, not the parameter values,
-    # used in RT calculations. That means the defaults below are almost always
-    # used and essentially serve as built-in model documentation.
-    # The purpose of `slots=True` is to produce Class attributes that are
-    # visible to IDEs which provide tab completion, i.e. `Parameters.<tab>`.
+    # This dataclass stores parameter metadata, but is never used to store the
+    # parameter values used in RT calculations. The `make_dataset` method it
+    # provides builds the dataset used in RT calculations from provided values
+    # and these metadata. The purpose of `slots=True` is to produce Class
+    # attributes that are visible to IDEs which provide tab completion.
     # TODO clean up metadata
 
-    adg440: Attributes = Attributes(
+    adg440: Any = field(default=None, metadata=dict(
         description='used when ocean_case_select == 3',
         units='1/m',
         range='0.0:2.5',
         dtype=np.float32,
-        )
-    AerosolFineModeFraction: Attributes = Attributes(
+        ))
+    AerosolFineModeFraction: Any = field(default=None, metadata=dict(
         name='Aerosol Fine Mode Fraction',
         description='only used when Aerosol Model Number is set to "-1"',
         range='0:1',
         dtype=np.float32,
-        )
-    Aerosol_Model_Number: Attributes = Attributes(
+        ))
+    Aerosol_Model_Number: Any = field(default=None, metadata=dict(
         name='Aerosol Model',
         description=(
             '-99 read aerosol pmhx in from file, '
@@ -50,114 +39,114 @@ class Parameters:
             '21 dust aerosol model'
             ),
         dtype=np.int16,
-        )
-    Aerosol_Phasematrix_File: Attributes = Attributes(
-        )
-    AirSensor_Height: Attributes = Attributes(
+        ))
+    Aerosol_Phasematrix_File: Any = field(default=None, metadata=dict(
+        ))
+    AirSensor_Height: Any = field(default=None, metadata=dict(
         units='km',
         dtype=np.float32,
-        )
-    albedo_ground: Attributes = Attributes(
+        ))
+    albedo_ground: Any = field(default=None, metadata=dict(
         dtype=np.float32,
-        )
-    ap_select: Attributes = Attributes(
+        ))
+    ap_select: Any = field(default=None, metadata=dict(
         description=(
             '1 Bricaud LUT, '
             '2 Mixure of pico and micron cells in Ciott et al. 2002'
             ),
         dtype=np.int16,
-        )
-    Atmos_Dir: Attributes = Attributes(
+        ))
+    Atmos_Dir: Any = field(default=None, metadata=dict(
         description='path to directory containing gas absorbption data'
-        )
-    ATMOS_ZERO: Attributes = Attributes(
+        ))
+    ATMOS_ZERO: Any = field(default=None, metadata=dict(
         description='1=True, 0=False',
         dtype=np.int16,
-        )
-    Aux_Dir: Attributes = Attributes(
+        ))
+    Aux_Dir: Any = field(default=None, metadata=dict(
         description=(
             'path to directory containing auxiliary data files '
             '(e.g. afrt_input_oci.txt)'
             )
-        )
-    bbp660_BackscatterCoeff: Attributes = Attributes(
+        ))
+    bbp660_BackscatterCoeff: Any = field(default=None, metadata=dict(
         description='used when ocean_case_select == 3',
         units='1/m',
         range='0.0:0.1',
         dtype=np.float32,
-        )
-    Bp660_BackscatterFraction: Attributes = Attributes(
+        ))
+    Bp660_BackscatterFraction: Any = field(default=None, metadata=dict(
         description='used when ocean_case_select == 3',
         range='0.0:0.05',
         dtype=np.float32,
-        )
-    CFILE_AP: Attributes = Attributes(
+        ))
+    CFILE_AP: Any = field(default=None, metadata=dict(
         name='filename for atmospheric profile data',
         description=(
             'valid atmosphere profiles are: afglus.dat, '
             'afglsw.dat, afglss.dat, or afglmw.dat'
             ),
-        )
-    CFILE_INSTRUMENT: Attributes = Attributes(
+        ))
+    CFILE_INSTRUMENT: Any = field(default=None, metadata=dict(
         description='name of AFRT file to use',
-    )
-    chla: Attributes = Attributes(
+        ))
+    chla: Any = field(default=None, metadata=dict(
         description='used when ocean_case_select in (1, 2, 3)',
         range='0.04:50',
         units='mg/m3',
         dtype=np.float32,
-        )
-    CHLA_HOMOGENEITY: Attributes = Attributes(
+        ))
+    CHLA_HOMOGENEITY: Any = field(default=None, metadata=dict(
         dtype=np.int16,
         description='1=True, 0=False',
-        )
-    Diffuse_Transmittance_Flag: Attributes = Attributes(
+        ))
+    Diffuse_Transmittance_Flag: Any = field(default=None, metadata=dict(
         description=(
             'calculate regular reflectance (0) or '
             'diffuse transmittance (1)'
             ),
         dtype=np.int16,
-        )
-    gas_abs_flag: Attributes = Attributes(
+        ))
+    gas_abs_flag: Any = field(default=None, metadata=dict(
         description='1=True, 0=False',
         dtype=np.int16,
-        )
-    H2O_COLUMN: Attributes = Attributes(
+        ))
+    H2O_COLUMN: Any = field(default=None, metadata=dict(
         description='water vapor in the whole column',
         units='cm',
         source='US standard atmosphere 1976',
         range='0.01:15',
         dtype=np.float32,
-        )
-    height_particle: Attributes = Attributes(
+        ))
+    height_particle: Any = field(default=None, metadata=dict(
         description='scatteror height',
         range='1:10',
         dtype=np.float32,
-        )
-    hyspectral_flag: Attributes = Attributes(
+        ))
+    hyspectral_flag: Any = field(default=None, metadata=dict(
         description='1=True, 0=False',
         dtype=np.int16,
-        )
-    I_SURFACE_ROUGHNESS_PARA: Attributes = Attributes(
+        ))
+    I_SURFACE_ROUGHNESS_PARA: Any = field(default=None, metadata=dict(
         dtype=np.int16,
-        )
-    I_SPHERICAL_SHELL_CORRECTION: Attributes = Attributes(
+        ))
+    I_SPHERICAL_SHELL_CORRECTION: Any = field(default=None, metadata=dict(
         description=(
             'turn spherical shell correction off (0) or on (1)'
             ),
         dtype=np.int16,
-        )
-    iwhitecap: Attributes = Attributes(
+        ))
+    iwhitecap: Any = field(default=None, metadata=dict(
         description='turn white cap calculation off (0) or on (1)',
         dtype=np.int16,
-        )
-    MAXMORDINPUT: Attributes = Attributes(
+        ))
+    MAXMORDINPUT: Any = field(default=None, metadata=dict(
         dtype=np.int16,
-        )
-    Mie_Database_Dir: Attributes = Attributes(
+        ))
+    Mie_Database_Dir: Any = field(default=None, metadata=dict(
         description='path to directory containing Mie database'
-        )
-    MIE_TABLE_CAL: Attributes = Attributes(
+        ))
+    MIE_TABLE_CAL: Any = field(default=None, metadata=dict(
         description=(
             'Set behavior for Mie table calculations to '
             '1 = calculate and store Mie scattering matrix, then exit, '
@@ -165,40 +154,40 @@ class Parameters:
             '3 = use existing Mie scattering matrix'
         ),
         dtype=np.int16,
-    )
-    MONOCHROMATIC_FLAG: Attributes = Attributes(
+        ))
+    MONOCHROMATIC_FLAG: Any = field(default=None, metadata=dict(
         description='1=True, 0=False',
         dtype=np.int16,
-        )
-    ncolinput: Attributes = Attributes(
+        ))
+    ncolinput: Any = field(default=None, metadata=dict(
         dtype=np.int16,
-        )
-    NO2_COLUMN_DobsonUnit: Attributes = Attributes(
+        ))
+    NO2_COLUMN_DobsonUnit: Any = field(default=None, metadata=dict(
         description='no2 column amount',
         units='Dobson Unit',
         dtype=np.float32,
-        )
-    NonPhotochemicalQuenching_FLAG: Attributes = Attributes(
+        ))
+    NonPhotochemicalQuenching_FLAG: Any = field(default=None, metadata=dict(
         description='1=True, 0=False',
         dtype=np.int16,
-        )
-    NPHIV: Attributes = Attributes(
+        ))
+    NPHIV: Any = field(default=None, metadata=dict(
         dtype=np.int16,
-        )
-    nquadainput: Attributes = Attributes(
+        ))
+    nquadainput: Any = field(default=None, metadata=dict(
         dtype=np.int16,
-        )
-    nquadoinput: Attributes = Attributes(
+        ))
+    nquadoinput: Any = field(default=None, metadata=dict(
         dtype=np.int16,
-        )
-    NTHETAV: Attributes = Attributes(
+        ))
+    NTHETAV: Any = field(default=None, metadata=dict(
         dtype=np.int16,
-        )
-    NWV: Attributes = Attributes(
+        ))
+    NWV: Any = field(default=None, metadata=dict(
         name='number of wavelegnths',
         dtype=np.int16,
-    )
-    OCEAN_CASE_SELECT: Attributes = Attributes(
+        ))
+    OCEAN_CASE_SELECT: Any = field(default=None, metadata=dict(
         description=(
             '-1 land, '
             '0 atmosphere only, '
@@ -207,55 +196,55 @@ class Parameters:
             '3 seven parameter model'
             ),
         dtype=np.int16,
-        )
-    OCEAN_FCDOM_FLAG: Attributes = Attributes(
+        ))
+    OCEAN_FCDOM_FLAG: Any = field(default=None, metadata=dict(
         description='1=True, 0=False',
         dtype=np.int16,
-        )
-    OCEAN_FCHLA_FLAG: Attributes = Attributes(
+        ))
+    OCEAN_FCHLA_FLAG: Any = field(default=None, metadata=dict(
         description='1=True, 0=False',
         dtype=np.int16,
-        )
-    OCEAN_PHMX_ONE: Attributes = Attributes(
+        ))
+    OCEAN_PHMX_ONE: Any = field(default=None, metadata=dict(
         description='1=True, 0=False',
         dtype=np.int16,
-        )
-    OCEAN_RAMAN_FLAG: Attributes = Attributes(
+        ))
+    OCEAN_RAMAN_FLAG: Any = field(default=None, metadata=dict(
         description='1=True, 0=False',
         dtype=np.int16,
-        )
-    OZONE_COLUMN_DobsonUnit: Attributes = Attributes(
+        ))
+    OZONE_COLUMN_DobsonUnit: Any = field(default=None, metadata=dict(
         description='ozone in the whole column',
         units='Dobson Unit',
         source='US standard atmosphere 1976',
         range='250:500',
         dtype=np.float32,
-        )
-    phytoplankton_index_refraction: Attributes = Attributes(
+        ))
+    phytoplankton_index_refraction: Any = field(default=None, metadata=dict(
         description='used when ocean_case_select == 2',
         dtype=np.float32,
-        )
-    phytoplankton_spectral_slope: Attributes = Attributes(
+        ))
+    phytoplankton_spectral_slope: Any = field(default=None, metadata=dict(
         description='used when ocean_case_select == 2',
         dtype=np.float32,
-        )
-    Pressure_Surface_mb: Attributes = Attributes(
+        ))
+    Pressure_Surface_mb: Any = field(default=None, metadata=dict(
         name='surface pressure',
         units='mb',
         range='850:1050',
         dtype=np.float32,
-        )
-    pss_flag: Attributes = Attributes(
+        ))
+    pss_flag: Any = field(default=None, metadata=dict(
         name='pseudospherical flag',
         description='1: turn on, 0: turn off',
         dtype=np.int16,
-        )
-    Relative_Humidity: Attributes = Attributes(
+        ))
+    Relative_Humidity: Any = field(default=None, metadata=dict(
         name='Relative Humidity',
         range='0.3:0.95',
         dtype=np.float32,
-        )
-    S_Bp: Attributes = Attributes(
+        ))
+    S_Bp: Any = field(default=None, metadata=dict(
         description=(
             'power spectral slope of backscattering fraction, '
             'used when ocean_case_select == 3'
@@ -263,8 +252,8 @@ class Parameters:
         units='1/nm',
         range='-0.2:0.2',
         dtype=np.float32,
-        )
-    Sbp: Attributes = Attributes(
+        ))
+    Sbp: Any = field(default=None, metadata=dict(
         description=(
             'power spectral slope of backscattering coefficient, '
             'used when ocean_case_select == 3'
@@ -272,8 +261,8 @@ class Parameters:
         units='1/nm',
         range='0.0:0.5',
         dtype=np.float32,
-        )
-    Sdg: Attributes = Attributes(
+        ))
+    Sdg: Any = field(default=None, metadata=dict(
         description=(
             'exponential spectral slope of dg absorption, '
             'used when ocean_case_select == 3'
@@ -281,41 +270,41 @@ class Parameters:
         units='1/nm',
         range='0.01:0.02',
         dtype=np.float32,
-        )
-    sediment_concentration: Attributes = Attributes(
+        ))
+    sediment_concentration: Any = field(default=None, metadata=dict(
         description='used when ocean_case_select == 2',
         range='0:30',
         dtype=np.float32,
-        )
-    sediment_index_refraction: Attributes = Attributes(
+        ))
+    sediment_index_refraction: Any = field(default=None, metadata=dict(
         description='used when ocean_case_select == 2',
         dtype=np.float32,
-        )
-    sediment_spectral_slope: Attributes = Attributes(
+        ))
+    sediment_spectral_slope: Any = field(default=None, metadata=dict(
         description='used when ocean_case_select == 2',
         dtype=np.float32,
-        )
-    SUN_GLINT_FLAG: Attributes = Attributes(
+        ))
+    SUN_GLINT_FLAG: Any = field(default=None, metadata=dict(
         description=(
             '0 include sun glint, '
             '1 no sun glint'
             ),
         dtype=np.int16,
-        )
-    Solar_Zenith_Angle: Attributes = Attributes(
+        ))
+    Solar_Zenith_Angle: Any = field(default=None, metadata=dict(
         units='degrees',
         range='0:80',
         dtype=np.float32,
-        )
-    Tau_NIR: Attributes = Attributes(
+        ))
+    Tau_NIR: Any = field(default=None, metadata=dict(
         # TODO duplicates tau_ref?
         dtype=np.float32,
-        )
-    tau_ref: Attributes = Attributes(
+        ))
+    tau_ref: Any = field(default=None, metadata=dict(
         range='0.01:0.4',
         dtype=np.float32,
-        )
-    Wind_Speed: Attributes = Attributes(
+        ))
+    Wind_Speed: Any = field(default=None, metadata=dict(
         name='Wind Speed',
         description=(
             'if `I_SURFACE_ROUGHNESS_PARA == 1`, inverse wind speed '
@@ -325,17 +314,17 @@ class Parameters:
             ),
         range='0.1:15',
         dtype=np.float32,
-        )
-    water_depth_max: Attributes = Attributes(
+        ))
+    water_depth_max: Any = field(default=None, metadata=dict(
         dtype=np.float32,
-        )
-    WAVELENGTH_MICRON_REF: Attributes = Attributes(
+        ))
+    WAVELENGTH_MICRON_REF: Any = field(default=None, metadata=dict(
         dtype=np.float32,
-    )
-    wv_pace_ref: Attributes = Attributes(
+        ))
+    wv_pace_ref: Any = field(default=None, metadata=dict(
         dtype=np.float32,
-        )
-    WAVEBAND_SEG_FLAG: Attributes = Attributes(
+        ))
+    WAVEBAND_SEG_FLAG: Any = field(default=None, metadata=dict(
         description=(
             '0: all; '
             '1: seg1+3only; '
@@ -344,18 +333,18 @@ class Parameters:
             '4: seg4only'
             ),
         dtype=np.int16,
-        )
+        ))
 
-    def to_dataset(self, data: dict) -> xr.Dataset:
-        '''Cast native dataclass to XArray Dataset with parameter attributes
-        from the dataclass and values from `data`.
+    def make_dataset(self, data: dict) -> xr.Dataset:
+        '''Cast native dataclass to XArray Dataset with attributes
+        from the dataclass fields and values from `data`.
         '''
         dataset = xr.Dataset()
+        metadata = {i.name: i.metadata for i in fields(self)}
         for key, value in data.items():
-            key = key.__name__
-            attributes = asdict(getattr(self, key))
-            value = np.array(value, dtype=attributes.pop('dtype', None))
-            dim = key if value.shape else ()
-            attributes = {k: v for k, v in attributes.items() if v}
-            dataset = dataset.assign_coords({key: (dim, value, attributes)})
+            coord = key.__name__
+            attrs = metadata[coord].copy()
+            array = np.array(value, dtype=attrs.pop('dtype', None))
+            dim = coord if array.shape else ()
+            dataset = dataset.assign_coords({coord: (dim, array, attrs)})
         return dataset
