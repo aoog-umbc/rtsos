@@ -142,9 +142,6 @@ class AC_LUT(ZhaiRT):
 
 def main(argv=None):
 
-    # parse command line arguments
-    args = cli.parse_args(argv)
-
     # values to write, in the order below, to the RT input file
     values = {
         # the default parameterization is for PACE-OCI
@@ -220,10 +217,13 @@ def main(argv=None):
     dataset = dataset.stack(dimensions=dim, create_index=False)
     dataset['am'] = dataset.get_index('am')
 
-    # run RT model over parameters as specified in command line arguments
+    # the callable object that runs the given program
     ac_lut = AC_LUT(
         program='rtsos_GSFC_AC_LUT.exe',
         params=tuple(values),
         defaults=dataset,
         )
+    
+    # parse arguments from command line and run as instructed
+    args = cli.parse_args(argv)
     ac_lut(args)
