@@ -99,7 +99,7 @@ def main(argv=None):
     # calculate compound coordinate wndspd
     sigma = np.array(
         [0, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4],
-        dtype=np.float32
+        dtype=np.float32,
         )
     surface = values[P.I_SURFACE_ROUGHNESS_PARA]
     if surface == 1:
@@ -111,7 +111,7 @@ def main(argv=None):
 
     # create a dataset to hold the inputs as coordinates
     params = P()
-    dataset = params.to_dataset(values)
+    dataset = params.make_dataset(values)
 
     # replace independent sza and dt dimensions with a new index
     dim = {
