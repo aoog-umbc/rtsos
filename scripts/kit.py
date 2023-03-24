@@ -6,11 +6,15 @@ from tempfile import TemporaryDirectory
 from typing import Iterable
 import subprocess
 
-from dask.base import tokenize
-import xarray as xr
+import dask
 import numpy as np
+import xarray as xr
 
 from .parameters import Parameters as P
+
+
+# TODO Slurm, threading, and https://github.com/pydata/xarray/issues/7549
+dask.config.set(scheduler="synchronous")
 
 
 cli = ArgumentParser()
@@ -44,7 +48,7 @@ cli.add_argument(
     )
 cli.add_argument(
     'outputs',
-    nargs="?",
+    nargs='?',
     type=Path,
     help=(
         'path for RTM output files (ignored, if given, with `--pre`)'
@@ -66,7 +70,7 @@ def groupby(dataset: xr.Dataset, groups: xr.DataArray) -> Iterable[tuple]:
 
 
 def split_list_arg(arg: str) -> dict:
-    ''''Split the comma separated elements of `arg`, which are key, value
+    '''Split the comma separated elements of `arg`, which are key, value
     pairs for the returned dictionary, parsing the value for later use
     in xr.Dataset indexing.'''
     cluster = {}
@@ -157,7 +161,6 @@ class ZhaiRT:
             for key, value in groupby(dataset=inputs, groups=outdirs):
                 _, postdirs = reduce_by_coords(coordinates, value, key)
                 paths = np.unique(postdirs / args.outputs.name).tolist()
-                # HINT https://github.com/Unidata/netcdf-c/issues/2458
                 dataset = xr.open_mfdataset(paths=paths, combine='by_coords')
                 if hasattr(self, 'post'):
                     dataset = self.post(dataset)
@@ -230,7 +233,7 @@ class ZhaiRT:
             lines.append(
                 f'{param.values:<24} # {name}: {desc}'
                 )
-        outfile = Path(tokenize(dataset)).with_suffix('.outfile')
+        outfile = Path(dask.base.tokenize(dataset)).with_suffix('.outfile')
         lines += [f'{path / outfile}', '']
         infile = outfile.with_suffix('.infile.txt')
         with (path / infile).open('w') as stream:
