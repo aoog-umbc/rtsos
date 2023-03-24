@@ -3,9 +3,7 @@ from .parameters import Parameters as P
 
 
 def main(argv: str = None) -> None:
-    # parse command line arguments
-    args = cli.parse_args(argv)
-
+    
     # values to write, in the order below, to the RT input file
     values = {
         P.Wind_Speed: 5.0,
@@ -67,10 +65,13 @@ def main(argv: str = None) -> None:
     params = P()
     dataset = params.make_dataset(values)
 
-    # run command line tool
-    zhairt = ZhaiRT(
+    # the callable object that runs the given program
+    pace_sim = ZhaiRT(
         program='rtsos_PACE_Simulator_DoubleK.exe',
         params=tuple(values),
         defaults=dataset,
         )
-    zhairt(args)
+
+    # parse arguments from command line and run as instructed
+    args = cli.parse_args(argv)
+    pace_sim(args)
