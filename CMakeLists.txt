@@ -49,6 +49,7 @@ target_link_libraries(rtsos_rao_dg.exe
 
 # pace_simlator static library
 add_library(pace_simulator
+    src/pace_simulator/MAP_Instrument.f90
     src/pace_simulator/PACE_Instrument.f90
 )
 target_link_libraries(pace_simulator
