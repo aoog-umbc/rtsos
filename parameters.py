@@ -10,7 +10,7 @@ import xarray as xr
 class Parameters:
     '''names and other documentation for parameters in RTM codes'''
     # This dataclass stores parameter metadata, but does NOT store the
-    # parameter values used in RT calculations. The `make_dataset` method it
+    # parameter values used in RT calculations. The class's `make_dataset` method
     # returns an XArray.Dataset that combines the values provided to the method
     # with the metadata defined here. The purpose of `slots=True` is to produce
     # Class attributes that are visible to IDEs which provide tab completion.
