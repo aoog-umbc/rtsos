@@ -9,12 +9,21 @@ import xarray as xr
 @dataclass(slots=True)
 class Parameters:
     '''names and other documentation for parameters in RTM codes'''
-    # This dataclass stores parameter metadata, but is never used to store the
+    # This dataclass stores parameter metadata, but does NOT store the
     # parameter values used in RT calculations. The `make_dataset` method it
-    # provides builds the dataset used in RT calculations from provided values
-    # and these metadata. The purpose of `slots=True` is to produce Class
-    # attributes that are visible to IDEs which provide tab completion.
-    # TODO clean up metadata
+    # returns an XArray.Dataset that combines the values provided to the method
+    # with the metadata defined here. The purpose of `slots=True` is to produce
+    # Class attributes that are visible to IDEs which provide tab completion.
+    # 
+    # To add a new parameter that must be written to an input file for the RT
+    # simulations, first add its unique short-name in alphabetical order below, and
+    # include as many of `name`, `description`, `units`, `range`, and `dtype`
+    # as are helpful. Second, find the dictionary of parameters defined in the `main`
+    # function of each `scrips/rt_*.py` wrapper that needs the new parameter. Add
+    # the parameter and a default value (or list of values), in the order that
+    # parameters must be written to RT simulation input files.
+    #
+    # TODO clean up metadata, including deduplication
 
     adg440: Any = field(default=None, metadata=dict(
         description='used when ocean_case_select == 3',
