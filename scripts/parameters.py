@@ -19,7 +19,7 @@ class Parameters:
     # simulations, first add its unique short-name in alphabetical order below, and
     # include as many of `name`, `description`, `units`, `range`, and `dtype`
     # as are helpful. Second, find the dictionary of parameters defined in the `main`
-    # function of each `scrips/rt_*.py` wrapper that needs the new parameter. Add
+    # function of each `scripts/rt_*.py` wrapper that needs the new parameter. Add
     # the parameter and a default value (or list of values), in the order that
     # parameters must be written to RT simulation input files.
     #
