@@ -14,6 +14,15 @@ class Parameters:
     # provides builds the dataset used in RT calculations from provided values
     # and these metadata. The purpose of `slots=True` is to produce Class
     # attributes that are visible to IDEs which provide tab completion.
+
+    # To add a new parameter that must be written to an input file for the RT
+    # simulations, first add its unique short-name in alphabetical order below, and
+    # include as many of `name`, `description`, `units`, `range`, and `dtype`
+    # as are helpful. Second, find the dictionary of parameters defined in the `main`
+    # function of each `scripts/rt_*.py` wrapper that needs the new parameter. Add
+    # the parameter and a default value (or list of values), in the order that
+    # parameters must be written to RT simulation input files.
+
     # TODO clean up metadata
 
     adg440: Any = field(default=None, metadata=dict(
@@ -33,6 +42,7 @@ class Parameters:
         description=(
             '-99 read aerosol pmhx in from file, '
             '-98 read water cloud phmx from file, '
+            '-97 read two layer scattor phmx from file, '
             '-1 Ahmad model with flexbile RH and FMF, '
             '1-10 is Shettle and Fenn, '
             '11-20 is Ahmad model, '
@@ -40,7 +50,15 @@ class Parameters:
             ),
         dtype=np.int16,
         ))
-    Aerosol_Phasematrix_File: Any = field(default=None, metadata=dict(
+    Aerosol_Phasematrix_File_Hi: Any = field(default=None, metadata=dict(
+        description=(
+            'Top layer scattor aerosol phase matrix file '
+            ),
+        ))
+    Aerosol_Phasematrix_File_Low: Any = field(default=None, metadata=dict(
+        description=(
+            'Lower layer scattor aerosol phase matrix file '
+            ),
         ))
     AirSensor_Height: Any = field(default=None, metadata=dict(
         units='km',
@@ -118,9 +136,14 @@ class Parameters:
         range='0.01:15',
         dtype=np.float32,
         ))
-    height_particle: Any = field(default=None, metadata=dict(
-        description='scatteror height',
-        range='1:10',
+    height_particle_hi: Any = field(default=None, metadata=dict(
+        description='top layer scatteror centroid height',
+        range='height_particle_low:120',
+        dtype=np.float32,
+        ))
+    height_particle_low: Any = field(default=None, metadata=dict(
+        description='lower layer scatteror centroid height',
+        range='-100:height_particle_hi',
         dtype=np.float32,
         ))
     hyspectral_flag: Any = field(default=None, metadata=dict(
@@ -296,14 +319,21 @@ class Parameters:
         range='0:80',
         dtype=np.float32,
         ))
-    Tau_NIR: Any = field(default=None, metadata=dict(
-        # TODO duplicates tau_ref?
+    tau_ref_hi: Any = field(default=None, metadata=dict(
+        range='0.0:100.0',
         dtype=np.float32,
+        description=(
+            'top layer optical depth at reference wavelength '
+            ),
         ))
-    tau_ref: Any = field(default=None, metadata=dict(
-        range='0.01:0.4',
+    tau_ref_low: Any = field(default=None, metadata=dict(
+        range='0.0:100.0',
         dtype=np.float32,
+        description=(
+            'bottom layer optical depth at reference wavelength '
+            ),
         ))
+
     Wind_Speed: Any = field(default=None, metadata=dict(
         name='Wind Speed',
         description=(
@@ -323,6 +353,9 @@ class Parameters:
         ))
     wv_pace_ref: Any = field(default=None, metadata=dict(
         dtype=np.float32,
+        description=(
+            'reference wavelength for optical depth assignment '
+            ),
         ))
     WAVEBAND_SEG_FLAG: Any = field(default=None, metadata=dict(
         description=(
