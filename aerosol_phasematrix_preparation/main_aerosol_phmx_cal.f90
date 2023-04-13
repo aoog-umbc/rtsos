@@ -433,59 +433,81 @@ CALL h5dclose_f(dset , hdferr)
 CALL h5sclose_f(space, hdferr)
 DEALLOCATE(HDF5RARR)
 
+dimscl=(/ 1 /)
+ALLOCATE(HDF5RARR(1))
+HDF5RARR=inputs(14)
+CALL h5screate_simple_f(1, dimscl, space, hdferr)
+CALL h5dcreate_f(file, 'Relative_Humidity', H5T_IEEE_F32LE, space, dset, hdferr)
+CALL h5dwrite_f(dset, H5T_NATIVE_REAL,C_LOC(HDF5RARR(1)), hdferr)
+CALL h5dclose_f(dset , hdferr)
+CALL h5sclose_f(space, hdferr)
+DEALLOCATE(HDF5RARR)
+
+dimscl=(/ 1 /)
+ALLOCATE(HDF5RARR(1))
+HDF5RARR=inputs(3)
+CALL h5screate_simple_f(1, dimscl, space, hdferr)
+CALL h5dcreate_f(file, 'FM_dust', H5T_IEEE_F32LE, space, dset, hdferr)
+CALL h5dwrite_f(dset, H5T_NATIVE_REAL,C_LOC(HDF5RARR(1)), hdferr)
+CALL h5dclose_f(dset , hdferr)
+CALL h5sclose_f(space, hdferr)
+DEALLOCATE(HDF5RARR)
+
+dimscl=(/ 1 /)
+ALLOCATE(HDF5RARR(1))
+HDF5RARR=inputs(4)
+CALL h5screate_simple_f(1, dimscl, space, hdferr)
+CALL h5dcreate_f(file, 'FM_water_soluable', H5T_IEEE_F32LE, space, dset, hdferr)
+CALL h5dwrite_f(dset, H5T_NATIVE_REAL,C_LOC(HDF5RARR(1)), hdferr)
+CALL h5dclose_f(dset , hdferr)
+CALL h5sclose_f(space, hdferr)
+DEALLOCATE(HDF5RARR)
+
+dimscl=(/ 1 /)
+ALLOCATE(HDF5RARR(1))
+HDF5RARR=inputs(5)
+CALL h5screate_simple_f(1, dimscl, space, hdferr)
+CALL h5dcreate_f(file, 'FM_BrC', H5T_IEEE_F32LE, space, dset, hdferr)
+CALL h5dwrite_f(dset, H5T_NATIVE_REAL,C_LOC(HDF5RARR(1)), hdferr)
+CALL h5dclose_f(dset , hdferr)
+CALL h5sclose_f(space, hdferr)
+DEALLOCATE(HDF5RARR)
 
 
-!dimscl=(/ 1 /)
-!ALLOCATE(HDF5RARR(1))
-!HDF5RARR=rf1
-!CALL h5screate_simple_f(1, dimscl, space, hdferr)
-!CALL h5dcreate_f(file, 'FM_dust', H5T_IEEE_F32LE, space, dset, hdferr)
-!CALL h5dwrite_f(dset, H5T_NATIVE_REAL,C_LOC(HDF5RARR(1)), hdferr)
-!CALL h5dclose_f(dset , hdferr)
-!CALL h5sclose_f(space, hdferr)
-!DEALLOCATE(HDF5RARR)
+dimscl=(/ 1 /)
+ALLOCATE(HDF5RARR(1))
+HDF5RARR=inputs(6)
+CALL h5screate_simple_f(1, dimscl, space, hdferr)
+CALL h5dcreate_f(file, 'FM_soot', H5T_IEEE_F32LE, space, dset, hdferr)
+CALL h5dwrite_f(dset, H5T_NATIVE_REAL,C_LOC(HDF5RARR(1)), hdferr)
+CALL h5dclose_f(dset , hdferr)
+CALL h5sclose_f(space, hdferr)
+DEALLOCATE(HDF5RARR)
 
-!dimscl=(/ 1 /)
-!ALLOCATE(HDF5RARR(1))
-!HDF5RARR=rf1
-!CALL h5screate_simple_f(1, dimscl, space, hdferr)
-!CALL h5dcreate_f(file, 'FM_water_soluable', H5T_IEEE_F32LE, space, dset, hdferr)
-!CALL h5dwrite_f(dset, H5T_NATIVE_REAL,C_LOC(HDF5RARR(1)), hdferr)
-!CALL h5dclose_f(dset , hdferr)
-!CALL h5sclose_f(space, hdferr)
-!DEALLOCATE(HDF5RARR)
+dimscl=(/ 1 /)
+ALLOCATE(HDF5RARR(1))
+IF(IAEROSOL==-99 .AND. NMODE==2)THEN
+  HDF5RARR=inputs(7)
+ELSE
+  HDF5RARR=-999
+ENDIF
+CALL h5screate_simple_f(1, dimscl, space, hdferr)
+CALL h5dcreate_f(file, 'CM_spherical_fraction', H5T_IEEE_F32LE, space, dset, hdferr)
+CALL h5dwrite_f(dset, H5T_NATIVE_REAL,C_LOC(HDF5RARR(1)), hdferr)
+CALL h5dclose_f(dset , hdferr)
+CALL h5sclose_f(space, hdferr)
+DEALLOCATE(HDF5RARR)
 
-!dimscl=(/ 1 /)
-!ALLOCATE(HDF5RARR(1))
-!HDF5RARR=rf3
-!CALL h5screate_simple_f(1, dimscl, space, hdferr)
-!CALL h5dcreate_f(file, 'FM_BrC', H5T_IEEE_F32LE, space, dset, hdferr)
-!CALL h5dwrite_f(dset, H5T_NATIVE_REAL,C_LOC(HDF5RARR(1)), hdferr)
-!CALL h5dclose_f(dset , hdferr)
-!CALL h5sclose_f(space, hdferr)
-!DEALLOCATE(HDF5RARR)
+dimscl=(/ 1 /)
+ALLOCATE(HDF5RARR(1))
+HDF5RARR=inputs(8)
+CALL h5screate_simple_f(1, dimscl, space, hdferr)
+CALL h5dcreate_f(file, 'FineModeFraction', H5T_IEEE_F32LE, space, dset, hdferr)
+CALL h5dwrite_f(dset, H5T_NATIVE_REAL,C_LOC(HDF5RARR(1)), hdferr)
+CALL h5dclose_f(dset , hdferr)
+CALL h5sclose_f(space, hdferr)
+DEALLOCATE(HDF5RARR)
 
-
-!dimscl=(/ 1 /)
-!ALLOCATE(HDF5RARR(1))
-!HDF5RARR=1-(rf1+rf2+rf3)
-!CALL h5screate_simple_f(1, dimscl, space, hdferr)
-!CALL h5dcreate_f(file, 'FM_soot', H5T_IEEE_F32LE, space, dset, hdferr)
-!CALL h5dwrite_f(dset, H5T_NATIVE_REAL,C_LOC(HDF5RARR(1)), hdferr)
-!CALL h5dclose_f(dset , hdferr)
-!CALL h5sclose_f(space, hdferr)
-!DEALLOCATE(HDF5RARR)
-
-
-!dimscl=(/ 1 /)
-!ALLOCATE(HDF5RARR(1))
-!HDF5RARR=FRACS
-!CALL h5screate_simple_f(1, dimscl, space, hdferr)
-!CALL h5dcreate_f(file, 'CM_spherical_fraction', H5T_IEEE_F32LE, space, dset, hdferr)
-!CALL h5dwrite_f(dset, H5T_NATIVE_REAL,C_LOC(HDF5RARR(1)), hdferr)
-!CALL h5dclose_f(dset , hdferr)
-!CALL h5sclose_f(space, hdferr)
-!DEALLOCATE(HDF5RARR)
 
 !dimscl=(/ 1 /)
 !ALLOCATE(HDF5RARR(1))
@@ -917,8 +939,9 @@ IMPLICIT NONE
 
 INTEGER, INTENT(IN)::NUMMIEUSE,NWV_PHMX,NWV_BAND_START,NWV_BAND_END,IAEROSOL,  &
                      IRH, IREFF, IVAR, MIX_FLAG,NMODE
-REAL*8, INTENT(IN) :: rf1, rf2, rf3,FRACS, FMFRAC, R0F,R0C,RHI,R0DL,R0WS,R0BC, &
+REAL*8, INTENT(IN) :: rf1, rf2, rf3,FRACS, FMFRAC, R0F,R0C,R0DL,R0WS,R0BC, &
                       R0S,R0SS,sigf,sigc,DFRAC,DSFRAC,Reff_Cloud,Veff_Cloud
+REAL*8, INTENT(INOUT) :: RHI
 REAL*8,DIMENSION(NUMMIEUSE),INTENT(OUT) :: REFF1_Save,REFF2_Save,VEFF1_Save,VEFF2_Save,&
                                            ARSLND1_Save,ARSLND2_Save,ARSLNDDS,REFFDS,VEFFDS
 REAL*8,DIMENSION(NUMMIEUSE,NWV_PHMX),INTENT(OUT) ::MRR1_Save,MRI1_Save,MRR2_Save,MRI2_Save,MRRD_save,MRID_save
