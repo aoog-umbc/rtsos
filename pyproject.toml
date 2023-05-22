@@ -16,7 +16,6 @@ rt-PACE = "zhai_rt.rt_PACE:main"
 
 [tool.setuptools]
 packages = ["zhai_rt"]
-package-dir = { zhai_rt = "scripts" }
 
 [build-system]
 requires = [
