@@ -14,7 +14,7 @@ from .parameters import Parameters as P
 
 
 # TODO Slurm, threading, and https://github.com/pydata/xarray/issues/7549
-dask.config.set(scheduler="synchronous")
+dask.config.set(scheduler='synchronous')
 
 
 cli = ArgumentParser()
@@ -57,8 +57,9 @@ cli.add_argument(
 
 
 def groupby(dataset: xr.Dataset, groups: xr.DataArray) -> Iterable[tuple]:
-    '''Return subsets selected from `dataset` at the coordinates of each unique
-    value present in `groups`.'''
+    """Return subsets selected from `dataset` at the coordinates of each unique
+    value present in `groups`.
+    """
     if groups.dims:
         # yield from the iterable created by xr.DataArray.groupby
         for key, value in groups.groupby(groups):
@@ -66,13 +67,14 @@ def groupby(dataset: xr.Dataset, groups: xr.DataArray) -> Iterable[tuple]:
             yield key, subset
     else:
         # compensate for xr.DataArray.groupby's inability to handle no dims
-        return ((groups.item(), dataset), )
+        yield groups.item(), dataset
 
 
 def split_list_arg(arg: str) -> dict:
-    '''Split the comma separated elements of `arg`, which are key, value
+    """Split the comma separated elements of `arg`, which are key, value
     pairs for the returned dictionary, parsing the value for later use
-    in xr.Dataset indexing.'''
+    in xr.Dataset indexing.
+    """
     cluster = {}
     for item in arg.split(','):
         key, *value = item.split(':')
@@ -92,8 +94,9 @@ def split_list_arg(arg: str) -> dict:
 
 
 def paths_by_coords(current: xr.DataArray, next: tuple[(str, slice)]) -> xr.DataArray:
-    '''Create an array of Path objects with nesting subdirectories
-    for the given dimensions and ranges.'''
+    """Create an array of Path objects with nesting subdirectories
+    for the given dimensions and ranges.
+    """
     # use xr.DataArray for broadcasting by named dimensions
     # TODO path construction, or maybe division, is oddly slow
     dim = next[0]
@@ -224,17 +227,18 @@ class ZhaiRT:
                 return xr.combine_by_coords(datasets).to_netcdf(path=outputs)
 
     def infile(self, path: Path, dataset: xr.Dataset) -> Path:
-        '''Write parameters to a text file, and return its path.'''
+        """Write parameters to a text file, and return its path.
+        """
         lines = []
         for item in self.params:
+            if item not in dataset:
+                continue
             param = dataset[item]
-            name = param.attrs.get('name', item)
-            desc = param.attrs.get('description', '')
-            lines.append(
-                f'{param.values:<24} # {name}: {desc}'
-                )
+            name = param.attrs.get('long_name', item)
+            value = param.item()
+            lines.append(f'{value:<24} # {name}')
         outfile = Path(dask.base.tokenize(dataset)).with_suffix('.outfile')
-        lines += [f'{path / outfile}', '']
+        lines += [str(path / outfile), '']
         infile = outfile.with_suffix('.infile.txt')
         with (path / infile).open('w') as stream:
             stream.write('\n'.join(lines))
