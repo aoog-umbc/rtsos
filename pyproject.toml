@@ -10,13 +10,16 @@ dependencies = [
     "dask>=2022.10.2",
 ]
 
+[project.optional-dependencies]
+test = ["pytest"]
+
 [project.scripts]
 rt-AC-LUT = "zhai_rt.rt_AC_LUT:main"
 rt-PACE = "zhai_rt.rt_PACE:main"
+rt-PHMX = "zhai_rt.rt_PHMX:main"
 
 [tool.setuptools]
 packages = ["zhai_rt"]
-package-dir = { zhai_rt = "scripts" }
 
 [build-system]
 requires = [

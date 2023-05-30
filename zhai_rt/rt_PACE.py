@@ -3,7 +3,7 @@ from .parameters import Parameters as P
 
 
 def main(argv: str = None) -> None:
-    
+
     # values to write, in the order below, to the RT input file
     values = {
         P.Wind_Speed: 5.0,
@@ -11,9 +11,9 @@ def main(argv: str = None) -> None:
         P.wv_pace_ref: 532.0,
         P.tau_ref_hi: [0.1, 0.3],
         P.height_particle_hi: 15.0,
-        P.tau_ref_low: [0.1, 0.3],
-        P.height_particle_low: 15.0,
-        P.Aerosol_Model_Number: -97,
+        P.tau_ref_low: 0.0,
+        P.height_particle_low: -1,
+        P.Aerosol_Model_Number: -1,
         P.AerosolFineModeFraction: 0.3,
         P.Relative_Humidity: 0.3,
         P.OCEAN_CASE_SELECT: 1,
@@ -59,9 +59,9 @@ def main(argv: str = None) -> None:
         P.Aux_Dir: 'data/RT/pwzrt/Data',
         P.Atmos_Dir: 'data/RT/pwzrt/Gas_Absorption_Coefficients',
         P.CFILE_AP: 'afglus.dat',
-        # for Aerosol Model "-1", there is no aerosol_phasematrix_file
-        P.Aerosol_Phasematrix_File_Hi: 'output_IAEROSOL_16_IRH_4.h5',
-        P.Aerosol_Phasematrix_File_Low: 'output_IAEROSOL_16_IRH_4.h5',
+        # for Aerosol Model "-1", there are no aerosol_phasematrix_files
+        P.Aerosol_Phasematrix_File_Hi: '',
+        P.Aerosol_Phasematrix_File_Low: '',
         }
 
     # create a dataset to hold the inputs as coordinates
