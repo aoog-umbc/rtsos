@@ -37,9 +37,9 @@ REAL*8 Delta_Wavelength_Max,Delta_Wavelength_Sub,Factor
 ! HDF 5 DEFINITION
 ! This should map to REAL*8 on most modern processors
 !INTEGER, PARAMETER :: real_kind_15 = SELECTED_REAL_KIND(Fortran_REAL_8)
-CHARACTER(LEN=160),intent(in) :: aux_dir
+CHARACTER(LEN=360),intent(in) :: aux_dir
 
-CHARACTER(LEN=180) :: OCI_ILS_Filename
+CHARACTER(LEN=360) :: OCI_ILS_Filename
 
 INTEGER(HID_T)  :: file, space, dset, attr ! Handles
 INTEGER :: hdferr

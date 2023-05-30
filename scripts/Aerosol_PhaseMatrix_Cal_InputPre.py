@@ -7,6 +7,7 @@ def input_writer(filestrbase,irh,iaerosol):
     f.write("%d" % iaerosol+ '      #IAEROSOL=1,20. 1-10 is Shettle and Fenn, 11-20  Ahmad model \n')
     f.write("%d" % irh+ '       #Relative Humidity IRH=1,5, RH=[0.50,0.70,0.80,0.90,0.95] \n')
     f.write("%d" % wv_seg_flag+ '       #wv_seg_flag, 0: all; 1: seg1+3only; 2: seg2only; 3 seg1+2+3; 4: seg4only \n')
+    f.write("%s" % aux_dir +'    #aux_dir \n')
     f.write("%s" % 'output_' + filestrbase+'\n')
     f.close
 
@@ -18,6 +19,7 @@ def input_writer_water_clouds(filestrbase,irh,iaerosol):
     f.write("%f" % Reff_Cloud + '       #Effective Radius \n')
     f.write("%f" % Veff_Cloud + '       #Effective Variance \n')
     f.write("%d" % wv_seg_flag+ '       #wv_seg_flag, 0: all; 1: seg1+3only; 2: seg2only; 3 seg1+2+3; 4: seg4only \n')
+    f.write("%s" % aux_dir +'    #aux_dir \n')
     f.write("%s" % 'output_' + filestrbase+'\n')
     f.close
 
@@ -46,6 +48,7 @@ def input_writer_flexible_nmode2(filestrbase,irh,iaerosol,rf1,rf2,rf3,fmfrac,cms
     f.write("%f" % r0_s+ '      # dry radius soot (fine mode) volume \n')
     f.write("%f" % r0_ss+ '     # dry radius sea salt (coarse mode) volume \n')
     f.write("%d" % wv_seg_flag+ '       #wv_seg_flag, 0: all; 1: seg1+3only; 2: seg2only; 3 seg1+2+3; 4: seg4only \n')
+    f.write("%s" % aux_dir +'    #aux_dir \n')
     f.write("%s" % 'output_flexible_' + filestrbase+'\n')
     f.close
 
@@ -74,13 +77,17 @@ def input_writer_flexible_nmode3(filestrbase,irh,iaerosol,rf2,rf3,fmfrac,dustfra
     f.write("%f" % r0_s+ '      # dry radius soot (fine mode) volume \n')
     f.write("%f" % r0_ss+ '     # dry radius sea salt (coarse mode) volume \n')
     f.write("%d" % wv_seg_flag+ '       #wv_seg_flag, 0: all; 1: seg1+3only; 2: seg2only; 3 seg1+2+3; 4: seg4only \n')
+    f.write("%s" % aux_dir +'    #aux_dir \n')
     f.write("%s" % 'output_flexible_' + filestrbase+'\n')
     f.close
+
+# aux_dir definition
+aux_dir='/Users/pwzhai/Research/RT/SOS/SOS_Callable/test/PACE_Simulator/auxiliary_files/'
 
 #Common parameters
 wv_seg_flag=0
 
-iaerosol=-98 #=-99 for flexible composition
+iaerosol=-99 #=-99 for flexible composition
 Reff_Cloud=6.0  #effective radius of cloud size distribution
 Veff_Cloud=0.1  #effective variance of cloud size distribution
 
@@ -100,7 +107,7 @@ if nmode==2:
     rf1=0.0 #dust like (=0 for nmode =3)
     rf2=0.0#water soluable
     rf3=1.0 #BrC
-    cmsfracs=0.0 # coarse mode spherical fraction (sea salt)
+    cmsfracs=0.2 # coarse mode spherical fraction (sea salt)
     fmfrac=1.0 #finemode fraction
     #!check
     if fmfrac==0.0:
@@ -114,7 +121,7 @@ if nmode==2:
         r_soot=0
         
     if fmfrac==1:
-        cmsfrac=0
+        cmsfracs=0
         dust=0
 
 

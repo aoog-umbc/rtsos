@@ -1334,8 +1334,8 @@ DO IWV_BAND=NWV_BAND_START,NWV_BAND_END
 			   RTMP=DOUBLEKFUNC_EVALUATION(NWV_SUB_CAL,DK_VAL,DKP_VAL)
 
 	!testing
-	!if(idet==1 .and. icom==1 .and. itheta==1 .and. iphi==1 .and. abs(WV(IWV_SUB)-758.055d0)<1.0e-6) &
-	!   WRITE(*,*)'DOUBLE K DOUBLEKFUNC_EVALUATION:',WV(IWV_SUB),IWV_SUB,RTMP
+!	if(idet==1 .and. icom==1 .and. itheta==1 .and. iphi==1 .and. abs(WV(IWV_SUB)-940.69097900390625d0)<1.0e-3) &
+!	   WRITE(*,*)'DOUBLE K DOUBLEKFUNC_EVALUATION:',WV(IWV_SUB),IWV_SUB,RTMP
 			   IF(SNG_SCAT_EXACT)THEN
 				  DSTOKESFULL(IDET,IWV_SUB,ITHETA,IPHI,ICOM)= &
 						 DSTOKESFULL(IDET,IWV_SUB,ITHETA,IPHI,ICOM)+RTMP
@@ -1350,10 +1350,6 @@ DO IWV_BAND=NWV_BAND_START,NWV_BAND_END
 
 	  ENDIF ! NWV_SUB==1 IF
     ENDIF ! MONOCHROMATIC FLAG IF
-    call date_and_time(values=time_array_0)
-    start_time = time_array_0 (5) * 3600 + time_array_0 (6) * 60 &
-               + time_array_0 (7) + 0.001 * time_array_0 (8)
-    write(*,*)'rtsos elapsed time =', start_time-finish_time
     DEALLOCATE(TAU_TG_DK,TAU_TG_DKP,TAU_ARSL_Ext_TMP,TAU_ARSL_Scat_TMP, &
                TAU_RAY_TMP, DEPOL_A_TMP, DIRADTMP,DSTOKESTMP,INDX_WV_CAL)
     DEALLOCATE(XU,YU,ZU,FSUN_BAND)

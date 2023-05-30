@@ -1,6 +1,6 @@
 MODULE DUST_DATA
 USE HDF5
-USE auxiliary_dir_readin
+!USE auxiliary_dir_readin
 
 INTEGER, PARAMETER :: NASPR=12, NWV_D=18, nsigma=5, nreff=15, &
      NSCATANG=500, nscatangs=498
@@ -16,12 +16,13 @@ REAL*8, DIMENSION(:,:,:), ALLOCATABLE :: go, qeo, vinto, ssao, areao
 REAL*8, DIMENSION(:,:,:,:), ALLOCATABLE :: p11p, p12p, p22p, p33p, p34p, p44p
 REAL*8, DIMENSION(:,:,:), ALLOCATABLE :: gp, qep, vintp, ssap, areap
 
+
 CONTAINS
   
-SUBROUTINE READ_DUST_DATA(shape,aspr_in)
+SUBROUTINE READ_DUST_DATA(aux_dir,shape,aspr_in)
 IMPLICIT NONE
 
-CHARACTER(LEN=180) :: dust_filename, aspr_str
+CHARACTER(LEN=360) ::aux_dir,dust_filename, aspr_str
 REAL*8 :: read_string
 INTEGER(HID_T)  :: file, space, dset, attr ! Handles
 INTEGER :: hdferr
@@ -52,7 +53,7 @@ ALLOCATE(p11p(nscatang,nreff,nsigma,nwv_d),p12p(nscatang,nreff,nsigma,nwv_d),&
      qep(nreff,nsigma,nwv_d), vintp(nreff,nsigma,nwv_d), ssap(nreff,nsigma,nwv_d), &
      areap(nreff,nsigma,nwv_d))
 
-call aux_dir_readin
+!call aux_dir_readin
 dust_filename=trim(aux_dir)//'Dust.h5'
 
 inquire(file=dust_filename, exist=file_e)
@@ -496,10 +497,10 @@ END MODULE DUST_DATA
 
 
 
-SUBROUTINE DUST_SCAT_PROP_INIT(IREFF,IVAR,PHMX_DUST,CEXT_DUST,CSCAT_DUST,SCATANG)
+SUBROUTINE DUST_SCAT_PROP_INIT(aux_dir,IREFF,IVAR,PHMX_DUST,CEXT_DUST,CSCAT_DUST,SCATANG)
 
 USE DUST_DATA
-
+CHARACTER(LEN=360),intent(in) :: aux_dir
 INTEGER, INTENT(IN) :: IREFF, IVAR
 REAL*8,DIMENSION(24)::ASPR=(/0.3 , 0.37, 0.42, 0.48, 0.56, 0.67, 0.83, 0.86, 0.88, 0.91, 0.95,0.98, &
      1.02, 1.05, 1.1 , 1.13, 1.16, 1.2 , 1.5 , 1.8 , 2.1 , 2.4 , 2.7 ,3.3/)
@@ -561,7 +562,7 @@ SHAPE=3
 DO IASPR=1,NASPR
    aspr_n= ASPR_PR(IASPR)
   ! write(*,*) aspr_n
-   CALL READ_DUST_DATA(shape,aspr_n)
+   CALL READ_DUST_DATA(aux_dir,shape,aspr_n)
    P11_DUST_TMP(IASPR,:,:)=p11p(:,IREFF,IVAR,:)
    P12_DUST_TMP(IASPR,:,:)=p12p(:,IREFF,IVAR,:)
    P22_DUST_TMP(IASPR,:,:)=p22p(:,IREFF,IVAR,:)
@@ -579,7 +580,7 @@ END DO
 SHAPE=2
 DO IASPR=NASPR+1,2*NASPR
    aspr_n=ASPR_P(IASPR-NASPR)
-   CALL READ_DUST_DATA(shape,aspr_n)
+   CALL READ_DUST_DATA(aux_dir,shape,aspr_n)
    P11_DUST_TMP(IASPR,:,:)=p11o(:,IREFF,IVAR,:)
    P12_DUST_TMP(IASPR,:,:)=p12o(:,IREFF,IVAR,:)
    P22_DUST_TMP(IASPR,:,:)=p22o(:,IREFF,IVAR,:)
@@ -594,7 +595,7 @@ DO IASPR=NASPR+1,2*NASPR
    DEALLOCATE(p11p,p12p,p22p,p33p,p34p,p44p,gp,qep, vintp, ssap,areap)
 END DO
 
-CALL READ_DUST_DATA(3,ASPR_P(1))
+CALL READ_DUST_DATA(aux_dir,3,ASPR_P(1))
 SCATANG(:)=SCAT_ANG(:)
 DEALLOCATE(p11s,p12s,p22s,p33s,p34s,p44s,gs,qes, vints, ssas,scat_ang,scat_angs)
 DEALLOCATE(p11o,p12o,p22o,p33o,p34o,p44o,go,qeo, vinto,ssao,areao)
