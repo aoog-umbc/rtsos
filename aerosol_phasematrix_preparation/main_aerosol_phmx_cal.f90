@@ -1,5 +1,5 @@
 PROGRAM AERSL_PHMX
-USE auxiliary_dir_readin
+!USE auxiliary_dir_readin
 USE MIE_PHMX_CAL
 USE PACE_INSTRUMENT_DESIGN
 USE HDF5
@@ -27,8 +27,7 @@ INTEGER*4 :: NARGS,IARGC, IVAR,IREFF
 CHARACTER*360 :: CFILE1,CFILETMP,CFILE_AP
 CHARACTER(LEN=360) :: INFILE   
 CHARACTER(LEN=360) :: OUTFILE
-
-
+CHARACTER(LEN=360) :: aux_dir
 call date_and_time(values=time_array_0)
 start_time = time_array_0 (5) * 3600 + time_array_0 (6) * 60 &
                              + time_array_0 (7) + 0.001 * time_array_0 (8)
@@ -56,14 +55,16 @@ READ(1,*)IAEROSOL
 IF(IAEROSOL>0) THEN
    READ(1,*)IRH
    READ(1,*)WV_SEG_FLAG
-   READ(1,*)OUTFILE
+   READ(1,'(A)')aux_dir
+   READ(1,'(A)')OUTFILE
 ENDIF
 
 IF(IAEROSOL==-98) THEN ! water clouds
    READ(1,*)Reff_Cloud
    READ(1,*)Veff_Cloud
    READ(1,*)WV_SEG_FLAG
-   READ(1,*)OUTFILE
+   READ(1,'(A)')aux_dir
+   READ(1,'(A)')OUTFILE
    NMODE=1
 ENDIF
 
@@ -90,7 +91,8 @@ IF(IAEROSOL==-99)THEN
       READ(1,*)r0s
       READ(1,*)r0ss
       READ(1,*)WV_SEG_FLAG
-      READ(1,*)OUTFILE
+      READ(1,'(A)')aux_dir
+      READ(1,'(A)')OUTFILE
    ENDIF
 
    IF(NMODE==3)THEN
@@ -113,7 +115,8 @@ IF(IAEROSOL==-99)THEN
       READ(1,*)r0s
       READ(1,*)r0ss
       READ(1,*)WV_SEG_FLAG
-      READ(1,*)OUTFILE
+      READ(1,'(A)')aux_dir
+      READ(1,'(A)')OUTFILE
    ENDIF
 ENDIF
 
@@ -122,6 +125,11 @@ RF1=0
 ENDIF
 
 CLOSE(1)
+
+IF(index(aux_dir,'#')>1) &
+  aux_dir=trim(aux_dir(1:index(aux_dir,'#')-1))
+IF(index(OUTFILE,'#')>1) &
+   OUTFILE=trim(OUTFILE(1:index(OUTFILE,'#')-1))
 
 IF (NMODE==3) rf1=0
 
@@ -140,7 +148,7 @@ IF(WV_SEG_FLAG<0 .OR. WV_SEG_FLAG>4) STOP 'CHECK WV_SEG_FLAG INPUT'
 
 write(*,*) 'main program started'
 NUMMIEUSE=1
-call aux_dir_readin
+!call aux_dir_readin
 CALL WV_PACE_SETUP(aux_dir)
 
 IF(WV_SEG_FLAG==0)THEN
@@ -175,7 +183,7 @@ ALLOCATE(REFF1_Save(NUMMIEUSE),REFF2_Save(NUMMIEUSE),VEFF1_Save(NUMMIEUSE),     
          MRRD_save(NUMMIEUSE,NWV_BAND),MRID_save(NUMMIEUSE,NWV_BAND),ARSLNDDS(NUMMIEUSE),&
          REFFDS(NUMMIEUSE),VEFFDS(NUMMIEUSE))
 
-CALL Particle_PHMX_Assign_StandAlone(NUMMIEUSE,NWV_BAND,NWV_BAND_START,NWV_BAND_END,&
+CALL Particle_PHMX_Assign_StandAlone(aux_dir,NUMMIEUSE,NWV_BAND,NWV_BAND_START,NWV_BAND_END,&
           IAEROSOL,IRH, rf1, rf2, rf3, FRACS, FMFRAC, IREFF, IVAR,R0F,R0C,RHI, &
           R0DL,R0WS,R0BC,R0S,R0SS,MIX_FLAG,sigf,sigc,NMODE,DFRAC,DSFRAC,REFF1_Save,    &
           REFF2_Save,REFFDS,VEFF1_Save,VEFF2_Save,VEFFDS,Reff_Cloud,Veff_Cloud, &
@@ -928,7 +936,7 @@ END SUBROUTINE  PHMX_OUTPUT
 
 
 
-SUBROUTINE Particle_PHMX_Assign_StandAlone(NUMMIEUSE,NWV_PHMX,NWV_BAND_START,NWV_BAND_END,&
+SUBROUTINE Particle_PHMX_Assign_StandAlone(aux_dir,NUMMIEUSE,NWV_PHMX,NWV_BAND_START,NWV_BAND_END,&
       IAEROSOL,IRH,rf1, rf2, rf3,FRACS, FMFRAC, IREFF, IVAR,R0F,R0C,RHI, &
       R0DL,R0WS,R0BC,R0S,R0SS,MIX_FLAG,sigf,sigc,nmode,dfrac,dsfrac,REFF1_Save,&
       REFF2_Save,REFFDS,VEFF1_Save,VEFF2_Save,VEFFDS,Reff_Cloud,Veff_Cloud, &
@@ -936,7 +944,7 @@ SUBROUTINE Particle_PHMX_Assign_StandAlone(NUMMIEUSE,NWV_PHMX,NWV_BAND_START,NWV
 	  MRI2_Save,MRRD_save,MRID_save,ARSLND1_Save,ARSLND2_Save,ARSLNDDS)
 USE MIE_PHMX_CAL
 IMPLICIT NONE
-
+CHARACTER(LEN=360),intent(in) :: aux_dir
 INTEGER, INTENT(IN)::NUMMIEUSE,NWV_PHMX,NWV_BAND_START,NWV_BAND_END,IAEROSOL,  &
                      IRH, IREFF, IVAR, MIX_FLAG,NMODE
 REAL*8, INTENT(IN) :: rf1, rf2, rf3,FRACS, FMFRAC, R0F,R0C,R0DL,R0WS,R0BC, &
@@ -983,7 +991,7 @@ ENDIF
 
 CALL PHMXMIE_ALLO
 
-CALL PHMXMIE_Instrument_INIT(FREEFORMFLAG,NWV_BAND_START,NWV_BAND_END,    &
+CALL PHMXMIE_Instrument_INIT(aux_dir,FREEFORMFLAG,NWV_BAND_START,NWV_BAND_END,    &
      IAEROSOL,IRH, rf1, rf2,rf3, FRACS,FMFRAC, IREFF, IVAR,R0F,R0C,RHI,&
      R0DL,R0WS,R0BC,R0S,R0SS,MIX_FLAG,sigf,sigc,NMODE,DFRAC,DSFRAC,REFF1_LOCAL,VEFF1_LOCAL,      &
 	 REFF2_LOCAL,VEFF2_LOCAL,reffd,veffd,MRR1_LOCAL,MRI1_LOCAL,MRR2_LOCAL,MRI2_LOCAL,MRRDL,MRIDL, &
