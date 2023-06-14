@@ -1,3 +1,6 @@
+from datetime import datetime, timezone
+import importlib
+
 import numpy as np
 import xarray as xr
 
@@ -6,15 +9,15 @@ from .parameters import Parameters as P
 
 
 def main(argv=None):
-
     # values to write, in the order below, to the RT input file
     values = {
-        P.NWV: 239,
+        # derive wavelength from CFILE_INSTRUMENT (nb.: not enforced to allow fast-path)
+        P.NWV: 0,
         P.WAVELENGTH_MICRON_REF: 0.870,
-        P.CFILE_INSTRUMENT: 'coeff_abs.dat',
-        P.Aux_Dir: 'data/RT/bfranz/afrt/oci/inp',
-        P.Atmos_Dir: 'data/RT/pwzrt/Gas_Absorption_Coefficients',
-        P.Mie_Database_Dir: 'data/oci/mie',
+        P.CFILE_INSTRUMENT: "",
+        P.Aux_Dir: "",
+        P.Atmos_Dir: "",
+        P.Mie_Database_Dir: "",
         P.MIE_TABLE_CAL: 2,
         P.Aerosol_Model_Number: range(11, 21),
         P.AerosolFineModeFraction: np.nan,
@@ -31,20 +34,20 @@ def main(argv=None):
         P.I_SURFACE_ROUGHNESS_PARA: 2,
         P.Diffuse_Transmittance_Flag: [0, 1],
         P.I_SPHERICAL_SHELL_CORRECTION: 0,
-        P.CFILE_AP: 'afglus.dat', # FIXME change the file name
-        }
+        P.CFILE_AP: "afglus.dat",  # FIXME change the file name
+    }
 
     # calculate compound coordinate wndspd
     sigma = np.array(
         [0, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4],
         dtype=np.float32,
-        )
+    )
     surface = values[P.I_SURFACE_ROUGHNESS_PARA]
     if surface == 1:
         wndspd = (np.square(sigma) - 0.003) / 0.00512
     elif surface == 2:
         wndspd = np.square(sigma) / 0.00534
-    wndspd[wndspd<0.0] = 0.0
+    wndspd[wndspd < 0.0] = 0.0
     values[P.Wind_Speed] = wndspd
 
     # create a dataset to hold the inputs as coordinates
@@ -54,39 +57,37 @@ def main(argv=None):
     # replace independent sza and dt dimensions with a single index, so we
     # only run simulations over sza for dt == 0.
     dim = {
-        'sza-dt': (
+        "sza-dt": (
             P.Solar_Zenith_Angle.__name__,
             P.Diffuse_Transmittance_Flag.__name__,
-            ),
+        ),
     }
     dataset = dataset.stack(dimensions=dim, create_index=False)
-    dataset = (
-        dataset.where(
-            ~np.logical_and(
-                dataset[P.Diffuse_Transmittance_Flag.__name__] == 1,
-                dataset[P.Solar_Zenith_Angle.__name__] != 0.0,
-                ),
-            drop=True,
-            )
-        )
-    dataset['sza-dt'] = dataset.get_index('sza-dt')
+    dataset = dataset.where(
+        ~np.logical_and(
+            dataset[P.Diffuse_Transmittance_Flag.__name__] == 1,
+            dataset[P.Solar_Zenith_Angle.__name__] != 0.0,
+        ),
+        drop=True,
+    )
+    dataset["sza-dt"] = dataset.get_index("sza-dt")
 
     # combine Aerosol_Model_Number and Relative_Humidity into one index
     dim = {
-        'am': (
+        "am": (
             P.Aerosol_Model_Number.__name__,
             P.Relative_Humidity.__name__,
-            )
+        )
     }
     dataset = dataset.stack(dimensions=dim, create_index=False)
-    dataset['am'] = dataset.get_index('am')
+    dataset["am"] = dataset.get_index("am")
 
     # the callable object that runs the given program
     ac_lut = AC_LUT(
-        program='rtsos_GSFC_AC_LUT.exe',
+        program="rtsos_GSFC_AC_LUT.exe",
         params=tuple(values),
         defaults=dataset,
-        )
+    )
 
     # parse arguments from command line and run as instructed
     args = cli.parse_args(argv)
@@ -95,133 +96,97 @@ def main(argv=None):
 
 class AC_LUT(ZhaiRT):
 
-    def post(self, dataset):
+    def obdaac_metadata(
+        self, dataset: xr.Dataset, rayleigh=False
+    ) -> xr.Dataset:  # FIXME one file is both
+        dataset.attrs.update(
+            {
+                "title": "Atmospheric Rayleigh radiance table for OCIS at #### nm",  # FIXME
+                "version": importlib.metadata.version(__name__.split(".", 1)[0]),
+                "comment": "Coefficients for polynomial interpolation of TOA radiances.",  # FIXME
+                "date_created": datetime.now(timezone.utc).isoformat(),
+                "history": ",".join(
+                    "rt-AC-LUT --cluster=<cluster> <inputs> <outputs>",
+                    "rt-AC-LUT --post=<cluster> --cluster=am <inputs> <outputs>",
+                ),
+                "created_by": "NASA/GSFC/OBPG",
+                "creator_name": "NASA/GSFC/OBPG",
+                "creator_email": "data@oceancolor.gsfc.nasa.gov",
+                "creator_url": "https://oceandata.sci.gsfc.nasa.gov",
+                "project": "Ocean Biology Processing Group (NASA/GSFC/OBPG)",
+                "publisher_name": "NASA/GSFC/OBPG",
+                "publisher_url": "https://oceandata.sci.gsfc.nasa.gov",
+                "publisher_email": "data@oceancolor.gsfc.nasa.gov",
+                "institution": "NASA Goddard Space Flight Center, Ocean Ecology Laboratory, Ocean Biology Processing Group",
+                "instrument": "OCI",
+                "platform": "PACE",
+                "license": "https://science.nasa.gov/earth-science/earth-science-data/data-information-policy/",
+                "references": "",
+            },
+        )
+        if not rayleigh:
+            am = dataset["Aerosol_Model_Number"]
+            am_flag_index = (am.attrs["flag_values"] == am).argsort()[-1]
+            am_flag_meaning = am.attrs["flag_meanings"][am_flag_index.item()]
+            dataset.attrs.update(
+                {
+                    "title": "Aerosol model data for OCIS",
+                    "aerosol_model_number": str(am.item()),
+                    "fine_mode_fraction": str(am_flag_meaning.split("_")[-1]),
+                    "relative_humidity": dataset["Relative_Humidity"].values[0],
+                    "size_distribution": str(),  # FIXME
+                    "wind_sigma": float(),  # FIXME this one may need a better name...just not sure what that should be...or even if it is needed, since it's always zero...
+                },
+            )
+        return dataset
+
+    def restructure_outputs(self, dataset: xr.Dataset) -> xr.Dataset:
         # drop unneeded coordinates
-        dataset = dataset.where(dataset['ThetaV'] < 90.0, drop=True)
+        dataset = dataset.where(dataset["ThetaV"] < 90.0, drop=True)
         # restore the coordinates stacked in am
-        dataset = dataset.squeeze('am').drop_vars('am')
+        dataset = dataset.squeeze("am").drop_vars("am")
         # unstack the sza-dt dimension into separate datasets
         idx = dataset[P.Diffuse_Transmittance_Flag.__name__] == 1
         renamed = {
-            'Radiance_TOA': 'LT_TOA',
-            'Radiance_BOA': 'LT_BOA',
-            }
+            "Radiance_TOA": "LT_TOA",
+            "Radiance_BOA": "LT_BOA",
+        }
         dt = (
-            dataset
-            .sel({'sza-dt': idx})
-            .squeeze('sza-dt')
+            dataset.sel({"sza-dt": idx})
+            .squeeze("sza-dt")
             .rename(renamed)
-            .drop_vars([P.Diffuse_Transmittance_Flag.__name__, 'sza-dt'])
-            )
+            .drop_vars([P.Diffuse_Transmittance_Flag.__name__, "sza-dt"])
+        )
         dt = dt[list(renamed.values())]
         renamed = {
-            'Radiance_TOA': 'Lt',
-            'Q_TOA': 'LQ',
-            'U_TOA': 'LU',
-            'Radiance_TOA_Glint': 'TLg',
-            'Q_TOA_Glint': 'TQg',
-            'U_TOA_Glint': 'TUg',
-            'Irrad_Down_TOA': 'diff_irrad',
-            }
+            "Radiance_TOA": "Lt",
+            "Q_TOA": "LQ",
+            "U_TOA": "LU",
+            "Radiance_TOA_Glint": "TLg",
+            "Q_TOA_Glint": "TQg",
+            "U_TOA_Glint": "TUg",
+            "Irrad_Down_TOA": "diff_irrad",
+        }
         sza = (
-            dataset
-            .sel({'sza-dt': ~idx})
-            .swap_dims({'sza-dt': P.Solar_Zenith_Angle.__name__})
+            dataset.sel({"sza-dt": ~idx})
+            .swap_dims({"sza-dt": P.Solar_Zenith_Angle.__name__})
             .rename(renamed)
-            .drop_vars([P.Diffuse_Transmittance_Flag.__name__, 'sza-dt'])
-            )
+            .drop_vars([P.Diffuse_Transmittance_Flag.__name__, "sza-dt"])
+        )
         # calculate aggregrates, ignoring dimensions known to have no effect
         # TODO this na thing suggests prior unnecessary broadcasting
         na = {
             P.Wind_Speed.__name__: 0,
             P.Solar_Zenith_Angle.__name__: 0,
-            'ThetaV': 0,
-            }
-        sza['aot'] = sza['Tau_Aerosol_Extinction'][na].sum('NTLYERA')
-        sza['rot'] = sza['Tau_Rayleigh_Extinction'][na].sum('NTLYERA')
-        sza['depol'] = sza['Rayleigh_Depolarization_Ratio'][na].mean('NTLYERA')
+            "ThetaV": 0,
+        }
+        sza["aot"] = sza["Tau_Aerosol_Extinction"][na].sum("NTLYERA")
+        sza["rot"] = sza["Tau_Rayleigh_Extinction"][na].sum("NTLYERA")
+        sza["depol"] = sza["Rayleigh_Depolarization_Ratio"][na].mean("NTLYERA")
         # finish calculations on the sza dataset
-        sza = sza[list(renamed.values()) + ['aot', 'rot', 'depol']]
+        sza = sza[list(renamed.values()) + ["aot", "rot", "depol"]]
         # merge the sza and dt datasets back together
-        dataset = xr.merge((dt, sza))
-        # calculate LUTs
-        # select aot == 0 which means Rayleigh only atmosphere
-        ds = dataset.loc[{'Tau_NIR': 0}]
-        # calculate rhot with TOA glint removed
-        rhot = np.pi * ds['Lt'] / ds['diff_irrad']
-        Trhog = np.pi * ds['TLg'] / ds['diff_irrad']
-        rhor = rhot - Trhog
-        # TODO comment on this part
-        ds = dataset[{'Tau_NIR': dataset['Tau_NIR'] > 0}]
-        rhot_all = np.pi * ds['Lt'] / ds['diff_irrad']
-        Trhog_all = np.pi * ds['TLg'] / ds['diff_irrad']
-        rhoa = rhot_all - rhor - Trhog_all
-        rhoa = rhoa.loc[{'Wind_Speed': 0}]
-        # for each wavelength and for each geometry, fit least squares
-        # for rhoa over Tau_NIR
-        a = xr.DataArray(np.arange(5, dtype=np.float32), dims='N')
-        a = np.log(ds['aot']) ** a
-        a = a.where(np.logical_or(a['WaveLength'] < 0.8, a['N'] < 3), 0.0)
-        a.load() # TODO dask='allowed'
-        b = np.log(rhoa.stack({'K': ['ThetaV', 'PhiV', 'Solar_Zenith_Angle']}))
-        b.load() # TODO dask='allowed'
-        x = xr.apply_ufunc(
-            lstsq, # solves b = a @ x for x
-            a,     # a.dims == ('Tau_NIR', 'WaveLength', 'N')
-            b,     # b.dims == ('Tau_NIR', 'WaveLength', 'K')
-            input_core_dims=[['Tau_NIR', 'N'], ['Tau_NIR', 'K']],
-            output_core_dims=[['N', 'K']],
-            vectorize=True,
-            # TODO dask='allowed'
-            )
-        rhoa_coef = (
-            x.unstack()
-            .assign_coords({'N': [f'{i}ms_all' for i in 'abcde']})
-            .to_dataset('N')
-            )
-        # arbitrary choice of PhiV index (no effect on td)
-        ds = dataset[{'Wind_Speed': 0, 'PhiV': 10}]
-        td = ds['LT_TOA'] / ds['LT_BOA']
-        a = ds['aot'] ** xr.DataArray(np.arange(2, dtype=np.float32), dims='N')
-        a.load()
-        b = np.log(td)
-        b.load()
-        x = xr.apply_ufunc(
-            lstsq, # solves b = a @ x for x
-            a,     # a.dims == ('Tau_NIR', 'WaveLength', 'N')
-            b,     # b.dims == ('Tau_NIR', 'ThetaV', 'WaveLength')
-            input_core_dims=[['Tau_NIR', 'N'], ['Tau_NIR', 'ThetaV']],
-            output_core_dims=[['N', 'ThetaV']],
-            vectorize=True,
-            )
-        td_coef = (
-            x.assign_coords({'N': ['dtran_a', 'dtran_b']})
-            .to_dataset(dim='N')
-        )
-        td_coef['dtran_a'] = np.exp(td_coef['dtran_a'])
-        td_coef['dtran_b'] = -td_coef['dtran_b']
-        # TODO comment next section
-        ds = dataset[{'Tau_NIR': 1}]
-        ref = ds['WAVELENGTH_MICRON_REF']
-        # FIXME ref is not in WaveLength?
-        extc = ds['aot'] / ds['aot'].sel({'WaveLength': ref}, method='nearest')
-        # FIXME dtype float32
-        ds = (
-            xr.merge((rhoa_coef, td_coef, extc))
-            .rename({
-                'WaveLength': 'wave',
-                'Solar_Zenith_Angle': 'solz',
-                'PhiV': 'phi',
-                'ThetaV': 'senz',
-                })
-            .transpose('wave', 'solz', 'phi', 'senz')
-            )
-        return ds
-            # FIXME add these metadata
-            # attrs={
-            #     'AerosolFMF': int(fmf[imdl]),     # ?
-            #     'Size Distribution': sd[imdl],    # ?
-            #     }
+        return xr.merge((dt, sza))
 
 
 def lstsq(a, b):
