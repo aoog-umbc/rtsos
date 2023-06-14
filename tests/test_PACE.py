@@ -12,7 +12,7 @@ def param_path(tmp_path):
     return path
 
 
-@pytest.fixture
+@pytest.fixture(scope="module")
 def output_path(param_path):
     ds = xr.open_dataset(param_path)
     ds = ds.drop_dims("tau_ref_hi")
@@ -21,6 +21,15 @@ def output_path(param_path):
             "tau_ref_hi": ((), np.array(0, dtype=np.float32)),
         },
     )
+    ds["ncolinput"][...] = 10
+    ds["nquadainput"][...] = 20
+    ds["nquadoinput"][...] = 40
+    ds["MAXMORDINPUT"][...] = 3
+    ds["NTHETAV"][...] = 1
+    ds["NPHIV"][...] = 1
+    ds["OCEAN_RAMAN_FLAG"][...] = 0
+    ds["OCEAN_FCHLA_FLAG"][...] = 0
+    ds["OCEAN_FCDOM_FLAG"][...] = 0
     inputs = param_path.parent / "inputs.nc"
     ds.to_netcdf(inputs)
     outputs = param_path.parent / "outputs.nc"
@@ -45,9 +54,9 @@ def test_infile(output_path):
     assert infile.exists()
 
 
-def test_run(output_path):
+def test_outputs(output_path):
     inputs = output_path.parent / "inputs.nc"
-    outputs = output_path.parent / "outputs.nc"
+    outputs = output_path
     rt_PACE.main(
         [
             "--post=chla:0",
