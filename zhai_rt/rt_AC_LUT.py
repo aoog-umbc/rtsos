@@ -1,5 +1,5 @@
 from datetime import datetime, timezone
-import importlib
+from importlib.metadata import version
 
 import numpy as np
 import xarray as xr
@@ -95,14 +95,13 @@ def main(argv=None):
 
 
 class AC_LUT(ZhaiRT):
-
     def obdaac_metadata(
         self, dataset: xr.Dataset, rayleigh=False
     ) -> xr.Dataset:  # FIXME one file is both
         dataset.attrs.update(
             {
                 "title": "Atmospheric Rayleigh radiance table for OCIS at #### nm",  # FIXME
-                "version": importlib.metadata.version(__name__.split(".", 1)[0]),
+                "version": version(__name__.split(".", 1)[0]),
                 "comment": "Coefficients for polynomial interpolation of TOA radiances.",  # FIXME
                 "date_created": datetime.now(timezone.utc).isoformat(),
                 "history": ",".join(
