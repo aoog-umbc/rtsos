@@ -37,7 +37,7 @@ class Parameters:
         default=None,
         metadata=dict(
             long_name="Aerosol Fine Mode Fraction",
-            comment='only used when Aerosol Model Number is set to "-1"',
+            comment="only used when Aerosol Model Number is set to `-1`",
             valid_range=(0.0, 1.0),
             dtype=np.float32,
         ),
@@ -48,11 +48,7 @@ class Parameters:
         metadata=dict(
             long_name="mixing of fine mode aerosols",
             flag_values=np.array((0, 1, 2), np.int32),
-            flag_meanings=(
-                "internal_with_zia",
-                " internal",
-                " external",
-            ),
+            flag_meanings="internal_with_zia internal external",
             dtype=np.int32,
         ),
     )
@@ -379,9 +375,9 @@ class Parameters:
             long_name="Mie database calculation",
             flag_values=np.arange(1, 4, 1, np.int32),
             flag_meanings=(
-                "only_calculate_and_store_Mie_scattering_matrix",
-                " calculate_and_use_(w/out_storing)_Mie_scattering_matrix",
-                " read_(w/out_calculating)_stored_Mie_scattering_matrix",
+                "only_calculate_and_store_Mie_scattering_matrix"
+                " calculate_and_use_(w/out_storing)_Mie_scattering_matrix"
+                " read_(w/out_calculating)_stored_Mie_scattering_matrix"
             ),
             dtype=np.int32,
         ),
