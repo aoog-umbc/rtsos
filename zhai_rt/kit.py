@@ -192,7 +192,7 @@ class ZhaiRT:
                 copy(tmpdir / infile, outdir)
                 # run RT as subprocess
                 # TODO wrap Fortran to call the program directly
-                subprocess.run(args=[self.program, tmpdir / infile], check=True)
+                subprocess.run(args=[self.program, str(tmpdir / infile)], check=True)
                 # expect no output if instructed to only calculate Mie tables
                 name = P.MIE_TABLE_CAL.__name__
                 if name in one_input and one_input[name] == 1:
