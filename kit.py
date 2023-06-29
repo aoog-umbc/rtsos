@@ -163,8 +163,12 @@ class ZhaiRT:
                 paths = np.unique(postdirs / args.outputs.name).tolist()
                 dataset = xr.open_mfdataset(paths=paths, combine="by_coords")
                 if hasattr(self, "post"):
-                    dataset = self.post(dataset)
-                dataset.to_netcdf(key / args.outputs.name)
+                    outputs = self.post(dataset, args.rename)
+                    outdir = args.outputs.parent
+                    for item in outputs:
+                        outputs[item].to_netcdf(outdir / item)
+                else:
+                    dataset.to_netcdf(key / args.outputs.name)
             return
         # execute the RT simulations in a temp directory then copy to outputs
         for key, value in groupby(dataset=inputs, groups=outdirs):
