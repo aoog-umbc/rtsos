@@ -28,17 +28,17 @@ class Parameters:
         metadata=dict(
             comment="used when ocean_case_select == 3",
             units="1/m",
-            valid_range=(0.0, 2.5),
+            valid_range=np.array((0, 2.5), dtype=np.float32),
             dtype=np.float32,
         ),
     )
 
-    AerosolFineModeFraction: Any = field(
+    Aerosol_FMF: Any = field(
         default=None,
         metadata=dict(
-            long_name="Aerosol Fine Mode Fraction",
-            comment="only used when Aerosol Model Number is set to `-1`",
-            valid_range=(0.0, 1.0),
+            long_name="aerosol fine mode fraction",
+            comment="used in RT sims only when Aerosol_Model is set to `-1`",
+            valid_range=np.array((0, 1), dtype=np.float32),
             dtype=np.float32,
         ),
     )
@@ -53,10 +53,10 @@ class Parameters:
         ),
     )
 
-    Aerosol_Model_Number: Any = field(
+    Aerosol_Model: Any = field(
         default=None,
         metadata=dict(
-            long_name="Aerosol Model",
+            long_name="aerosol model number",
             flag_values=np.array((-99, -98, -97, -1) + tuple(range(1, 22)), np.int32),
             flag_meanings=(
                 (
@@ -66,13 +66,16 @@ class Parameters:
                     " Ahmad_model_with_flexbile_RH_and_FMF"
                 )
                 + "".join((" Shettle_and_Fenn",) * 10)
-                + "".join(
-                    (
-                        f" Ahmad_model_with_FMF_{i}"
-                        for i in (0, 1, 2, 5, 10, 20, 30, 50, 80, 95)
-                    )
-                )
+                + "".join((" Ahmad",) * 10)
                 + " dust_aerosol_model"
+            ),
+            flag_meanings_fmf=np.array(
+                [np.nan] * 14 + [0, 1, 2, 5, 10, 20, 30, 50, 80, 95, np.nan],
+                dtype=np.float32,
+            ),
+            flag_meanings_sd=np.array(
+                [np.nan] * 14 + [25, 24, 23, 22, 21, 20, 19, 18, 17, 16, np.nan],
+                dtype=np.float32,
             ),
             dtype=np.int32,
         ),
@@ -144,7 +147,7 @@ class Parameters:
         metadata=dict(
             comment="used when ocean_case_select == 3",
             units="1/m",
-            valid_range=(0.0, 0.1),
+            valid_range=np.array((0, 0.1), dtype=np.float32),
             dtype=np.float32,
         ),
     )
@@ -153,7 +156,7 @@ class Parameters:
         default=None,
         metadata=dict(
             comment="used when ocean_case_select == 3",
-            valid_range=(0.0, 0.05),
+            valid_range=np.array((0, 0.05), dtype=np.float32),
             dtype=np.float32,
         ),
     )
@@ -180,7 +183,7 @@ class Parameters:
         default=None,
         metadata=dict(
             comment="used when ocean_case_select in (1, 2, 3)",
-            valid_range=(0.04, 50.0),
+            valid_range=np.array((0.04, 50.0), dtype=np.float32),
             units="mg/m3",
             dtype=np.float32,
         ),
@@ -225,23 +228,7 @@ class Parameters:
         metadata=dict(
             long_name="dust effective radius selection from database",
             flag_values=np.arange(1, 16, 1, np.int32),
-            flag_meanings=(
-                "0.2"
-                " 0.4"
-                " 0.6"
-                " 0.8"
-                " 1.0"
-                " 1.2"
-                " 1.4"
-                " 1.6"
-                " 1.8"
-                " 2.0"
-                " 2.2"
-                " 2.4"
-                " 2.6"
-                " 2.8"
-                " 3.0"
-            ),
+            flag_meanings=" ".join([f"{i:0.1f}" for i in np.arange(0.2, 3.1, 0.2)]),
             dtype=np.int32,
         ),
     )
@@ -287,7 +274,7 @@ class Parameters:
             long_name="water vapor in the whole column",
             units="cm",
             source="US standard atmosphere 1976",
-            valid_range=(0.01, 15),
+            valid_range=np.array((0.01, 15), dtype=np.float32),
             dtype=np.float32,
         ),
     )
@@ -296,7 +283,7 @@ class Parameters:
         default=None,
         metadata=dict(
             long_name="top layer scatteror centroid height",
-            valid_max=120.0,
+            valid_max=np.float32(120),
             dtype=np.float32,
         ),
     )
@@ -306,7 +293,7 @@ class Parameters:
         metadata=dict(
             long_name="lower layer scatteror centroid height",
             comment="set to a negative number for one aerosol layer",
-            valid_min=-100.0,
+            valid_min=np.float32(-100),
             dtype=np.float32,
         ),
     )
@@ -361,6 +348,15 @@ class Parameters:
         default=None,
         metadata=dict(
             dtype=np.int32,
+        ),
+    )
+
+    Wave_Mean_Square_Slope: Any = field(
+        default=None,
+        metadata=dict(
+            long_name="mean square slope of waves",
+            dim="Wind_Speed",
+            dtype=np.float32,
         ),
     )
 
@@ -521,7 +517,7 @@ class Parameters:
             comment="ozone in the whole column",
             units="Dobson Unit",
             source="US standard atmosphere 1976",
-            valid_range=(250.0, 500.0),
+            valid_range=np.array((250, 500), dtype=np.float32),
             dtype=np.float32,
         ),
     )
@@ -547,7 +543,7 @@ class Parameters:
         metadata=dict(
             long_name="surface pressure",
             units="mb",
-            valid_range=(850.0, 1050.0),
+            valid_range=np.array((850, 1050), dtype=np.float32),
             dtype=np.float32,
         ),
     )
@@ -566,7 +562,7 @@ class Parameters:
         default=None,
         metadata=dict(
             long_name="relative humidity",
-            valid_range=(0.3, 0.95),
+            valid_range=np.array((0.3, 0.95), dtype=np.float32),
             dtype=np.float32,
         ),
     )
@@ -665,7 +661,7 @@ class Parameters:
             long_name="power spectral slope of backscattering fraction",
             comment="used when ocean_case_select == 3",
             units="1/nm",
-            valid_range=(-0.2, 0.2),
+            valid_range=np.array((-0.2, 0.2), dtype=np.float32),
             dtype=np.float32,
         ),
     )
@@ -676,7 +672,7 @@ class Parameters:
             long_name="power spectral slope of backscattering coefficient",
             comment="used when ocean_case_select == 3",
             units="1/nm",
-            valid_range=(0.0, 0.5),
+            valid_range=np.array((0, 0.5), dtype=np.float32),
             dtype=np.float32,
         ),
     )
@@ -687,7 +683,7 @@ class Parameters:
             long_name="exponential spectral slope of dg absorption",
             comment="used when ocean_case_select == 3",
             units="1/nm",
-            valid_range=(0.01, 0.02),
+            valid_range=np.array((0.01, 0.02), dtype=np.float32),
             dtype=np.float32,
         ),
     )
@@ -696,7 +692,7 @@ class Parameters:
         default=None,
         metadata=dict(
             comment="used when ocean_case_select == 2",
-            valid_range=(0.0, 30.0),
+            valid_range=np.array((0, 30), dtype=np.float32),
             dtype=np.float32,
         ),
     )
@@ -746,7 +742,7 @@ class Parameters:
         default=None,
         metadata=dict(
             units="degrees",
-            valid_range=(0.0, 80.0),
+            valid_range=np.array((0, 80), dtype=np.float32),
             dtype=np.float32,
         ),
     )
@@ -755,7 +751,7 @@ class Parameters:
         default=None,
         metadata=dict(
             long_name="optical depth at NIR wavelength",
-            valid_range=(0.0, 100.0),
+            valid_range=np.array((0, 100), dtype=np.float32),
             dtype=np.float32,
         ),
     )
@@ -764,7 +760,7 @@ class Parameters:
         default=None,
         metadata=dict(
             long_name="top layer optical depth at reference wavelength",
-            valid_range=(0.0, 100.0),
+            valid_range=np.array((0, 100), dtype=np.float32),
             dtype=np.float32,
         ),
     )
@@ -774,7 +770,7 @@ class Parameters:
         metadata=dict(
             long_name="bottom layer optical depth at reference wavelength",
             comment="set to 0.0 for one aerosol layer",
-            valid_range=(0.0, 100.0),
+            valid_range=np.array((0, 100), dtype=np.float32),
             dtype=np.float32,
         ),
     )
@@ -789,10 +785,11 @@ class Parameters:
                 "else if `I_SURFACE_ROUGHNESS_PARA == 2` from Gordon & "
                 "Wang 1992"
             ),
-            valid_range=(0.1, 15.0),
+            valid_range=np.array((0.1, 15), dtype=np.float32),
             dtype=np.float32,
         ),
     )
+    # NB use of "Wind_Speed" in Parameters.Mean_Square_Slope
 
     water_depth_max: Any = field(
         default=None,
@@ -844,6 +841,6 @@ class Parameters:
             coord = key.__name__
             attrs = metadata[coord].copy()
             array = np.array(value, dtype=attrs.pop("dtype", None))
-            dim = coord if array.shape else ()
+            dim = attrs.pop("dim", False) or coord if array.shape else ()
             dataset = dataset.assign_coords({coord: (dim, array, attrs)})
         return dataset

@@ -9,7 +9,7 @@ def main(argv: str = None) -> None:
     # nb. not all parameters are used, but the order remains correct and
     # leaving any out could break custom inputs
     params = {
-        P.Aerosol_Model_Number: -98,
+        P.Aerosol_Model: -98,
         P.IRH: 4,
         P.Reff_Cloud: 6.0,
         P.Veff_Cloud: 0.1,
@@ -39,7 +39,7 @@ def main(argv: str = None) -> None:
 
     # create a dataset to hold the inputs as coordinates
     dataset = P.make_dataset(params)
-    aersol_model = dataset[P.Aerosol_Model_Number.__name__]
+    aersol_model = dataset[P.Aerosol_Model.__name__]
     if aersol_model > 0:
         unused_params = (
             P.Reff_Cloud,
