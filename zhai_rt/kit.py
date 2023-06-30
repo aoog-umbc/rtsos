@@ -156,6 +156,7 @@ class ZhaiRT:
             outdirs = args.outputs.with_suffix("")
             inputs, outdirs = reduce_by_coords(coordinates, inputs, outdirs)
         # with the `--post` argument, combine existing RT outputs and return
+        # TODO allow --rename without --post
         if args.post:
             coordinates = split_list_arg(args.post)
             for key, value in groupby(dataset=inputs, groups=outdirs):
