@@ -110,12 +110,9 @@ class AC_LUT(ZhaiRT):
 
     def post(self, dataset: xr.Dataset, rename: str) -> xr.Dataset:
         # instrument string from --rename argument
-        try:
-            inst = rename.split("_", 2)[15]  # FIXME
-        except:
-            raise
+        inst = rename.split("_", 2)[1]
         # prepare for LUT calcultions
-        dataset = self.unpack_outputs(dataset)
+        dataset = unpack_outputs(dataset)
         # calculate aerosol LUT coefficients and return
         if rename.startswith("aerosol"):
             dataset = aerosol_mseps(dataset)
@@ -312,19 +309,18 @@ def rayleigh_mseps(dataset: xr.Dataset) -> xr.Dataset:
 
 
 def for_l2gen(dataset: xr.Dataset, inst: str, rayleigh=False) -> xr.Dataset:
-    rename = "rayleigh" if rayleigh else "aerosol"
     dataset.attrs.update(
         {
             "title": "MSEPS Aerosol Model Data for OCIS",
+            "source": "https://oceandata.sci.gsfc.nasa.gov/rcs/rt/zhai_rt",
             "version": version(__name__.split(".", 1)[0]),
             "comment": "coefficients for MSEPS tables",
             "date_created": datetime.now(timezone.utc).isoformat(),
             "history": "\n".join(
                 (
-                    "rt-AC-LUT --pre data/defaults.nc",
-                    f"python scripts/parameterize-{inst}",
                     f"rt-AC-LUT data/{inst}/mie.nc data/{inst}/outputs.nc",
-                    f"rt-AC-LUT --rename={rename}/{rename}_{inst}_{{wave:d}}_iqu.nc data/{inst}/inputs.nc data/{inst}/outputs.nc",
+                    f"rt-AC-LUT data/{inst}/inputs.nc data/{inst}/outputs.nc",
+                    f"rt-AC-LUT --rename=aerosol/aerosol_{inst}_r{{relative_humidity:02d}}f{{fine_mode_fraction:02d}}v01.nc data/{inst}/inputs.nc data/{inst}/outputs.nc",
                 )
             ),
             "created_by": "NASA/GSFC/OBPG",
@@ -352,6 +348,13 @@ def for_l2gen(dataset: xr.Dataset, inst: str, rayleigh=False) -> xr.Dataset:
         dataset.attrs.update(
             {
                 "title": f"Atmospheric Rayleigh radiance table for OCIS at {wave:d} nm",
+                "history": "\n".join(
+                    (
+                        f"rt-AC-LUT data/{inst}/mie.nc data/{inst}/outputs.nc",
+                        f"rt-AC-LUT data/{inst}/inputs.nc data/{inst}/outputs.nc",
+                        f"rt-AC-LUT --rename=rayleigh/rayleigh_{inst}_{{wave:d}}_iqu.nc data/{inst}/inputs.nc data/{inst}/outputs.nc",
+                    )
+                ),
             }
         )
     else:
@@ -375,7 +378,7 @@ def for_l2gen(dataset: xr.Dataset, inst: str, rayleigh=False) -> xr.Dataset:
     return dataset
 
 
-def unpack_outputs(self, dataset: xr.Dataset) -> xr.Dataset:
+def unpack_outputs(dataset: xr.Dataset) -> xr.Dataset:
     # drop unneeded coordinates
     dataset = dataset.where(dataset["ThetaV"] < 90.0, drop=True)
     # restore the coordinates stacked in am
