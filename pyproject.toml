@@ -1,6 +1,6 @@
 [project]
 name = "zhai-rt"
-version = "0.1.2"
+dynamic = ["version"]
 requires-python = ">=3.10"
 dependencies = [
     "numpy>=1.23",
@@ -21,9 +21,13 @@ rt-PHMX = "zhai_rt.rt_PHMX:main"
 [tool.setuptools]
 packages = ["zhai_rt"]
 
+[tool.setuptools-git-versioning]
+enabled = true
+
 [build-system]
 requires = [
     "setuptools>=65.0",
+    "setuptools-git-versioning",
     "scikit-build",
 ]
 build-backend = "setuptools.build_meta"

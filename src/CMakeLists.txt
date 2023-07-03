@@ -56,7 +56,6 @@ target_link_libraries(rtsos_GSFC_AC_LUT.exe
 
 # rtsos_Aerosol_Phmx_Cal.exe executable
 add_executable(rtsos_Aerosol_Phmx_Cal.exe
-    aerosol_phasematrix_preparation/auxiliary_dir_readin.f90
     aerosol_phasematrix_preparation/read_dust_data.f90
     aerosol_phasematrix_preparation/Mie_PHMX_Cal.f90
     aerosol_phasematrix_preparation/main_aerosol_phmx_cal.f90

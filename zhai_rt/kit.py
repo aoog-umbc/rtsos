@@ -14,46 +14,44 @@ from .parameters import Parameters as P
 
 
 # TODO Slurm, threading, and https://github.com/pydata/xarray/issues/7549
-dask.config.set(scheduler='synchronous')
+dask.config.set(scheduler="synchronous")
 
 
 cli = ArgumentParser()
 cli.add_argument(
-    '--pre',
-    action='store_true',
-    help='write radiative transfer model (RTM) defaults to inputs',
-    )
+    "--pre",
+    action="store_true",
+    help="write radiative transfer model (RTM) defaults to inputs",
+)
 cli.add_argument(
-    '--cluster',
+    "--cluster",
     type=str,
     help=(
-        'comma-separated list of dimensions by which inputs are split into '
-        'nested subdirectories, with optional positions or inclusive ranges as '
-        '`dim:index` or `dim:start-stop` respectively.'
-        ),
-    )
+        "comma-separated list of dimensions by which inputs are split into "
+        "nested subdirectories, with optional positions or inclusive ranges as "
+        "`dim:index` or `dim:start-stop` respectively."
+    ),
+)
 cli.add_argument(
-    '--post',
+    "--post",
     type=str,
-    help='dimensions by which cluster outputs (i.e. a previous call with '
-         '`--cluster`) are combined, formatted as for `--cluster`',
-    )
+    help="dimensions by which cluster outputs (i.e. a previous call with "
+    "`--cluster`) are combined, formatted as for `--cluster`",
+)
 cli.add_argument(
-    'inputs',
+    "inputs",
     type=Path,
     help=(
-        'path for RTM input file, a NetCDF whose coordinates are parameters '
-        'over which the model will generate outputs'
-        ),
-    )
+        "path for RTM input file, a NetCDF whose coordinates are parameters "
+        "over which the model will generate outputs"
+    ),
+)
 cli.add_argument(
-    'outputs',
-    nargs='?',
+    "outputs",
+    nargs="?",
     type=Path,
-    help=(
-        'path for RTM output files (ignored, if given, with `--pre`)'
-        ),
-    )
+    help=("path for RTM output files (ignored, if given, with `--pre`)"),
+)
 
 
 def groupby(dataset: xr.Dataset, groups: xr.DataArray) -> Iterable[tuple]:
@@ -76,10 +74,10 @@ def split_list_arg(arg: str) -> dict:
     in xr.Dataset indexing.
     """
     cluster = {}
-    for item in arg.split(','):
-        key, *value = item.split(':')
+    for item in arg.split(","):
+        key, *value = item.split(":")
         if value:
-            start, *stop = value[0].split('-')
+            start, *stop = value[0].split("-")
             start = int(start)
             if stop:
                 stop = int(stop[0])
@@ -104,23 +102,23 @@ def paths_by_coords(current: xr.DataArray, next: tuple[(str, slice)]) -> xr.Data
     idx = xr.DataArray(
         [Path(str(i + offset)) for i in range(current[dim].size)],
         dims=dim,
-        )
+    )
     # note that Path objects represent concatenation by division
     subdir = dim / idx
     return current / subdir
 
 
 def reduce_by_coords(
-        coords: dict,
-        inputs: xr.Dataset,
-        outdirs: Path,
-    ) -> tuple[(xr.Dataset, xr.DataArray)]:
+    coords: dict,
+    inputs: xr.Dataset,
+    outdirs: Path,
+) -> tuple[(xr.Dataset, xr.DataArray)]:
     try:
         inputs = inputs.isel(coords)
     except KeyError as cause:
         exception = Exception(
-            '`--cluster` and `--post` value(s) must be dimensions of inputs'
-            )
+            "`--cluster` and `--post` value(s) must be dimensions of inputs"
+        )
         raise exception from cause
     outdirs, _ = xr.broadcast(xr.DataArray(outdirs), inputs)
     outdirs = reduce(paths_by_coords, coords.items(), outdirs)
@@ -128,13 +126,12 @@ def reduce_by_coords(
 
 
 class ZhaiRT:
-
     def __init__(
-            self,
-            program: str,
-            params: tuple,
-            defaults: xr.Dataset,
-            ) -> None:
+        self,
+        program: str,
+        params: tuple,
+        defaults: xr.Dataset,
+    ) -> None:
         self.program = program
         self.params = tuple(i.__name__ for i in params)
         self.defaults = defaults
@@ -156,18 +153,23 @@ class ZhaiRT:
         # in subdirectories, defined by the dimension(s) given with cluster
         if args.cluster:
             coordinates = split_list_arg(args.cluster)
-            outdirs = args.outputs.with_suffix('')
+            outdirs = args.outputs.with_suffix("")
             inputs, outdirs = reduce_by_coords(coordinates, inputs, outdirs)
         # with the `--post` argument, combine existing RT outputs and return
+        # TODO allow --rename without --post
         if args.post:
             coordinates = split_list_arg(args.post)
             for key, value in groupby(dataset=inputs, groups=outdirs):
                 _, postdirs = reduce_by_coords(coordinates, value, key)
                 paths = np.unique(postdirs / args.outputs.name).tolist()
-                dataset = xr.open_mfdataset(paths=paths, combine='by_coords')
-                if hasattr(self, 'post'):
-                    dataset = self.post(dataset)
-                dataset.to_netcdf(key / args.outputs.name)
+                dataset = xr.open_mfdataset(paths=paths, combine="by_coords")
+                if hasattr(self, "post"):
+                    outputs = self.post(dataset, args.rename)
+                    outdir = args.outputs.parent
+                    for item in outputs:
+                        outputs[item].to_netcdf(outdir / item)
+                else:
+                    dataset.to_netcdf(key / args.outputs.name)
             return
         # execute the RT simulations in a temp directory then copy to outputs
         for key, value in groupby(dataset=inputs, groups=outdirs):
@@ -187,7 +189,7 @@ class ZhaiRT:
                 # FIXME dtype should be int (the default), but see https://github.com/pydata/xarray/issues/7423
                 data=np.arange(np.prod(shape), dtype=float).reshape(shape),
                 coords=inputs.coords,
-                )
+            )
             for _, one_input in groupby(dataset=inputs, groups=each_input):
                 # convert a zero-dimensional dataset to a parameter file
                 # that gets copied to the folder with the combined outputs
@@ -195,14 +197,14 @@ class ZhaiRT:
                 copy(tmpdir / infile, outdir)
                 # run RT as subprocess
                 # TODO wrap Fortran to call the program directly
-                subprocess.run(args=[self.program, tmpdir / infile], check=True)
+                subprocess.run(args=[self.program, str(tmpdir / infile)], check=True)
                 # expect no output if instructed to only calculate Mie tables
                 name = P.MIE_TABLE_CAL.__name__
                 if name in one_input and one_input[name] == 1:
                     continue
                 # lazy read for outfile metadata
                 # FIXME use netCDF4-python see Unidata/netCDF4-python#1226
-                one_output = xr.open_dataset(tmpdir / outfile, engine='h5netcdf')
+                one_output = xr.open_dataset(tmpdir / outfile, engine="h5netcdf")
                 # drop parameters duplicated in rt outputs
                 for item in one_input.coords:
                     if item not in one_output:
@@ -214,9 +216,14 @@ class ZhaiRT:
                         one_input = one_input.drop_vars(item)
                     else:
                         # TODO issue zhai-rt#2
-                        if item in ['MONOCHROMATIC_FLAG', 'OCEAN_RAMAN_FLAG', 'OCEAN_FCHLA_FLAG', 'OCEAN_FCDOM_FLAG']:
-                            raise Exception('zhai-rt#2')
-                        raise ValueError('Inputs/outputs are not as expected.')
+                        if item in [
+                            "MONOCHROMATIC_FLAG",
+                            "OCEAN_RAMAN_FLAG",
+                            "OCEAN_FCHLA_FLAG",
+                            "OCEAN_FCDOM_FLAG",
+                        ]:
+                            raise Exception("zhai-rt#2")
+                        raise ValueError("Inputs/outputs are not as expected.")
                 # combine coords from one_input with variables and coords
                 # from one_output, and store for concatenation across each_input
                 one_output = xr.merge((one_input, one_output))
@@ -227,19 +234,18 @@ class ZhaiRT:
                 return xr.combine_by_coords(datasets).to_netcdf(path=outputs)
 
     def infile(self, path: Path, dataset: xr.Dataset) -> Path:
-        """Write parameters to a text file, and return its path.
-        """
+        """Write parameters to a text file, and return its path."""
         lines = []
         for item in self.params:
             if item not in dataset:
                 continue
             param = dataset[item]
-            name = param.attrs.get('long_name', item)
+            name = param.attrs.get("long_name", item)
             value = param.item()
-            lines.append(f'{value:<24} # {name}')
-        outfile = Path(dask.base.tokenize(dataset)).with_suffix('.outfile')
-        lines += [str(path / outfile), '']
-        infile = outfile.with_suffix('.infile.txt')
-        with (path / infile).open('w') as stream:
-            stream.write('\n'.join(lines))
-        return infile, outfile.with_suffix('.outfile.h5')
+            lines.append(f"{value:<24} # {name}")
+        outfile = Path(dask.base.tokenize(dataset)).with_suffix(".outfile")
+        lines += [str(path / outfile), ""]
+        infile = outfile.with_suffix(".infile.txt")
+        with (path / infile).open("w") as stream:
+            stream.write("\n".join(lines))
+        return infile, outfile.with_suffix(".outfile.h5")

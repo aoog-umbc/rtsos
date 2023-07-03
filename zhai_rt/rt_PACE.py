@@ -3,7 +3,6 @@ from .parameters import Parameters as P
 
 
 def main(argv: str = None) -> None:
-
     # values to write, in the order below, to the RT input file
     values = {
         P.Wind_Speed: 5.0,
@@ -13,8 +12,8 @@ def main(argv: str = None) -> None:
         P.height_particle_hi: 15.0,
         P.tau_ref_low: 0.0,
         P.height_particle_low: -1,
-        P.Aerosol_Model_Number: -1,
-        P.AerosolFineModeFraction: 0.3,
+        P.Aerosol_Model: -1,
+        P.Aerosol_FMF: 0.3,
         P.Relative_Humidity: 0.3,
         P.OCEAN_CASE_SELECT: 1,
         P.albedo_ground: 0.3,
@@ -56,13 +55,13 @@ def main(argv: str = None) -> None:
         P.WAVEBAND_SEG_FLAG: 0,
         P.AirSensor_Height: 2.2,
         P.pss_flag: 0,
-        P.Aux_Dir: 'data/RT/pwzrt/Data',
-        P.Atmos_Dir: 'data/RT/pwzrt/Gas_Absorption_Coefficients',
-        P.CFILE_AP: 'afglus.dat',
+        P.Aux_Dir: "data/RT/pwzrt/Data",
+        P.Atmos_Dir: "data/RT/pwzrt/Gas_Absorption_Coefficients",
+        P.CFILE_AP: "afglus.dat",
         # for Aerosol Model "-1", there are no aerosol_phasematrix_files
-        P.Aerosol_Phasematrix_File_Hi: '',
-        P.Aerosol_Phasematrix_File_Low: '',
-        }
+        P.Aerosol_Phasematrix_File_Hi: "",
+        P.Aerosol_Phasematrix_File_Low: "",
+    }
 
     # create a dataset to hold the inputs as coordinates
     params = P()
@@ -70,10 +69,10 @@ def main(argv: str = None) -> None:
 
     # the callable object that runs the given program
     pace_sim = ZhaiRT(
-        program='rtsos_PACE_Simulator_DoubleK.exe',
+        program="rtsos_PACE_Simulator_DoubleK.exe",
         params=tuple(values),
         defaults=dataset,
-        )
+    )
 
     # parse arguments from command line and run as instructed
     args = cli.parse_args(argv)
