@@ -1,6 +1,5 @@
 build/
 _skbuild/
-dist/
-MANIFEST.in
 *.egg-info/
+.venv/
 __pycache__/

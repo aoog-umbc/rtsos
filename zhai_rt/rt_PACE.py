@@ -3,18 +3,17 @@ from .parameters import Parameters as P
 
 
 def main(argv: str = None) -> None:
-    # parse command line arguments
-    args = cli.parse_args(argv)
-
     # values to write, in the order below, to the RT input file
     values = {
         P.Wind_Speed: 5.0,
         P.Solar_Zenith_Angle: [20.0, 60.0],
         P.wv_pace_ref: 532.0,
-        P.tau_ref: [0.1, 0.3],
-        P.height_particle: 6.0,
-        P.Aerosol_Model_Number: -1,
-        P.AerosolFineModeFraction: 0.3,
+        P.tau_ref_hi: [0.1, 0.3],
+        P.height_particle_hi: 15.0,
+        P.tau_ref_low: 0.0,
+        P.height_particle_low: -1,
+        P.Aerosol_Model: -1,
+        P.Aerosol_FMF: 0.3,
         P.Relative_Humidity: 0.3,
         P.OCEAN_CASE_SELECT: 1,
         P.albedo_ground: 0.3,
@@ -56,21 +55,25 @@ def main(argv: str = None) -> None:
         P.WAVEBAND_SEG_FLAG: 0,
         P.AirSensor_Height: 2.2,
         P.pss_flag: 0,
-        P.Aux_Dir: 'data/RT/pwzrt/Data',
-        P.Atmos_Dir: 'data/RT/pwzrt/Gas_Absorption_Coefficients',
-        P.CFILE_AP: 'afglus.dat',
-        # for Aerosol Model "-1", there is no aerosol_phasematrix_file
-        P.Aerosol_Phasematrix_File: '',
-        }
+        P.Aux_Dir: "data/RT/pwzrt/Data",
+        P.Atmos_Dir: "data/RT/pwzrt/Gas_Absorption_Coefficients",
+        P.CFILE_AP: "afglus.dat",
+        # for Aerosol Model "-1", there are no aerosol_phasematrix_files
+        P.Aerosol_Phasematrix_File_Hi: "",
+        P.Aerosol_Phasematrix_File_Low: "",
+    }
 
     # create a dataset to hold the inputs as coordinates
     params = P()
     dataset = params.make_dataset(values)
 
-    # run command line tool
-    zhairt = ZhaiRT(
-        program='rtsos_PACE_Simulator_DoubleK.exe',
+    # the callable object that runs the given program
+    pace_sim = ZhaiRT(
+        program="rtsos_PACE_Simulator_DoubleK.exe",
         params=tuple(values),
         defaults=dataset,
-        )
-    zhairt(args)
+    )
+
+    # parse arguments from command line and run as instructed
+    args = cli.parse_args(argv)
+    pace_sim(args)
