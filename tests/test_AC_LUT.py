@@ -71,14 +71,12 @@ def test_outputs(output_path):
 def test_tmp(param_path):
     import os
 
-    os.chdir("../../ac-luts")
-    inst = "ocis"
+    os.chdir("../../ac-luts-pca")
+    inst = "demo"
     rt_AC_LUT.main(
         [
-            "--post=Tau_NIR,sza-dt:0-1",
+            "--post=Tau_NIR,sza-dt",
             "--cluster=am:0",
-            # f"--rename=rayleigh/rayleigh_{inst}_{{wave:d}}_iqu.nc",
-            f"--rename=aerosol/aerosol_{inst}_r{{relative_humidity:02d}}f{{fine_mode_fraction:02d}}v01.nc",
             f"data/{inst}/inputs.nc",
             f"data/{inst}/outputs.nc",
         ]
