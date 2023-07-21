@@ -1,6 +1,6 @@
 [project]
 name = "zhai-rt"
-dynamic = ["version"]
+version = "0.2.1"
 requires-python = ">=3.10"
 dependencies = [
     "numpy>=1.23",
@@ -18,16 +18,13 @@ rt-AC-LUT = "zhai_rt.rt_AC_LUT:main"
 rt-PACE = "zhai_rt.rt_PACE:main"
 rt-PHMX = "zhai_rt.rt_PHMX:main"
 
-[tool.setuptools]
-packages = ["zhai_rt"]
-
-[tool.setuptools-git-versioning]
-enabled = true
+[tool.scikit-build]
+ninja.minimum-version = "1.10"
+cmake.minimum-version = "3.17.2"
 
 [build-system]
 requires = [
-    "setuptools>=65.0",
-    "setuptools-git-versioning",
-    "scikit-build",
+    "scikit-build-core",
+    "numpy>=1.23",
 ]
-build-backend = "setuptools.build_meta"
+build-backend = "scikit_build_core.build"
