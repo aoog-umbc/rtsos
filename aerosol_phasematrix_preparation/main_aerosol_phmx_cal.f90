@@ -14,7 +14,7 @@ REAL*8 :: POLINT_SIMPLE,TRAPZOID
 INTEGER:: IAEROSOL, IRH, IWV ,INTTMP
 REAL*8, ALLOCATABLE,DIMENSION(:) :: REFF1_Save, REFF2_Save, VEFF1_Save, VEFF2_Save, &
      ARSLND1_Save, ARSLND2_Save,ARSLNDDS,REFFDS,VEFFDS
-REAL*8:: REFFD,VEFFD,ARSLNDD,Reff_Cloud,Veff_Cloud
+REAL*8:: REFFD,VEFFD,ARSLNDD,Reff_Cloud,Veff_Cloud,MRR1_Cloud,MRI1_Cloud
 LOGICAL :: HYSPECTRAL_FLAG, MONOCHROMATIC_FLA
 REAL*8 :: rf1, rf2, rf3, FRACS,FMFRAC, r0f,r0c, rhi, r0dl, r0ws,r0bc,r0s, r0ss, sigf,sigc,dfrac,dsfrac
 LOGICAL :: file_e
@@ -62,6 +62,17 @@ ENDIF
 IF(IAEROSOL==-98) THEN ! water clouds
    READ(1,*)Reff_Cloud
    READ(1,*)Veff_Cloud
+   READ(1,*)WV_SEG_FLAG
+   READ(1,'(A)')aux_dir
+   READ(1,'(A)')OUTFILE
+   NMODE=1
+ENDIF
+
+IF(IAEROSOL==-96) THEN ! mono-modal aerosol with spectrally flat mr and mi inputs
+   READ(1,*)Reff_Cloud
+   READ(1,*)Veff_Cloud
+   READ(1,*)MRR1_Cloud
+   READ(1,*)MRI1_Cloud
    READ(1,*)WV_SEG_FLAG
    READ(1,'(A)')aux_dir
    READ(1,'(A)')OUTFILE
@@ -187,7 +198,7 @@ CALL Particle_PHMX_Assign_StandAlone(aux_dir,NUMMIEUSE,NWV_BAND,NWV_BAND_START,N
           IAEROSOL,IRH, rf1, rf2, rf3, FRACS, FMFRAC, IREFF, IVAR,R0F,R0C,RHI, &
           R0DL,R0WS,R0BC,R0S,R0SS,MIX_FLAG,sigf,sigc,NMODE,DFRAC,DSFRAC,REFF1_Save,    &
           REFF2_Save,REFFDS,VEFF1_Save,VEFF2_Save,VEFFDS,Reff_Cloud,Veff_Cloud, &
-          MRR1_Save,MRI1_Save,MRR2_Save,&
+          MRR1_Cloud,MRI1_Cloud,MRR1_Save,MRI1_Save,MRR2_Save,                  &
           MRI2_Save,MRRD_save,MRID_save,ARSLND1_Save,ARSLND2_Save,ARSLNDDS)
 
 write(*,*) 'Writing output file'
@@ -940,7 +951,7 @@ SUBROUTINE Particle_PHMX_Assign_StandAlone(aux_dir,NUMMIEUSE,NWV_PHMX,NWV_BAND_S
       IAEROSOL,IRH,rf1, rf2, rf3,FRACS, FMFRAC, IREFF, IVAR,R0F,R0C,RHI, &
       R0DL,R0WS,R0BC,R0S,R0SS,MIX_FLAG,sigf,sigc,nmode,dfrac,dsfrac,REFF1_Save,&
       REFF2_Save,REFFDS,VEFF1_Save,VEFF2_Save,VEFFDS,Reff_Cloud,Veff_Cloud, &
-      MRR1_Save,MRI1_Save,MRR2_Save,&
+      MRR1_Cloud,MRI1_Cloud,MRR1_Save,MRI1_Save,MRR2_Save,&
 	  MRI2_Save,MRRD_save,MRID_save,ARSLND1_Save,ARSLND2_Save,ARSLNDDS)
 USE MIE_PHMX_CAL
 IMPLICIT NONE
@@ -948,7 +959,7 @@ CHARACTER(LEN=360),intent(in) :: aux_dir
 INTEGER, INTENT(IN)::NUMMIEUSE,NWV_PHMX,NWV_BAND_START,NWV_BAND_END,IAEROSOL,  &
                      IRH, IREFF, IVAR, MIX_FLAG,NMODE
 REAL*8, INTENT(IN) :: rf1, rf2, rf3,FRACS, FMFRAC, R0F,R0C,R0DL,R0WS,R0BC, &
-                      R0S,R0SS,sigf,sigc,DFRAC,DSFRAC,Reff_Cloud,Veff_Cloud
+                      R0S,R0SS,sigf,sigc,DFRAC,DSFRAC,Reff_Cloud,Veff_Cloud,MRR1_Cloud,MRI1_Cloud
 REAL*8, INTENT(INOUT) :: RHI
 REAL*8,DIMENSION(NUMMIEUSE),INTENT(OUT) :: REFF1_Save,REFF2_Save,VEFF1_Save,VEFF2_Save,&
                                            ARSLND1_Save,ARSLND2_Save,ARSLNDDS,REFFDS,VEFFDS
@@ -976,15 +987,15 @@ IF(FREEFORMFLAG==0)THEN
     ARSLND2_LOCAL=0.01d0
 ENDIF
 
-IF(IAEROSOL==-98)THEN
+IF(IAEROSOL==-98 .or. IAEROSOL==-96)THEN
 	REFF1_LOCAL=Reff_Cloud
 	REFF2_LOCAL=Reff_Cloud
 	VEFF1_LOCAL=Veff_Cloud
 	VEFF2_LOCAL=Reff_Cloud
-	MRR1_LOCAL=1.0D0
-	MRI1_LOCAL=0.0D0
-	MRR2_LOCAL=1.0D0
-	MRI2_LOCAL=0.0D0
+	MRR1_LOCAL=MRR1_Cloud
+	MRI1_LOCAL=MRI1_Cloud
+	MRR2_LOCAL=MRR1_Cloud
+	MRI2_LOCAL=MRI1_Cloud
 	ARSLND1_LOCAL=1.0d0
 	ARSLND2_LOCAL=0.0d0
 ENDIF
