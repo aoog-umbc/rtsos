@@ -85,8 +85,7 @@ def split_list_arg(arg: str) -> dict:
                 stop = start
             stop = stop + 1
         else:
-            start = 0
-            stop = None
+            start = stop = None
         cluster[key] = slice(start, stop)
     return cluster
 
@@ -98,9 +97,10 @@ def paths_by_coords(current: xr.DataArray, next: tuple[(str, slice)]) -> xr.Data
     # use xr.DataArray for broadcasting by named dimensions
     # TODO path construction, or maybe division, is oddly slow
     dim = next[0]
-    offset = next[1].start
+    start = next[1].start or 0
+    stop = next[1].stop or current[dim].size + start
     idx = xr.DataArray(
-        [Path(str(i + offset)) for i in range(current[dim].size)],
+        [Path(str(i)) for i in range(start, stop)],  # TODO padding is unknown
         dims=dim,
     )
     # note that Path objects represent concatenation by division
@@ -113,6 +113,7 @@ def reduce_by_coords(
     inputs: xr.Dataset,
     outdirs: Path,
 ) -> tuple[(xr.Dataset, xr.DataArray)]:
+    """A reduce operation that iterates over slices along xarray.DataArray.coords."""
     try:
         inputs = inputs.isel(coords)
     except KeyError as cause:
@@ -147,6 +148,7 @@ class ZhaiRT:
                 return
         # read existing inputs
         inputs = xr.open_dataset(args.inputs)
+        # begin construction of output paths for each element of inputs
         parent = xr.DataArray(args.outputs.parent)
         outdirs, _ = xr.broadcast(parent, inputs)
         # with the `--cluster` argument, prepare to process a subset of inputs
@@ -164,12 +166,8 @@ class ZhaiRT:
                 paths = np.unique(postdirs / args.outputs.name).tolist()
                 dataset = xr.open_mfdataset(paths=paths, combine="by_coords")
                 if hasattr(self, "post"):
-                    outputs = self.post(dataset, args.rename)
-                    outdir = args.outputs.parent
-                    for item in outputs:
-                        outputs[item].to_netcdf(outdir / item)
-                else:
-                    dataset.to_netcdf(key / args.outputs.name)
+                    dataset = self.post(dataset)
+                dataset.to_netcdf(key / args.outputs.name)
             return
         # execute the RT simulations in a temp directory then copy to outputs
         for key, value in groupby(dataset=inputs, groups=outdirs):

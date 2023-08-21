@@ -116,10 +116,10 @@ END MODULE BFIT_PARAMETERS
        write(*,*) 'pmom(0)=', pmom(0)
        write(*,*) 'warning pmom(0) is not equal to 1'
        write(*,*) 'double check your phase function input'
-       if (abs(pmom(0)-1.0d0) .gt.0.05) stop
-!       write(*,*) 'Guessing it is due to infinite forward scattering peak'
-!       write(*,*) 'Delta fit is used for this case'
-!       deltamlocal=2
+!       if (abs(pmom(0)-1.0d0) .gt.0.05) stop
+       write(*,*) 'Guessing it is due to infinite forward scattering peak'
+       write(*,*) 'Delta fit is used for this case'
+       deltamlocal=2
     endif
 
     if(deltamlocal==0)then

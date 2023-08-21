@@ -18,6 +18,14 @@ add_library(rtsos_rao_dg
 target_link_libraries(rtsos_rao_dg
     ${LIBS}
 )
+set_target_properties(rtsos_rao_dg
+    PROPERTIES
+        Fortran_MODULE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/mod/rtsos_rao_dg
+)
+target_include_directories(rtsos_rao_dg
+    PUBLIC
+        ${CMAKE_CURRENT_BINARY_DIR}/mod/rtsos_rao_dg
+)
 
 # pace_simlator static library
 add_library(pace_simulator
@@ -27,6 +35,14 @@ add_library(pace_simulator
 target_link_libraries(pace_simulator
     ${LIBS}
 )
+set_target_properties(pace_simulator
+    PROPERTIES
+        Fortran_MODULE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/mod/pace_simulator
+)
+target_include_directories(pace_simulator
+    PUBLIC
+        ${CMAKE_CURRENT_BINARY_DIR}/mod/pace_simulator
+)
 
 # rtsos_rao_dg executable
 add_executable(rtsos_rao_dg.exe
@@ -34,6 +50,14 @@ add_executable(rtsos_rao_dg.exe
 )
 target_link_libraries(rtsos_rao_dg.exe
     rtsos_rao_dg
+)
+set_target_properties(rtsos_rao_dg.exe
+    PROPERTIES
+        Fortran_MODULE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/mod/rtsos_rao_dg.exe
+)
+target_include_directories(rtsos_rao_dg.exe
+    PUBLIC
+        ${CMAKE_CURRENT_BINARY_DIR}/mod/rtsos_rao_dg.exe
 )
 
 # rtsos_PACE_Simulator_DoubleK executable
@@ -45,6 +69,14 @@ target_link_libraries(rtsos_PACE_Simulator_DoubleK.exe
     pace_simulator
     rtsos_rao_dg
 )
+set_target_properties(rtsos_PACE_Simulator_DoubleK.exe
+    PROPERTIES
+        Fortran_MODULE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/mod/rtsos_PACE_Simulator_DoubleK.exe
+)
+target_include_directories(rtsos_PACE_Simulator_DoubleK.exe
+    PUBLIC
+        ${CMAKE_CURRENT_BINARY_DIR}/mod/rtsos_PACE_Simulator_DoubleK.exe
+)
 
 # rtsos_GSFC_AC_LUT.exe executable
 add_executable(rtsos_GSFC_AC_LUT.exe
@@ -52,6 +84,14 @@ add_executable(rtsos_GSFC_AC_LUT.exe
 )
 target_link_libraries(rtsos_GSFC_AC_LUT.exe
     rtsos_rao_dg
+)
+set_target_properties(rtsos_GSFC_AC_LUT.exe
+    PROPERTIES
+        Fortran_MODULE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/mod/rtsos_GSFC_AC_LUT.exe
+)
+target_include_directories(rtsos_GSFC_AC_LUT.exe
+    PUBLIC
+        ${CMAKE_CURRENT_BINARY_DIR}/mod/rtsos_GSFC_AC_LUT.exe
 )
 
 # rtsos_Aerosol_Phmx_Cal.exe executable
@@ -63,4 +103,12 @@ add_executable(rtsos_Aerosol_Phmx_Cal.exe
 target_link_libraries(rtsos_Aerosol_Phmx_Cal.exe
     pace_simulator
     rtsos_rao_dg
+)
+set_target_properties(rtsos_Aerosol_Phmx_Cal.exe
+    PROPERTIES
+        Fortran_MODULE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/mod/rtsos_Aerosol_Phmx_Cal.exe
+)
+target_include_directories(rtsos_Aerosol_Phmx_Cal.exe
+    PUBLIC
+        ${CMAKE_CURRENT_BINARY_DIR}/mod/rtsos_Aerosol_Phmx_Cal.exe
 )

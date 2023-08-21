@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.20)
+cmake_minimum_required(VERSION 3.17.2...3.26)
 
 project(${SKBUILD_PROJECT_NAME} LANGUAGES Fortran)
 
@@ -6,7 +6,8 @@ project(${SKBUILD_PROJECT_NAME} LANGUAGES Fortran)
 if(DEFINED ENV{CONDA_PREFIX})
     list(APPEND CMAKE_PREFIX_PATH $ENV{CONDA_PREFIX})
 endif()
-find_package(HDF5
+find_package(
+    HDF5
     REQUIRED
     COMPONENTS Fortran HL
 )
@@ -16,7 +17,6 @@ list(APPEND LIBS ${HDF5_Fortran_LIBRARIES} ${HDF5_Fortran_HL_LIBRARIES})
 # build customizations
 SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH True)
 set(CMAKE_Fortran_FLAGS "-O3 ${CMAKE_Fortran_FLAGS}") # TODO confirm used
-set(CMAKE_Fortran_MODULE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/Mod")
 
 # targets
 add_subdirectory(src)

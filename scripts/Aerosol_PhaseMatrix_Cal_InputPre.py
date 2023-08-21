@@ -1,5 +1,5 @@
 import numpy as np
-
+import math
 def input_writer(filestrbase,irh,iaerosol):
     fileinput='input_'+filestrbase
     f = open(fileinput, 'w')
@@ -22,6 +22,21 @@ def input_writer_water_clouds(filestrbase,irh,iaerosol):
     f.write("%s" % aux_dir +'    #aux_dir \n')
     f.write("%s" % 'output_' + filestrbase+'\n')
     f.close
+
+def input_writer_monomodal(filestrbase,irh,iaerosol):
+    fileinput='input_'+filestrbase
+    f = open(fileinput, 'w')
+    
+    f.write("%d" % iaerosol+ '      #IAEROSOL=-96 mono-modal  \n')
+    f.write("%f" % Reff_Cloud + '       #Effective Radius \n')
+    f.write("%f" % Veff_Cloud + '       #Effective Variance \n')
+    f.write("%f" % Mr_Cloud + '       #Real Refractive Index  \n')
+    f.write("%f" % Mi_Cloud + '       #Imaginary Refractive Index \n')
+    f.write("%d" % wv_seg_flag+ '       #wv_seg_flag, 0: all; 1: seg1+3only; 2: seg2only; 3 seg1+2+3; 4: seg4only \n')
+    f.write("%s" % aux_dir +'    #aux_dir \n')
+    f.write("%s" % 'output_' + filestrbase+'\n')
+    f.close
+
 
 def input_writer_flexible_nmode2(filestrbase,irh,iaerosol,rf1,rf2,rf3,fmfrac,cmsfracs,mixing_flag,nmode):
     fileinput='input_'+filestrbase
@@ -87,11 +102,22 @@ aux_dir='/Users/pwzhai/Research/RT/SOS/SOS_Callable/test/PACE_Simulator/auxiliar
 #Common parameters
 wv_seg_flag=0
 
-iaerosol=-99 #=-99 for flexible composition
-Reff_Cloud=6.0  #effective radius of cloud size distribution
-Veff_Cloud=0.1  #effective variance of cloud size distribution
+#iaerosol=-99 #=-99 for flexible composition
+
+iaerosol=-96 #=-96 for mono-modal size distribution with mr and mi inputs
+Reff_Cloud=0.2  #modal radius of cloud size distribution
+Veff_Cloud=0.47  #ln(sigma) of cloud size distribution
+
+#convert to effective radius and variance
+Veff_Cloud=Veff_Cloud*Veff_Cloud
+Reff_Cloud=Reff_Cloud*math.exp(2.5*Veff_Cloud)
+Veff_Cloud=math.exp(Veff_Cloud)-1.0
 
 
+Mr_Cloud=1.45
+Mi_Cloud=0.0
+
+    
 irh=4 # VARIABLE only for iaerosl<21
 
 
@@ -208,3 +234,10 @@ if iaerosol==-98 :
     filestrbase='WaterCloud_Reff_%f' %Reff_Cloud \
                         +'_Veff_%f' %Veff_Cloud
     input_writer_water_clouds(filestrbase,irh,iaerosol)
+
+if iaerosol==-96 :
+    filestrbase='MonoModal_Reff_%f' %Reff_Cloud \
+                        +'_Veff_%f' %Veff_Cloud \
+                        +'_mr_%f' %Mr_Cloud \
+                        +'_mi_%f' %Mi_Cloud
+    input_writer_monomodal(filestrbase,irh,iaerosol)

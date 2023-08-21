@@ -115,12 +115,14 @@ suitable NetCDF file.
 
 ## Repository Orientation for Developers
 
-The repository has three components.
+The repository has four components.
 
 1. The `src` folder and `CMakeLists.txt` file create the Fortran binaries that
    perform the RT simulations.
-1. The `scripts` folder and the `pyproject.toml` and `setup.py` files provide
+1. The `zhai_rt` folder and the `pyproject.toml` and `setup.py` files provide
    a Python API for the Fortran binaries.
+1. The `scripts` folder contain some helper scripts for using the Fortran binaries
+   without the Python API.
 1. Everything else is documentation.
 
 ### Compile

@@ -844,3 +844,14 @@ class Parameters:
             dim = attrs.pop("dim", False) or coord if array.shape else ()
             dataset = dataset.assign_coords({coord: (dim, array, attrs)})
         return dataset
+
+
+# aliases
+AM = Parameters.Aerosol_Model.__name__
+RH = Parameters.Relative_Humidity.__name__
+WI = Parameters.Wind_Speed.__name__
+TN = Parameters.Tau_NIR.__name__
+SZ = Parameters.Solar_Zenith_Angle.__name__
+DT = Parameters.Diffuse_Transmittance_Flag.__name__
+WA = Parameters.Wave_Mean_Square_Slope.__name__
+REF = Parameters.WAVELENGTH_MICRON_REF.__name__
