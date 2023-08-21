@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.20)
 
-project(ZhaiRT LANGUAGES Fortran)
+project(${SKBUILD_PROJECT_NAME} LANGUAGES Fortran)
 
 # import CMake targets that satisfy the HDF5 dependency
 if(DEFINED ENV{CONDA_PREFIX})
@@ -29,5 +29,5 @@ install(
         rtsos_Aerosol_Phmx_Cal.exe
         rtsos_GSFC_AC_LUT.exe
     DESTINATION
-        bin
+        ${SKBUILD_SCRIPTS_DIR}
 )

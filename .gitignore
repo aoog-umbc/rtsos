@@ -1,5 +1,5 @@
-build/
-_skbuild/
-*.egg-info/
-.venv/
-__pycache__/
+/build
+/venv
+/tests/.pytest_cache
+__pycache__
+_version.py
