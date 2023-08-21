@@ -148,30 +148,30 @@ class ZhaiRT:
                 return
         # read existing inputs
         inputs = xr.open_dataset(args.inputs)
-        # begin construction of output paths for each element of inputs
-        parent = xr.DataArray(args.outputs.parent)
-        outdirs, _ = xr.broadcast(parent, inputs)
+        # begin construction of output path(s) relative to args.outputs.parent
+        outdirs = xr.DataArray(Path())
+        prefix = Path(args.outputs.stem)
         # with the `--cluster` argument, prepare to process a subset of inputs
         # in subdirectories, defined by the dimension(s) given with cluster
         if args.cluster:
             coordinates = split_list_arg(args.cluster)
-            outdirs = args.outputs.with_suffix("")
-            inputs, outdirs = reduce_by_coords(coordinates, inputs, outdirs)
-        # with the `--post` argument, combine existing RT outputs and return
-        # TODO allow --rename without --post
+            inputs, outdirs = reduce_by_coords(coordinates, inputs, prefix)
+            prefix = Path()
+        # with the `--post` argument, combine RT outputs (after --cluster) and return
         if args.post:
             coordinates = split_list_arg(args.post)
             for key, value in groupby(dataset=inputs, groups=outdirs):
                 _, postdirs = reduce_by_coords(coordinates, value, key)
-                paths = np.unique(postdirs / args.outputs.name).tolist()
-                dataset = xr.open_mfdataset(paths=paths, combine="by_coords")
+                postdirs = np.unique(postdirs)
+                paths = args.outputs.parent / prefix / postdirs / args.outputs.name
+                dataset = xr.open_mfdataset(paths=paths.tolist(), combine="by_coords")
                 if hasattr(self, "post"):
                     dataset = self.post(dataset)
-                dataset.to_netcdf(key / args.outputs.name)
+                dataset.to_netcdf(args.outputs.parent / key / args.outputs.name)
             return
         # execute the RT simulations in a temp directory then copy to outputs
         for key, value in groupby(dataset=inputs, groups=outdirs):
-            self.rtsos(value, key / args.outputs.name)
+            self.rtsos(value, args.outputs.parent / key / args.outputs.name)
 
     def rtsos(self, inputs: xr.Dataset, outputs: Path) -> None:
         # within a temporary directory, write the rtsos input files and store
