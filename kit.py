@@ -130,12 +130,12 @@ class ZhaiRT:
     def __init__(
         self,
         program: str,
-        params: tuple,
         defaults: xr.Dataset,
+        params: tuple = (),
     ) -> None:
         self.program = program
-        self.params = tuple(i.__name__ for i in params)
         self.defaults = defaults
+        self._params = tuple(i.__name__ for i in params)
 
     def __call__(self, args: Namespace) -> None:
         # with the `--pre` argument, write inputs and return
@@ -148,6 +148,7 @@ class ZhaiRT:
                 return
         # read existing inputs
         inputs = xr.open_dataset(args.inputs)
+        self.params = inputs
         # begin construction of output path(s) relative to args.outputs.parent
         outdirs = xr.DataArray(Path())
         prefix = Path(args.outputs.stem)
@@ -247,3 +248,11 @@ class ZhaiRT:
         with (path / infile).open("w") as stream:
             stream.write("\n".join(lines))
         return infile, outfile.with_suffix(".outfile.h5")
+
+    @property
+    def params(self) -> tuple:
+        return self._params
+
+    @params.setter
+    def params(self, dataset: xr.Dataset) -> None:
+        pass

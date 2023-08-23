@@ -57,13 +57,17 @@ class Parameters:
         default=None,
         metadata=dict(
             long_name="aerosol model number",
-            flag_values=np.array((-99, -98, -97, -1) + tuple(range(1, 22)), np.int32),
+            flag_values=np.array(
+                (-99, -98, -97, -96, -1) + tuple(range(1, 22)),
+                dtype=np.int32,
+            ),
             flag_meanings=(
                 (
-                    "aerosol_pmhx_in_from_file"
-                    " water_cloud_phmx_from_file"
-                    " two_layer_scattorer_phmx_from_file"
-                    " Ahmad_model_with_flexbile_RH_and_FMF"
+                    "aerosol_pmhx_in_from_file"  # -99
+                    " water_cloud_phmx_from_file"  # -98
+                    " two_layer_scattorer_phmx_from_file"  # -97
+                    " mono_modal"  # -96
+                    " Ahmad_model_with_flexbile_RH_and_FMF"  # -1
                 )
                 + "".join((" Shettle_and_Fenn",) * 10)
                 + "".join((" Ahmad",) * 10)
@@ -215,7 +219,7 @@ class Parameters:
         ),
     )
 
-    dust_frac: Any = field(
+    dustfrac: Any = field(
         default=None,
         metadata=dict(
             long_name="dust fraction",
@@ -243,7 +247,7 @@ class Parameters:
         ),
     )
 
-    ds_frac: Any = field(
+    dsfrac: Any = field(
         default=None,
         metadata=dict(
             long_name="spherical fraction in dust mode",
@@ -385,6 +389,22 @@ class Parameters:
             flag_values=np.array((0, 1), np.int32),
             flag_meanings="false true",
             dtype=np.int32,
+        ),
+    )
+
+    Mr_Cloud: Any = field(
+        default=None,
+        metadata=dict(
+            long_name="Real Refractive Index",
+            dtype=np.float32,
+        ),
+    )
+
+    Mi_Cloud: Any = field(
+        default=None,
+        metadata=dict(
+            long_name="Imaginary Refractive Index",
+            dtype=np.float32,
         ),
     )
 

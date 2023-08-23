@@ -68,12 +68,12 @@ def main(argv: str = None) -> None:
     dataset = params.make_dataset(values)
 
     # the callable object that runs the given program
-    pace_sim = ZhaiRT(
+    prog = ZhaiRT(
         program="rtsos_PACE_Simulator_DoubleK.exe",
-        params=tuple(values),
         defaults=dataset,
+        params=tuple(values),
     )
 
     # parse arguments from command line and run as instructed
     args = cli.parse_args(argv)
-    pace_sim(args)
+    prog(args)

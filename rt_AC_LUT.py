@@ -17,8 +17,8 @@ def main(argv=None):
         P.NWV: 0,
         P.WAVELENGTH_MICRON_REF: 0.870,
         P.CFILE_INSTRUMENT: "afinp.txt",
-        P.Aux_Dir: "",
-        P.Atmos_Dir: "",
+        P.Aux_Dir: "aux",
+        P.Atmos_Dir: "atmos",
         P.Mie_Database_Dir: "",
         P.MIE_TABLE_CAL: 2,
         P.Aerosol_Model: range(11, 21),
@@ -34,26 +34,26 @@ def main(argv=None):
         P.I_SURFACE_ROUGHNESS_PARA: 2,
         P.Diffuse_Transmittance_Flag: [0, 1],
         P.I_SPHERICAL_SHELL_CORRECTION: 0,
-        P.CFILE_AP: "afglus.dat",  # FIXME change the file name
+        P.CFILE_AP: "afglus.dat",
     }
 
     # calculate rt coordinate Wind_Speed, taking the position of Wave_Mean_Square_Slope
     surface = values[P.I_SURFACE_ROUGHNESS_PARA]
-    mss = values[P.Wave_Mean_Square_Slope]
+    wmss = values[P.Wave_Mean_Square_Slope]
     if surface == 1:
-        wndspd = (np.square(mss) - 0.003) / 0.00512
+        wndspd = (np.square(wmss) - 0.003) / 0.00512
     elif surface == 2:
-        wndspd = np.square(mss) / 0.00534
+        wndspd = np.square(wmss) / 0.00534
     wndspd[wndspd < 0.0] = 0.0
     values = {
         P.Wind_Speed if k == P.Wave_Mean_Square_Slope else k: v
         for k, v in values.items()
     }
     values[P.Wind_Speed] = wndspd
-    values[P.Wave_Mean_Square_Slope] = mss
 
     # create a dataset to hold the inputs as coordinates
     params = P()
+    values[P.Wave_Mean_Square_Slope] = wmss
     dataset = params.make_dataset(values)
     values.pop(P.Wave_Mean_Square_Slope)
 
@@ -74,15 +74,15 @@ def main(argv=None):
     dataset["am"] = dataset.get_index("am")
 
     # the callable object that runs the given program
-    ac_lut = AC_LUT(
+    prog = AC_LUT(
         program="rtsos_GSFC_AC_LUT.exe",
-        params=tuple(values),
         defaults=dataset,
+        params=tuple(values),
     )
 
     # parse arguments from command line and run as instructed
     args = cli.parse_args(argv)
-    ac_lut(args)
+    prog(args)
 
 
 class AC_LUT(ZhaiRT):

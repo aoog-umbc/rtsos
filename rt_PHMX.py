@@ -1,3 +1,4 @@
+import numpy as np
 import xarray as xr
 
 from .kit import cli, ZhaiRT
@@ -5,18 +6,19 @@ from .parameters import Parameters as P
 
 
 def main(argv: str = None) -> None:
-    # values to write, in the order below, to the RT input file
-    # nb. not all parameters are used, but the order remains correct and
-    # leaving any out could break custom inputs
-    params = {
-        P.Aerosol_Model: -98,
+    # values to write to the default RT input file
+    # nb. not all parameters are used and the order is set by PHMX.params
+    values = {
+        P.Aerosol_Model: -96,
         P.IRH: 4,
-        P.Reff_Cloud: 6.0,
-        P.Veff_Cloud: 0.1,
+        P.Reff_Cloud: 0.2 * np.exp(2.5 * 0.47**2),
+        P.Veff_Cloud: np.exp(0.47**2) - 1.0,
+        P.Mr_Cloud: 1.45,
+        P.Mi_Cloud: 0.0,
         P.nmode: 2,
         P.fmfrac: 1.0,
-        P.dust_frac: 1.0,
-        P.ds_frac: 1.0,
+        P.dustfrac: 1.0,
+        P.dsfrac: 1.0,
         P.cmsfracs: 0.0,
         P.rf1: 0.0,
         P.rf2: 0.0,
@@ -35,89 +37,107 @@ def main(argv: str = None) -> None:
         P.r0_s: 0.05,
         P.r0_ss: 2.0194,
         P.WAVEBAND_SEG_FLAG: 0,
+        P.Aux_Dir: "aux",
     }
 
     # create a dataset to hold the inputs as coordinates
-    dataset = P.make_dataset(params)
-    aersol_model = dataset[P.Aerosol_Model.__name__]
-    if aersol_model > 0:
-        unused_params = (
-            P.Reff_Cloud,
-            P.Veff_Cloud,
-            P.nmode,
-            P.fmfrac,
-            P.dust_frac,
-            P.ds_frac,
-            P.cmsfracs,
-            P.rf1,
-            P.rf2,
-            P.rf3,
-            P.Aerosol_Mixing_Flag,
-            P.dust_ivar,
-            P.dust_ireff,
-            P.Relative_Humidity,
-            P.r0f,
-            P.r0c,
-            P.sigf,
-            P.sigc,
-            P.r0_dl,
-            P.r0_ws,
-            P.r0_bc,
-            P.r0_s,
-            P.r0_ss,
-        )
-    elif aersol_model == -98:
-        unused_params = (
-            P.IRH,
-            P.nmode,
-            P.fmfrac,
-            P.dust_frac,
-            P.ds_frac,
-            P.cmsfracs,
-            P.rf1,
-            P.rf2,
-            P.rf3,
-            P.Aerosol_Mixing_Flag,
-            P.dust_ivar,
-            P.dust_ireff,
-            P.Relative_Humidity,
-            P.r0f,
-            P.r0c,
-            P.sigf,
-            P.sigc,
-            P.r0_dl,
-            P.r0_ws,
-            P.r0_bc,
-            P.r0_s,
-            P.r0_ss,
-        )
-    else:  # aersol_model == -99
-        nmode = dataset[P.nmode.__name__]
-        if nmode == 2:
-            unused_params = (
-                P.IRH,
-                P.Reff_Cloud,
-                P.Veff_Cloud,
-                P.dust_frac,
-                P.ds_frac,
-            )
-        else:  # nmode == 3
-            unused_params = (
-                P.IRH,
-                P.Reff_Cloud,
-                P.Veff_Cloud,
-                P.cmsfracs,
-                P.rf1,
-            )
-    dataset = dataset.drop_vars(tuple(i.__name__ for i in unused_params))
+    params = P()
+    dataset = params.make_dataset(values)
 
     # the callable object that runs the given program
-    ac_pm = ZhaiRT(
+    prog = PHMX(
         program="rtsos_Aerosol_Phmx_Cal.exe",
-        params=tuple(params),
         defaults=dataset,
     )
 
     # parse arguments from command line interface and run as instructed
     args = cli.parse_args(argv)
-    ac_pm(args)
+    prog(args)
+
+
+class PHMX(ZhaiRT):
+    """Class that drives rt-PHMX, having a `params.setter` method that takes aerosol
+    model and number of modes into account
+    """
+
+    @ZhaiRT.params.setter
+    def params(self, dataset: xr.DataArray) -> None:
+        nmode = dataset[P.nmode.__name__].item()
+        aerosol_model_number = dataset[P.Aerosol_Model.__name__]
+        if aerosol_model_number > 0 and aerosol_model_number <= 20:
+            _params = (
+                P.Aerosol_Model,
+                P.IRH,
+                P.WAVEBAND_SEG_FLAG,
+                P.Aux_Dir,
+            )
+        elif aerosol_model_number == -96:
+            _params = (
+                P.Aerosol_Model,
+                P.Reff_Cloud,
+                P.Veff_Cloud,
+                P.Mr_Cloud,
+                P.Mi_Cloud,
+                P.WAVEBAND_SEG_FLAG,
+                P.Aux_Dir,
+            )
+        elif aerosol_model_number == -98:
+            _params = (
+                P.Aerosol_Model,
+                P.Reff_Cloud,
+                P.Veff_Cloud,
+                P.WAVEBAND_SEG_FLAG,
+                P.Aux_Dir,
+            )
+        elif aerosol_model_number == -99:
+            if nmode == 2:
+                _params = (
+                    P.Aerosol_Model,
+                    P.nmode,
+                    P.fmfrac,
+                    P.cmsfracs,
+                    P.rf1,
+                    P.rf2,
+                    P.rf3,
+                    P.Aerosol_Mixing_Flag,
+                    P.dust_ivar,
+                    P.dust_ireff,
+                    P.Relative_Humidity,
+                    P.r0f,
+                    P.r0c,
+                    P.sigf,
+                    P.sigc,
+                    P.r0_dl,
+                    P.r0_ws,
+                    P.r0_bc,
+                    P.r0_s,
+                    P.r0_ss,
+                    P.WAVEBAND_SEG_FLAG,
+                    P.Aux_Dir,
+                )
+            elif nmode == 3:
+                _params = (
+                    P.Aerosol_Model,
+                    P.nmode,
+                    P.fmfrac,
+                    P.dustfrac,
+                    P.dsfrac,
+                    P.rf2,
+                    P.rf3,
+                    P.Aerosol_Mixing_Flag,
+                    P.dust_ivar,
+                    P.dust_ireff,
+                    P.Relative_Humidity,
+                    P.r0f,
+                    P.r0c,
+                    P.sigf,
+                    P.sigc,
+                    P.r0_dl,
+                    P.r0_ws,
+                    P.r0_bc,
+                    P.r0_s,
+                    P.r0_ss,
+                    P.WAVEBAND_SEG_FLAG,
+                    P.Aux_Dir,
+                )
+        self._params = (i.__name__ for i in _params)
