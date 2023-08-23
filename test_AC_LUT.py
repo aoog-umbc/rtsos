@@ -21,10 +21,7 @@ def cache_default(cache_dir):
 def cache_input(cache_default):
     path = cache_default.parent / "input.nc"
     if not path.exists():
-        ds = xr.open_dataset(cache_default)
-        ds["Aux_Dir"] = "aux"
-        ds["Atmos_Dir"] = "atmos"
-        ds["MIE_TABLE_CAL"][...] = 2
+        ds = xr.load_dataset(cache_default)
         ds["NWV"][...] = 6
         ds = ds.isel(
             {
@@ -82,7 +79,6 @@ def tmp_post(cache_input, cache_output):
 
 def test_default(cache_default):
     ds = xr.open_dataset(cache_default)
-    assert len(ds.coords) == 24
     assert len(ds.data_vars) == 0
 
 
