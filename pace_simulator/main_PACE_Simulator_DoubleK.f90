@@ -1478,7 +1478,9 @@ INTEGER(HID_T)  :: c_dim_nwv, c_dim_nwv_band, c_dim_nwv_output
 INTEGER(HID_T)  :: c_dim_ntlyera, c_dim_ntlyera1, c_dim_nwater_depth, c_dim_nflrscgrid
 INTEGER(HID_T)  :: c_dim_thetav, c_dim_phiv, c_dim_stokes
 INTEGER(HID_T)  :: c_dim_nummieuse
-INTEGER(HID_T)  :: file, space, dset, attr ! Handles
+INTEGER(HID_T)  :: file, space, dset, attr
+! string that tells NetCDF4 to disregard value(s) of a dimension scale
+CHARACTER(LEN=54) :: dim_not_var="This is a netCDF dimension but not a netCDF variable."
 INTEGER :: hdferr
 INTEGER(hsize_t),DIMENSION(1:2) :: dims
 INTEGER(hsize_t),DIMENSION(1) :: dimscl
@@ -1910,53 +1912,52 @@ DEALLOCATE(HDF5RARR)
 CALL h5dsset_scale_f(c_dim_nwv_output, hdferr)
 CALL h5sclose_f(space, hdferr)
 
-CALL h5screate_f(H5S_SCALAR_F, space, hdferr)
+dimscl=(/ NUMMIEUSE /)
+CALL h5screate_simple_f(1, dimscl, space, hdferr)
 CALL h5dcreate_f(file, 'NUMMIEUSE', H5T_NATIVE_INTEGER, space, c_dim_nummieuse, hdferr)
 HDF5ITMP=NUMMIEUSE
 f_ptr=C_LOC(HDF5ITMP(1))
-CALL h5dwrite_f(c_dim_nummieuse,H5T_NATIVE_INTEGER,f_ptr, hdferr)
-!CALL h5dclose_f(c_dim_nummieuse, hdferr)
-CALL h5dsset_scale_f(c_dim_nummieuse, hdferr)
+CALL h5dsset_scale_f(c_dim_nummieuse, hdferr, dim_not_var)
 CALL h5sclose_f(space, hdferr)
 
 dimscl=(/ NUMMIEUSE /)
 CALL h5screate_simple_f(1, dimscl, space, hdferr)
-CALL h5dcreate_f(file, 'Aerosol_Rf', H5T_IEEE_F32LE, space, c_dim_nummieuse, hdferr)
+CALL h5dcreate_f(file, 'Aerosol_Rf', H5T_IEEE_F32LE, space, dset, hdferr)
 ALLOCATE(HDF5RARR(NUMMIEUSE))
 HDF5RARR=REFF1_Save
-CALL h5dwrite_f(c_dim_nummieuse, H5T_NATIVE_REAL, C_LOC(HDF5RARR(1)), hdferr)
+CALL h5dwrite_f(dset, H5T_NATIVE_REAL, C_LOC(HDF5RARR(1)), hdferr)
 DEALLOCATE(HDF5RARR)
-CALL h5dsset_scale_f(c_dim_nummieuse, hdferr)
+CALL h5dsattach_scale_f(dset, c_dim_nummieuse, 1, hdferr)
 CALL h5sclose_f(space, hdferr)
 
 dimscl=(/ NUMMIEUSE /)
 CALL h5screate_simple_f(1, dimscl, space, hdferr)
-CALL h5dcreate_f(file, 'Aerosol_Vf', H5T_IEEE_F32LE, space, c_dim_nummieuse, hdferr)
+CALL h5dcreate_f(file, 'Aerosol_Vf', H5T_IEEE_F32LE, space, dset, hdferr)
 ALLOCATE(HDF5RARR(NUMMIEUSE))
 HDF5RARR=VEFF1_Save
-CALL h5dwrite_f(c_dim_nummieuse, H5T_NATIVE_REAL, C_LOC(HDF5RARR(1)), hdferr)
+CALL h5dwrite_f(dset, H5T_NATIVE_REAL, C_LOC(HDF5RARR(1)), hdferr)
 DEALLOCATE(HDF5RARR)
-CALL h5dsset_scale_f(c_dim_nummieuse, hdferr)
+CALL h5dsattach_scale_f(dset, c_dim_nummieuse, 1, hdferr)
 CALL h5sclose_f(space, hdferr)
 
 dimscl=(/ NUMMIEUSE /)
 CALL h5screate_simple_f(1, dimscl, space, hdferr)
-CALL h5dcreate_f(file, 'Aerosol_Rc', H5T_IEEE_F32LE, space, c_dim_nummieuse, hdferr)
+CALL h5dcreate_f(file, 'Aerosol_Rc', H5T_IEEE_F32LE, space, dset, hdferr)
 ALLOCATE(HDF5RARR(NUMMIEUSE))
 HDF5RARR=REFF2_Save
-CALL h5dwrite_f(c_dim_nummieuse, H5T_NATIVE_REAL, C_LOC(HDF5RARR(1)), hdferr)
+CALL h5dwrite_f(dset, H5T_NATIVE_REAL, C_LOC(HDF5RARR(1)), hdferr)
 DEALLOCATE(HDF5RARR)
-CALL h5dsset_scale_f(c_dim_nummieuse, hdferr)
+CALL h5dsattach_scale_f(dset, c_dim_nummieuse, 1, hdferr)
 CALL h5sclose_f(space, hdferr)
 
 dimscl=(/ NUMMIEUSE /)
 CALL h5screate_simple_f(1, dimscl, space, hdferr)
-CALL h5dcreate_f(file, 'Aerosol_Vc', H5T_IEEE_F32LE, space, c_dim_nummieuse, hdferr)
+CALL h5dcreate_f(file, 'Aerosol_Vc', H5T_IEEE_F32LE, space, dset, hdferr)
 ALLOCATE(HDF5RARR(NUMMIEUSE))
 HDF5RARR=VEFF2_Save
-CALL h5dwrite_f(c_dim_nummieuse, H5T_NATIVE_REAL, C_LOC(HDF5RARR(1)), hdferr)
+CALL h5dwrite_f(dset, H5T_NATIVE_REAL, C_LOC(HDF5RARR(1)), hdferr)
 DEALLOCATE(HDF5RARR)
-CALL h5dsset_scale_f(c_dim_nummieuse, hdferr)
+CALL h5dsattach_scale_f(dset, c_dim_nummieuse, 1, hdferr)
 CALL h5sclose_f(space, hdferr)
 
 CALL h5screate_f(H5S_SCALAR_F, space, hdferr)
@@ -2093,12 +2094,12 @@ CALL h5dclose_f(dset, hdferr)
 CALL h5sclose_f(space, hdferr)
 DEALLOCATE(HDF5RARR)
 
-CALL h5screate_f(H5S_SCALAR_F, space, hdferr)
+dimscl= (/ NTLYERA /)
+CALL h5screate_simple_f(1, dimscl, space, hdferr)
 CALL h5dcreate_f(file, 'NTLYERA', H5T_NATIVE_INTEGER, space, c_dim_ntlyera, hdferr)
 HDF5ITMP=NTLYERA
 f_ptr=C_LOC(HDF5ITMP(1))
 CALL h5dwrite_f(c_dim_ntlyera,H5T_NATIVE_INTEGER,f_ptr, hdferr)
-!CALL h5dclose_f(c_dim_ntlyera, hdferr)
 CALL h5dsset_scale_f(c_dim_ntlyera, hdferr)
 CALL h5sclose_f(space, hdferr)
 
@@ -2936,9 +2937,10 @@ CALL h5dsset_scale_f(c_dim_phiv, hdferr)
 CALL h5sclose_f(space, hdferr)
 DEALLOCATE(HDF5RARR)
 
-CALL h5screate_f(H5S_NULL_F, space, hdferr)
+dimscl=(/ 4 /)
+CALL h5screate_simple_f(1, dimscl, space, hdferr)
 CALL h5dcreate_f(file, 'Stokes_Parameter', H5T_IEEE_F32LE, space, c_dim_stokes, hdferr)
-CALL h5dsset_scale_f(c_dim_stokes, hdferr)
+CALL h5dsset_scale_f(c_dim_stokes, hdferr, dim_not_var)
 CALL h5sclose_f(space, hdferr)
 
 dims4 = (/NWV_OUTPUT,NTHETAOUT,NPHIOUT,4/)

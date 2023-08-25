@@ -764,7 +764,9 @@ CHARACTER(LEN=20)  :: dataset
 CHARACTER(LEN=20) , PARAMETER :: attribute = "A1"
 ! Handles for dimension scales, which go by C order in h5dsattach_scale_f
 INTEGER(HID_T)  :: c_dim_alt, c_dim_ntlyera, c_dim_nwv, c_dim_thetav, c_dim_phiv
-INTEGER(HID_T)  :: file, space, dset, attr ! Handles
+INTEGER(HID_T)  :: file, space, dset, attr
+! string that tells NetCDF4 to disregard value(s) of a dimension scale
+CHARACTER(LEN=54) :: dim_not_var="This is a netCDF dimension but not a netCDF variable."
 INTEGER :: hdferr
 INTEGER(hsize_t),   DIMENSION(1:2) :: dims
 INTEGER(hsize_t),DIMENSION(1) :: dimscl
@@ -1009,10 +1011,10 @@ CALL h5dsset_scale_f(c_dim_alt, hdferr)
 CALL h5sclose_f(space, hdferr)
 DEALLOCATE(HDF5RARR)
 
-dims= (/ NWV, NTLYERA /)
-CALL h5screate_f(H5S_NULL_F, space, hdferr)
+dimscl= (/ NTLYERA /)
+CALL h5screate_simple_f(1, dimscl, space, hdferr)
 CALL h5dcreate_f(file, 'NTLYERA', H5T_IEEE_F32LE, space, c_dim_ntlyera, hdferr)
-CALL h5dsset_scale_f(c_dim_ntlyera, hdferr)
+CALL h5dsset_scale_f(c_dim_ntlyera, hdferr, dim_not_var)
 CALL h5sclose_f(space, hdferr)
 
 dims= (/ NWV, NTLYERA /)
