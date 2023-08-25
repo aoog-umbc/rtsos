@@ -203,7 +203,11 @@ class ZhaiRT:
                     continue
                 # lazy read for outfile metadata
                 # FIXME use netCDF4-python see Unidata/netCDF4-python#1226
-                one_output = xr.open_dataset(tmpdir / outfile, engine="h5netcdf")
+                one_output = xr.open_dataset(tmpdir / outfile)
+                # expect non-mergeable output with any phony dims
+                if "phony_dim_0" in one_output.dims:
+                    datasets.append(one_output)
+                    continue
                 # drop parameters duplicated in rt outputs
                 for item in one_input.coords:
                     if item not in one_output:

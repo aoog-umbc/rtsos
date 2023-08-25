@@ -55,8 +55,8 @@ def main(argv: str = None) -> None:
         P.WAVEBAND_SEG_FLAG: 0,
         P.AirSensor_Height: 2.2,
         P.pss_flag: 0,
-        P.Aux_Dir: "data/RT/pwzrt/Data",
-        P.Atmos_Dir: "data/RT/pwzrt/Gas_Absorption_Coefficients",
+        P.Aux_Dir: "aux",
+        P.Atmos_Dir: "atmos",
         P.CFILE_AP: "afglus.dat",
         # for Aerosol Model "-1", there are no aerosol_phasematrix_files
         P.Aerosol_Phasematrix_File_Hi: "",
