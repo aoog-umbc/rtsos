@@ -37,7 +37,7 @@ def cache_input(cache_default):
 @fixture(scope="module")
 def cache_output(cache_input):
     path = cache_input.parent / "output.nc"
-    if not (path.parent / "output").exists():
+    if not any((path.parent / "output").glob("am/**/output.nc")):
         rt_AC_LUT.main(
             [
                 "--cluster=am:42,sza-dt",  # run only am 42, run for each sza-dt
@@ -89,7 +89,7 @@ def test_infile(cache_output):
 
 def test_output(cache_output):
     path = cache_output.parent / "output"
-    output = list(path.glob("**/output.nc"))
+    output = tuple(path.glob("am/42/**/output.nc"))
     assert len(output) == 3
     for item in output:
         dataset = xr.open_dataset(item)
@@ -98,7 +98,7 @@ def test_output(cache_output):
 
 def test_cluster_post(tmp_cluster_post):
     path = tmp_cluster_post.parent / "output"
-    output = list(path.glob("am/*/output.nc"))
+    output = tuple(path.glob("am/*/output.nc"))
     assert len(output) == 1
     for item in output:
         dataset = xr.open_dataset(item)
