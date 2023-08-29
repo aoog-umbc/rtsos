@@ -74,11 +74,11 @@ class Parameters:
                 + " dust_aerosol_model"
             ),
             flag_meanings_fmf=np.array(
-                [np.nan] * 14 + [0, 1, 2, 5, 10, 20, 30, 50, 80, 95, np.nan],
+                [np.nan] * 15 + [0, 1, 2, 5, 10, 20, 30, 50, 80, 95, np.nan],
                 dtype=np.float32,
             ),
             flag_meanings_sd=np.array(
-                [np.nan] * 14 + [25, 24, 23, 22, 21, 20, 19, 18, 17, 16, np.nan],
+                [np.nan] * 15 + [25, 24, 23, 22, 21, 20, 19, 18, 17, 16, np.nan],
                 dtype=np.float32,
             ),
             dtype=np.int32,
@@ -89,6 +89,7 @@ class Parameters:
         default=None,
         metadata=dict(
             long_name="top layer scattor aerosol phase matrix file",
+            comment="used for Aerosol_Model -99, -98, -97 only",
         ),
     )
 
@@ -96,6 +97,7 @@ class Parameters:
         default=None,
         metadata=dict(
             long_name="lower layer scattor aerosol phase matrix file",
+            comment="used for Aerosol_Model -97 only",
         ),
     )
 
@@ -127,7 +129,9 @@ class Parameters:
 
     Atmos_Dir: Any = field(
         default=None,
-        metadata=dict(long_name="path to directory containing gas absorbption data"),
+        metadata=dict(
+            long_name="path to directory containing gas absorbption data",
+        ),
     )
 
     ATMOS_ZERO: Any = field(

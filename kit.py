@@ -135,6 +135,7 @@ class ZhaiRT:
     ) -> None:
         self.program = program
         self.defaults = defaults
+        # initialize the params @property
         self._params = tuple(i.__name__ for i in params)
 
     def __call__(self, args: Namespace) -> None:
@@ -147,7 +148,7 @@ class ZhaiRT:
             if args.pre:
                 return
         # read existing inputs
-        inputs = xr.open_dataset(args.inputs)
+        inputs = xr.load_dataset(args.inputs)
         self.params = inputs
         # begin construction of output path(s) relative to args.outputs.parent
         outdirs = xr.DataArray(Path())
