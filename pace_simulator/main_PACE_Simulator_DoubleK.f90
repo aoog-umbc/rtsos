@@ -1915,8 +1915,6 @@ CALL h5sclose_f(space, hdferr)
 dimscl=(/ NUMMIEUSE /)
 CALL h5screate_simple_f(1, dimscl, space, hdferr)
 CALL h5dcreate_f(file, 'NUMMIEUSE', H5T_NATIVE_INTEGER, space, c_dim_nummieuse, hdferr)
-HDF5ITMP=NUMMIEUSE
-f_ptr=C_LOC(HDF5ITMP(1))
 CALL h5dsset_scale_f(c_dim_nummieuse, hdferr, dim_not_var)
 CALL h5sclose_f(space, hdferr)
 
