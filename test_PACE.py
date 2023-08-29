@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from pytest import fixture
 import numpy as np
 import xarray as xr
@@ -23,15 +25,15 @@ def cache_input(cache_default):
     path = cache_default.parent / "input.nc"
     if not path.exists():
         ds = xr.load_dataset(cache_default)
-        ds["ncolinput"][...] = 10
-        ds["nquadainput"][...] = 20
-        ds["nquadoinput"][...] = 40
-        ds["MAXMORDINPUT"][...] = 3
-        ds["NTHETAV"][...] = 1
-        ds["NPHIV"][...] = 1
-        ds["OCEAN_RAMAN_FLAG"][...] = 0
-        ds["OCEAN_FCHLA_FLAG"][...] = 0
-        ds["OCEAN_FCDOM_FLAG"][...] = 0
+        ds["ncolinput"][()] = 10
+        ds["nquadainput"][()] = 20
+        ds["nquadoinput"][()] = 40
+        ds["MAXMORDINPUT"][()] = 3
+        ds["NTHETAV"][()] = 1
+        ds["NPHIV"][()] = 1
+        ds["OCEAN_RAMAN_FLAG"][()] = 0
+        ds["OCEAN_FCHLA_FLAG"][()] = 0
+        ds["OCEAN_FCDOM_FLAG"][()] = 0
         ds.to_netcdf(path)
     return path
 
@@ -44,6 +46,46 @@ def cache_output(cache_input):
             [
                 "--cluster=chla:0,tau_ref_hi",  # run only chla 0, run for each tau_ref_hi
                 str(cache_input),
+                str(path),
+            ],
+        )
+    return path
+
+
+@fixture(scope="module")
+def cache_two_layer_input(cache_input):
+    # TODO resolve cross module fixture
+    phmx = cache_input.parent.parent / "phmx" / "output.nc"
+    path = cache_input.parent / "phmx-input.nc"
+    if not path.exists():
+        ds = xr.load_dataset(cache_input)
+        ds = ds.isel({"Solar_Zenith_Angle": 0, "tau_ref_hi": 0, "chla": 0})
+        ds["Aerosol_Model"][()] = -97
+        ds["tau_ref_hi"][()] = 0.05
+        ds["tau_ref_low"][()] = 0.1
+        ds["height_particle_hi"] = 12.0
+        ds["height_particle_low"] = 4.0
+        ds["Aerosol_Phasematrix_File_Hi"] = (
+            (),
+            str(phmx.relative_to(Path().absolute())),
+            ds["Aerosol_Phasematrix_File_Hi"].attrs,
+        )
+        ds["Aerosol_Phasematrix_File_Low"] = (
+            (),
+            str(phmx.relative_to(Path().absolute())),
+            ds["Aerosol_Phasematrix_File_Low"].attrs,
+        )
+        ds.to_netcdf(path)
+    return path
+
+
+@fixture(scope="module")
+def cache_two_layer_output(cache_two_layer_input):
+    path = cache_two_layer_input.parent / "phmx-output.nc"
+    if not path.exists():
+        rt_PACE.main(
+            [
+                str(cache_two_layer_input),
                 str(path),
             ],
         )
@@ -87,3 +129,8 @@ def test_post(tmp_post):
     ds = xr.open_dataset(tmp_post)
     assert ds.sizes["tau_ref_hi"] == 2
     assert ds.sizes["Solar_Zenith_Angle"] == 2
+
+
+def test_two_layer_output(cache_two_layer_output):
+    ds = xr.open_dataset(cache_two_layer_output)
+    assert ds.sizes["NUMMIEUSE"] == 2
