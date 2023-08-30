@@ -89,7 +89,7 @@ class Parameters:
         default=None,
         metadata=dict(
             long_name="top layer scattor aerosol phase matrix file",
-            comment="used for Aerosol_Model -99, -98, -97 only",
+            comment="required for Aerosol_Model values < -1",
         ),
     )
 
@@ -97,7 +97,7 @@ class Parameters:
         default=None,
         metadata=dict(
             long_name="lower layer scattor aerosol phase matrix file",
-            comment="used for Aerosol_Model -97 only",
+            comment="required for Aerosol_Model values < -1",
         ),
     )
 
