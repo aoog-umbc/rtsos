@@ -2092,15 +2092,11 @@ CALL h5dclose_f(dset, hdferr)
 CALL h5sclose_f(space, hdferr)
 DEALLOCATE(HDF5RARR)
 
-dimscl= (/ NTLYERA /)
+dimscl=(/ NTLYERA /)
 CALL h5screate_simple_f(1, dimscl, space, hdferr)
 CALL h5dcreate_f(file, 'NTLYERA', H5T_NATIVE_INTEGER, space, c_dim_ntlyera, hdferr)
-HDF5ITMP=NTLYERA
-f_ptr=C_LOC(HDF5ITMP(1))
-CALL h5dwrite_f(c_dim_ntlyera,H5T_NATIVE_INTEGER,f_ptr, hdferr)
-CALL h5dsset_scale_f(c_dim_ntlyera, hdferr)
+CALL h5dsset_scale_f(c_dim_ntlyera, hdferr, dim_not_var)
 CALL h5sclose_f(space, hdferr)
-
 
 IF(ILS_FLAG)THEN
 	dims= (/NWV_OUTPUT,NTLYERA /)
