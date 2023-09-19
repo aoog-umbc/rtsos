@@ -5042,7 +5042,9 @@ END MODULE nr
           hp=xa(i+m)-x
           w=c(i+1)-d(i)
           den=ho-hp
-          if(den.eq.0.0d0)stop 'failure in polint'
+          if(den.eq.0.0d0) then
+              stop 'failure in polint'
+		  endif
           den=w/den
           d(i)=hp*den
           c(i)=ho*den

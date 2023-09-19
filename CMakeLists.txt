@@ -1,6 +1,8 @@
 # rtsos_rao_dg static library
 add_library(rtsos_rao_dg
     core/Atmosphere_Profile.f90
+	core/SnowBRDF.f90
+	core/RossLiBRDF.f90
     core/Gas_Absorption_CS_Readin.f90
     core/Save_Ocean_Rad.f90
     core/aerosol_microphysical_model.f90
