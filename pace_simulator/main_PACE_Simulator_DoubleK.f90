@@ -540,9 +540,7 @@ READ(1,'(A)')CFILE_AP    ! Atmosphere number density profile
 READ(1,'(A)')CFILE_AEROSOLS(1) ! AEROSOL PHASE MATRIX FILE
 READ(1,'(A)')CFILE_AEROSOLS(2) ! AEROSOL PHASE MATRIX FILE top layer
 
-IF(OCEAN_CASE_SELECT<0)THEN
-  READ(1,'(A)')land_ref_spectra_filename  !land surface reflectance filename if ocean_case_select<0
-ENDIF
+IF(OCEAN_CASE_SELECT < 0) READ(1,'(A)')land_ref_spectra_filename  !land surface reflectance filename
 
 READ(1,'(A)')OUTFILE
 CLOSE(1)
@@ -561,17 +559,26 @@ IF(index(OUTFILE,'#')>1) &
    OUTFILE=trim(OUTFILE(1:index(OUTFILE,'#')-1))
 
 IF(OCEAN_CASE_SELECT<0) THEN
+   IF(OCEAN_CASE_SELECT==-202) snow_brdf_path=trim(aux_dir)//'SnowBRDF_Data/brdfPaperMaterial/'
    IF(index(land_ref_spectra_filename,'#')>1) &
-      land_ref_spectra_filename=trim(land_ref_spectra_filename(1:index(land_ref_spectra_filename,'#')-1))
+	  land_ref_spectra_filename=trim(land_ref_spectra_filename(1:index(land_ref_spectra_filename,'#')-1))
    OPEN(unit=1,file=land_ref_spectra_filename,status='old')
    READ(1,*)nwv_land_ref
    ALLOCATE(wavelength_land_ref(nwv_land_ref),fiso_input(nwv_land_ref),&
-            fvol_input(nwv_land_ref),fgeo_input(nwv_land_ref),Bpol_input(nwv_land_ref))
+			fvol_input(nwv_land_ref),fgeo_input(nwv_land_ref),Bpol_input(nwv_land_ref))
    DO INTTMP=1,nwv_land_ref
-      READ(1,*)wavelength_land_ref(INTTMP),fiso_input(INTTMP),&
-               fvol_input(INTTMP),fgeo_input(INTTMP),Bpol_input(INTTMP)
+	  READ(1,*)wavelength_land_ref(INTTMP),fiso_input(INTTMP),&
+			   fvol_input(INTTMP),fgeo_input(INTTMP),Bpol_input(INTTMP)
    ENDDO
    CLOSE(1)
+
+   IF(OCEAN_CASE_SELECT==-201)THEN ! TEMPORARY VALUE. MORE TBD
+		pBRDFa_input=0.155d0
+		pBRDFk_input=1.5d0
+		pBRDFb_input=-0.5d0
+        pBRDFe_input=0.0d0
+   ENDIF
+
 ENDIF
 
 
@@ -608,16 +615,6 @@ IF(.NOT. GAS_ABS_FLAG) MONOCHROMATIC_FLAG=.TRUE.
 IF(MONOCHROMATIC_FLAG)THEN
   HYSPECTRAL_FLAG=.FALSE.
   WRITE(*,*) 'HYSPECTRAL_FLAG IS RESET TO .FALSE. DUE TO MONOCHROMATIC_FLAG'
-ENDIF
-IF(OCEAN_CASE_SELECT==-201)THEN
-  pBRDFa_input=0.155d0
-  pBRDFk_input=1.5d0
-  pBRDFb_input=-0.5d0
-  pBRDFe_input=0.0d0
-ENDIF
-
-IF(OCEAN_CASE_SELECT==-202)THEN
- snow_brdf_path=trim(aux_dir)//'/SnowBRDF_Data/brdfPaperMaterial/'
 ENDIF
 
 IF(OCEAN_CASE_SELECT==3 .AND. AP_SELECT .NE. 1)THEN
@@ -3454,6 +3451,7 @@ IREC_SHFT=3
 IREC_SHFT=4
 IF(OCEAN_CASE_SELECT==-200)THEN
 ! LAMBERTIAN LAND BOTTOM
+    LBDO_LD=POLINT_SIMPLE(nwv_land_ref,wavelength_land_ref,fiso_input,WAVELENGTH_NANOMETER,2)
 	RECDATASTREAM(NTLYERA+IREC_SHFT,1)=INDXLAMB
 	RECDATASTREAM(NTLYERA+IREC_SHFT,2)=LBDO_LD
 	RECDATASTREAM(NTLYERA+IREC_SHFT,3)=FLAM
@@ -3475,9 +3473,10 @@ IF(OCEAN_CASE_SELECT==-201)THEN
 ENDIF
 
 IF(OCEAN_CASE_SELECT==-202)THEN
+    LBDO_LD=POLINT_SIMPLE(nwv_land_ref,wavelength_land_ref,fiso_input,WAVELENGTH_NANOMETER,2)
 ! Snow LAND BOTTOM
 	RECDATASTREAM(NTLYERA+IREC_SHFT,1)=INDXSNOW
-	RECDATASTREAM(NTLYERA+IREC_SHFT,2)=LBDO_LD ! will not be used for snow surface. A LUT will be searched instead.
+	RECDATASTREAM(NTLYERA+IREC_SHFT,2)=LBDO_LD ! snow surface albedo. BRDF is determined by Hudson et al, JGR, 2006
 	RECDATASTREAM(NTLYERA+IREC_SHFT,3)=0.0d0
 	RECDATASTREAM(NTLYERA+IREC_SHFT,4)=0.0d0
 	RECDATASTREAM(NTLYERA+IREC_SHFT,5)=0.0d0
