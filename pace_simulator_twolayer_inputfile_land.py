@@ -92,7 +92,7 @@ AeroFMF=0.3
 # negative values mean land surface
 # 0: atmosphere bounded by ocean surface only
 
-bottom_case_select=np.array([0,1,-203])
+bottom_case_select=np.array([0,1,-202,-203])
 
 ncolinput=40
 nquadainput=40
@@ -134,16 +134,24 @@ aerosol_phasematrix_file_low='output_flexible_aerosol_fullwave.h5'
 #afglss.dat
 #afglmw.dat
 
-nwv_land_ref=6
-wavelength_land_ref=np.array([300.,440.,550.,664.,867.,2260.])
-fiso=np.array([0.05,0.05,0.05,0.05,0.05,0.05])
-fvol=0.1*fiso
-fgeo=0.5*fiso
-Bpol=np.ones([nwv_land_ref])
-
 ###########
 ipss=1
-iocean=2
+iocean=3
+
+if bottom_case_select[iocean] == -202 :
+	nwv_land_ref=6
+	wavelength_land_ref=np.array([300.,440.,550.,664.,867.,2260.])
+	fiso=np.array([0.99,0.9878,0.9822,0.9615,0.90,0.19])
+	fvol=0.0*fiso
+	fgeo=0.0*fiso
+	Bpol=0.0*fiso
+else :
+	nwv_land_ref=6
+	wavelength_land_ref=np.array([300.,440.,550.,664.,867.,2260.])
+	fiso=np.array([0.05,0.05,0.05,0.05,0.05,0.05])
+	fvol=0.1*fiso
+	fgeo=0.5*fiso
+	Bpol=np.ones([nwv_land_ref])
 
 if bottom_case_select[iocean] >= 0 :
 	print("this script is for land surface only. Use another script for ocean surfaces!")
