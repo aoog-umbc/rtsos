@@ -26,7 +26,7 @@ def cache_input(cache_default):
         ds = ds.isel(
             {
                 "Wind_Speed": slice(0, 1),
-                "sza-dt": slice(0, 3),  # three sza-dt folders for each am
+                "sza-dt": slice(0, 3),  # three sza-dt folders
                 "Tau_NIR": slice(0, 2),  # two parameter files in each sza-dt folder
             },
         )
@@ -37,10 +37,11 @@ def cache_input(cache_default):
 @fixture(scope="module")
 def cache_output(cache_input):
     path = cache_input.parent / "output.nc"
-    if not any((path.parent / "output").glob("am/**/output.nc")):
+    if not any((path.parent / "output").glob("**/output.nc")):
         rt_AC_LUT.main(
             [
-                "--cluster=am:42,sza-dt",  # run only am 42, run for each sza-dt
+                # run one AM, one RH, and every sza-dt
+                "--cluster=Aerosol_Model:2,Relative_Humidity:4,sza-dt",
                 str(cache_input),
                 str(path),
             ],
@@ -52,15 +53,17 @@ def cache_output(cache_input):
 def tmp_cluster_post(cache_input, cache_output):
     rt_AC_LUT.main(
         [
-            "--cluster=am:42",  # for am index 42
-            "--post=sza-dt",  # aggregate sza-dt
+            # do not aggregate above AM and RH levels
+            "--cluster=Aerosol_Model:2,Relative_Humidity:4",
+            # aggregate sza-dt
+            "--post=sza-dt",
             str(cache_input),
             str(cache_output),
         ],
     )
     yield cache_output
     path = cache_output.parent / "output"
-    for item in path.glob("am/*/output.nc"):
+    for item in path.glob("Aerosol_Model/*/Relative_Humidity/*/output.nc"):
         item.unlink()
 
 
@@ -68,7 +71,7 @@ def tmp_cluster_post(cache_input, cache_output):
 def tmp_post(cache_input, cache_output):
     rt_AC_LUT.main(
         [
-            "--post=am:42,sza-dt",
+            "--post=Aerosol_Model:2,Relative_Humidity:4,sza-dt",
             str(cache_input),
             str(cache_output),
         ],
@@ -89,7 +92,7 @@ def test_infile(cache_output):
 
 def test_output(cache_output):
     path = cache_output.parent / "output"
-    output = tuple(path.glob("am/42/**/output.nc"))
+    output = tuple(path.glob("Aerosol_Model/*/Relative_Humidity/*/sza-dt/*/output.nc"))
     assert len(output) == 3
     for item in output:
         dataset = xr.open_dataset(item)
@@ -98,7 +101,7 @@ def test_output(cache_output):
 
 def test_cluster_post(tmp_cluster_post):
     path = tmp_cluster_post.parent / "output"
-    output = tuple(path.glob("am/*/output.nc"))
+    output = tuple(path.glob("Aerosol_Model/*/Relative_Humidity/*/output.nc"))
     assert len(output) == 1
     for item in output:
         dataset = xr.open_dataset(item)
