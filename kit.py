@@ -2,7 +2,7 @@ from argparse import ArgumentParser, Namespace
 from functools import reduce
 from pathlib import Path
 from shutil import copy
-from tempfile import TemporaryDirectory
+from tempfile import gettempdir, TemporaryDirectory
 from typing import Iterable
 import subprocess
 
@@ -37,6 +37,12 @@ cli.add_argument(
     type=str,
     help="dimensions by which cluster outputs (i.e. a previous call with "
     "`--cluster`) are combined, formatted as for `--cluster`",
+)
+cli.add_argument(
+    "--tmp",
+    type=Path,
+    default=gettempdir(),
+    help="path where temporary directories will be created",
 )
 cli.add_argument(
     "inputs",
@@ -166,19 +172,19 @@ class ZhaiRT:
                 _, postdirs = reduce_by_coords(coordinates, value, key)
                 postdirs = np.unique(postdirs)
                 paths = args.outputs.parent / prefix / postdirs / args.outputs.name
-                dataset = xr.open_mfdataset(paths=paths.tolist(), combine="by_coords")
+                dataset = xr.open_mfdataset(paths=paths.tolist(), data_vars="different")
                 if hasattr(self, "post"):
                     dataset = self.post(dataset)
                 dataset.to_netcdf(args.outputs.parent / key / args.outputs.name)
             return
         # execute the RT simulations in a temp directory then copy to outputs
         for key, value in groupby(dataset=inputs, groups=outdirs):
-            self.rtsos(value, args.outputs.parent / key / args.outputs.name)
+            self.rtsos(args.tmp, value, args.outputs.parent / key / args.outputs.name)
 
-    def rtsos(self, inputs: xr.Dataset, outputs: Path) -> None:
+    def rtsos(self, tmp: Path, inputs: xr.Dataset, outputs: Path) -> None:
         # within a temporary directory, write the rtsos input files and store
         # outputs from each rtsos calculation, run as a subprocess
-        with TemporaryDirectory() as tmpdir:
+        with TemporaryDirectory(dir=tmp) as tmpdir:
             tmpdir = Path(tmpdir)
             outdir = outputs.parent
             outdir.mkdir(parents=True, exist_ok=True)
@@ -199,11 +205,10 @@ class ZhaiRT:
                 # TODO wrap Fortran to call the program directly
                 subprocess.run(args=[self.program, str(tmpdir / infile)], check=True)
                 # expect no output if instructed to only calculate Mie tables
-                name = P.MIE_TABLE_CAL.__name__
-                if name in one_input and one_input[name] == 1:
+                mie_table_cal = P.MIE_TABLE_CAL.__name__
+                if mie_table_cal in one_input and one_input[mie_table_cal] == 1:
                     continue
                 # lazy read for outfile metadata
-                # FIXME use netCDF4-python see Unidata/netCDF4-python#1226
                 one_output = xr.open_dataset(tmpdir / outfile)
                 # expect non-mergeable output with any phony dims
                 if "phony_dim_0" in one_output.dims:
@@ -233,9 +238,11 @@ class ZhaiRT:
                 one_output = xr.merge((one_input, one_output))
                 datasets.append(one_output)
             if datasets:
+                # concatenate datasets
+                ds = xr.combine_by_coords(datasets, data_vars="different")
                 # write the concatenated datasets to the outputs directory, with
                 # length one coordinates returned to scalars
-                return xr.combine_by_coords(datasets).to_netcdf(path=outputs)
+                return ds.to_netcdf(path=outputs)
 
     def infile(self, path: Path, dataset: xr.Dataset) -> Path:
         """Write parameters to a text file, and return its path."""

@@ -33,7 +33,7 @@ def main(argv=None):
         P.iwhitecap: 0,
         P.I_SURFACE_ROUGHNESS_PARA: 2,
         P.Diffuse_Transmittance_Flag: [0, 1],
-        P.I_SPHERICAL_SHELL_CORRECTION: 0,
+        P.I_SPHERICAL_SHELL_CORRECTION: 1,
         P.CFILE_AP: "afglus.dat",
     }
 
@@ -67,12 +67,6 @@ def main(argv=None):
     )
     dataset["sza-dt"] = dataset.get_index("sza-dt")
 
-    # combine Aerosol_Model and Relative_Humidity into one index
-    # TODO eliminate this
-    dim = {"am": (AM, RH)}
-    dataset = dataset.stack(dimensions=dim, create_index=False)
-    dataset["am"] = dataset.get_index("am")
-
     # the callable object that runs the given program
     prog = AC_LUT(
         program="rtsos_GSFC_AC_LUT.exe",
@@ -94,44 +88,41 @@ class AC_LUT(ZhaiRT):
         # replace am and sza-dt coordinates with model parameters
         # TODO move as much of the renaming/slicing to ac-luts as possible
         # drop unneeded coordinates
-        dataset = dataset.where(dataset["ThetaV"] < 90.0, drop=True)
-        # restore the coordinates stacked in am
-        dataset = dataset.squeeze("am").drop_vars("am")
+        dataset = dataset.sel({"ThetaV": slice(0, 90)})
+        dataset = dataset.drop_dims("Altitude")
         # unstack the sza-dt dimension into separate datasets
-        dt = dataset[DT] == 1
-        dt_dataset = (
-            dataset.sel({"sza-dt": dt}).squeeze("sza-dt").drop_vars([DT, "sza-dt"])
+        diffuse = dataset[DT] == 1
+        dt = (
+            dataset.sel({"sza-dt": diffuse}).squeeze("sza-dt").drop_vars([DT, "sza-dt"])
         )
         rename = {
             "Radiance_TOA": "LT_TOA",
             "Radiance_BOA": "LT_BOA",
         }
-        dt_dataset = dt_dataset.rename(rename)[list(rename.values())]
-        sza_dataset = (
-            dataset.sel({"sza-dt": ~dt})
+        dt = dt.rename(rename)[list(rename.values())]
+        sza = (
+            dataset.sel({"sza-dt": ~diffuse})
             .swap_dims({"sza-dt": SZ})
             .drop_vars([DT, "sza-dt"])
         )
         # calculate aggregrates, ignoring dimensions known to have no effect
-        # TODO this subsetting suggests prior unnecessary broadcasting,
-        #      as does the dimension of e.g. Aerosol_Model_Number in raw output
-        ds = sza_dataset[{WI: 0, SZ: 0, "ThetaV": 0}]
-        sza_dataset["aot"] = ds["Tau_Aerosol_Extinction"].sum("NTLYERA")
-        sza_dataset["aot"].attrs.update(
+        sza["aot"] = sza["Tau_Aerosol_Extinction"].sum("NTLYERA")
+        sza["aot"].attrs.update(
             {
                 "long_name": "Optical Thickness",
                 "units": "unitless",
             }
         )
-        sza_dataset["rot"] = ds["Tau_Rayleigh_Extinction"].sum("NTLYERA")
-        sza_dataset["rot"].attrs.update(
+        # FIXME rot has Tau_NIR dim in Amir's code, but not here
+        sza["rot"] = sza["Tau_Rayleigh_Extinction"].sum("NTLYERA")
+        sza["rot"].attrs.update(
             {
                 "long_name": "Optical Thickness",
                 "units": "unitless",
             }
         )
-        sza_dataset["depol"] = ds["Rayleigh_Depolarization_Ratio"].mean("NTLYERA")
-        sza_dataset["depol"].attrs.update(
+        sza["depol"] = sza["Rayleigh_Depolarization_Ratio"].mean("NTLYERA")
+        sza["depol"].attrs.update(
             {
                 "long_name": "Depolarization Factor",
                 "units": "unitless",
@@ -146,8 +137,9 @@ class AC_LUT(ZhaiRT):
             "U_TOA_Glint": "TUg",
             "Irrad_Down_TOA": "diff_irrad",
         }
-        sza_dataset = sza_dataset.rename(rename)
-        sza_dataset = sza_dataset[list(rename.values()) + ["aot", "rot", "depol"]]
+        sza = sza.rename(rename)
+        sza = sza[list(rename.values()) + ["aot", "rot", "depol"]]
         # merge the sza and dt datasets back together
-        dataset = xr.merge((dt_dataset, sza_dataset))
+        coords = dataset.drop_dims("sza-dt").coords
+        dataset = xr.merge((coords, dt, sza))
         return dataset
