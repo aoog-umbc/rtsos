@@ -26,7 +26,7 @@ def main(argv=None):
         P.Relative_Humidity: [0.3, 0.5, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95],
         P.Wave_Mean_Square_Slope: [0, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4],
         P.Solar_Zenith_Angle: range(0, 90, 2),
-        P.Tau_NIR: [0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.4, 0.5],
+        P.Tau_NIR: [0, 0.01, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.4, 0.5],
         P.Pressure_Surface_mb: 1013.0,
         P.H2O_COLUMN: 1.4387,
         P.OZONE_COLUMN_DobsonUnit: 345.66,
