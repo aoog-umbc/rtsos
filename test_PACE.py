@@ -13,39 +13,39 @@ def cache_dir(pytestconfig):
 
 
 @fixture(scope="module")
-def cache_default(cache_dir):
+def tmp_default(cache_dir):
     path = cache_dir / "default.nc"
-    if not path.exists():
-        rt_PACE.main(["--pre", str(path)])
-    return path
+    rt_PACE.main(["--pre", str(path)])
+    yield path
+    path.unlink()
 
 
 @fixture(scope="module")
-def cache_input(cache_default):
-    path = cache_default.parent / "input.nc"
-    if not path.exists():
-        ds = xr.load_dataset(cache_default)
-        ds["ncolinput"][()] = 10
-        ds["nquadainput"][()] = 20
-        ds["nquadoinput"][()] = 40
-        ds["MAXMORDINPUT"][()] = 3
-        ds["NTHETAV"][()] = 1
-        ds["NPHIV"][()] = 1
-        ds["OCEAN_RAMAN_FLAG"][()] = 0
-        ds["OCEAN_FCHLA_FLAG"][()] = 0
-        ds["OCEAN_FCDOM_FLAG"][()] = 0
-        ds.to_netcdf(path)
-    return path
+def tmp_input(tmp_default):
+    path = tmp_default.parent / "input.nc"
+    ds = xr.load_dataset(tmp_default)
+    ds["ncolinput"][()] = 10
+    ds["nquadainput"][()] = 20
+    ds["nquadoinput"][()] = 40
+    ds["MAXMORDINPUT"][()] = 3
+    ds["NTHETAV"][()] = 1
+    ds["NPHIV"][()] = 1
+    ds["OCEAN_RAMAN_FLAG"][()] = 0
+    ds["OCEAN_FCHLA_FLAG"][()] = 0
+    ds["OCEAN_FCDOM_FLAG"][()] = 0
+    ds.to_netcdf(path)
+    yield path
+    path.unlink()
 
 
 @fixture(scope="module")
-def cache_output(cache_input):
-    path = cache_input.parent / "output.nc"
+def cache_output(tmp_input):
+    path = tmp_input.parent / "output.nc"
     if not any((path.parent / "output").glob("chla/**/output.nc")):
         rt_PACE.main(
             [
                 "--cluster=chla:0,tau_ref_hi",  # run only chla 0, run for each tau_ref_hi
-                str(cache_input),
+                str(tmp_input),
                 str(path),
             ],
         )
@@ -53,39 +53,31 @@ def cache_output(cache_input):
 
 
 @fixture(scope="module")
-def cache_two_layer_input(cache_input):
+def tmp_two_layer_input(tmp_input):
     # TODO resolve cross module fixture
-    phmx = cache_input.parent.parent / "phmx" / "output.nc"
-    path = cache_input.parent / "phmx-input.nc"
-    if not path.exists():
-        ds = xr.load_dataset(cache_input)
-        ds = ds.isel({"Solar_Zenith_Angle": 0, "tau_ref_hi": 0, "chla": 0})
-        ds["Aerosol_Model"][()] = -97
-        ds["tau_ref_hi"][()] = 0.05
-        ds["tau_ref_low"][()] = 0.1
-        ds["height_particle_hi"] = 12.0
-        ds["height_particle_low"] = 4.0
-        ds["Aerosol_Phasematrix_File_Hi"] = (
-            (),
-            str(phmx.relative_to(Path().absolute())),
-            ds["Aerosol_Phasematrix_File_Hi"].attrs,
-        )
-        ds["Aerosol_Phasematrix_File_Low"] = (
-            (),
-            str(phmx.relative_to(Path().absolute())),
-            ds["Aerosol_Phasematrix_File_Low"].attrs,
-        )
-        ds.to_netcdf(path)
-    return path
+    phmx = tmp_input.parent.parent / "phmx" / "output.nc"
+    path = tmp_input.parent / "phmx-input.nc"
+    ds = xr.load_dataset(tmp_input)
+    ds = ds.isel({"Solar_Zenith_Angle": 0, "tau_ref_hi": 0, "chla": 0})
+    ds["Aerosol_Model"][()] = -97
+    ds["tau_ref_hi"][()] = 0.05
+    ds["tau_ref_low"][()] = 0.1
+    ds["height_particle_hi"] = 12.0
+    ds["height_particle_low"] = 4.0
+    ds["Aerosol_Phasematrix_File_Hi"] = str(phmx)
+    ds["Aerosol_Phasematrix_File_Low"] = str(phmx)
+    ds.to_netcdf(path)
+    yield path
+    path.unlink()
 
 
 @fixture(scope="module")
-def cache_two_layer_output(cache_two_layer_input):
-    path = cache_two_layer_input.parent / "phmx-output.nc"
+def cache_two_layer_output(tmp_two_layer_input):
+    path = tmp_two_layer_input.parent / "phmx-output.nc"
     if not path.exists():
         rt_PACE.main(
             [
-                str(cache_two_layer_input),
+                str(tmp_two_layer_input),
                 str(path),
             ],
         )
@@ -93,11 +85,11 @@ def cache_two_layer_output(cache_two_layer_input):
 
 
 @fixture
-def tmp_post(cache_input, cache_output):
+def tmp_post(tmp_input, cache_output):
     rt_PACE.main(
         [
             "--post=chla:0,tau_ref_hi",
-            str(cache_input),
+            str(tmp_input),
             str(cache_output),
         ],
     )
@@ -105,8 +97,8 @@ def tmp_post(cache_input, cache_output):
     cache_output.unlink()
 
 
-def test_default(cache_default):
-    ds = xr.open_dataset(cache_default)
+def test_default(tmp_default):
+    ds = xr.open_dataset(tmp_default)
     assert len(ds.data_vars) == 0
     assert ds["wv_pace_ref"].item() == np.float32(532.0)
 

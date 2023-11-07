@@ -10,39 +10,39 @@ def cache_dir(pytestconfig):
 
 
 @fixture(scope="module")
-def cache_default(cache_dir):
+def tmp_default(cache_dir):
     path = cache_dir / "default.nc"
-    if not path.exists():
-        rt_AC_LUT.main(["--pre", str(path)])
-    return path
+    rt_AC_LUT.main(["--pre", str(path)])
+    yield path
+    path.unlink()
 
 
 @fixture(scope="module")
-def cache_input(cache_default):
-    path = cache_default.parent / "input.nc"
-    if not path.exists():
-        ds = xr.load_dataset(cache_default)
-        ds["NWV"][...] = 6
-        ds = ds.isel(
-            {
-                "Wind_Speed": slice(0, 1),
-                "sza-dt": slice(0, 3),  # three sza-dt folders
-                "Tau_NIR": slice(0, 2),  # two parameter files in each sza-dt folder
-            },
-        )
-        ds.to_netcdf(path)
-    return path
+def tmp_input(tmp_default):
+    path = tmp_default.parent / "input.nc"
+    ds = xr.load_dataset(tmp_default)
+    ds["NWV"][...] = 6
+    ds = ds.isel(
+        {
+            "Wind_Speed": slice(0, 1),
+            "sza-dt": slice(0, 3),  # three sza-dt folders
+            "Tau_NIR": slice(0, 2),  # two parameter files in each sza-dt folder
+        },
+    )
+    ds.to_netcdf(path)
+    yield path
+    path.unlink()
 
 
 @fixture(scope="module")
-def cache_output(cache_input):
-    path = cache_input.parent / "output.nc"
+def cache_output(tmp_input):
+    path = tmp_input.parent / "output.nc"
     if not any((path.parent / "output").glob("**/output.nc")):
         rt_AC_LUT.main(
             [
                 # run one AM, one RH, and every sza-dt
                 "--cluster=Aerosol_Model:2,Relative_Humidity:4,sza-dt",
-                str(cache_input),
+                str(tmp_input),
                 str(path),
             ],
         )
@@ -50,14 +50,14 @@ def cache_output(cache_input):
 
 
 @fixture
-def tmp_cluster_post(cache_input, cache_output):
+def tmp_cluster_post(tmp_input, cache_output):
     rt_AC_LUT.main(
         [
             # do not aggregate above AM and RH levels
             "--cluster=Aerosol_Model:2,Relative_Humidity:4",
             # aggregate sza-dt
             "--post=sza-dt",
-            str(cache_input),
+            str(tmp_input),
             str(cache_output),
         ],
     )
@@ -68,11 +68,11 @@ def tmp_cluster_post(cache_input, cache_output):
 
 
 @fixture
-def tmp_post(cache_input, cache_output):
+def tmp_post(tmp_input, cache_output):
     rt_AC_LUT.main(
         [
             "--post=Aerosol_Model:2,Relative_Humidity:4,sza-dt",
-            str(cache_input),
+            str(tmp_input),
             str(cache_output),
         ],
     )
@@ -80,8 +80,8 @@ def tmp_post(cache_input, cache_output):
     cache_output.unlink()
 
 
-def test_default(cache_default):
-    ds = xr.open_dataset(cache_default)
+def test_default(tmp_default):
+    ds = xr.open_dataset(tmp_default)
     assert len(ds.data_vars) == 0
 
 

@@ -10,28 +10,28 @@ def cache_dir(pytestconfig):
 
 
 @fixture(scope="module")
-def cache_input(cache_dir):
-    path = cache_dir / "input.nc"
-    if not path.exists():
-        rt_PHMX.main(["--pre", str(path)])
-    return path
+def tmp_default(cache_dir):
+    path = cache_dir / "default.nc"
+    rt_PHMX.main(["--pre", str(path)])
+    yield path
+    path.unlink()
 
 
 @fixture(scope="module")
-def cache_output(cache_input):
-    path = cache_input.parent / "output.nc"
+def cache_output(tmp_default):
+    path = tmp_default.parent / "output.nc"
     if not path.exists():
         rt_PHMX.main(
             [
-                str(cache_input),
+                str(tmp_default),
                 str(path),
             ],
         )
     return path
 
 
-def test_default(cache_input):
-    ds = xr.open_dataset(cache_input)
+def test_default(tmp_default):
+    ds = xr.open_dataset(tmp_default)
     assert len(ds.data_vars) == 0
 
 
