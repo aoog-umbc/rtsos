@@ -73,11 +73,12 @@ class Parameters:
                 + "".join((" Ahmad",) * 10)
                 + " dust_aerosol_model"
             ),
-            flag_meanings_fmf=np.array(
-                [np.nan] * 15 + [0, 1, 2, 5, 10, 20, 30, 50, 80, 95, np.nan],
+            fine_mode_fraction=np.array(
+                [np.nan] * 15
+                + [0, 0.01, 0.02, 0.05, 0.1, 0.2, 0.3, 0.5, 0.8, 0.95, np.nan],
                 dtype=np.float32,
             ),
-            flag_meanings_sd=np.array(
+            size_distribution=np.array(
                 [np.nan] * 15 + [25, 24, 23, 22, 21, 20, 19, 18, 17, 16, np.nan],
                 dtype=np.float32,
             ),
@@ -363,7 +364,6 @@ class Parameters:
         default=None,
         metadata=dict(
             long_name="mean square slope of waves",
-            dim="Wind_Speed",
             dtype=np.float32,
         ),
     )
@@ -809,11 +809,11 @@ class Parameters:
                 "else if `I_SURFACE_ROUGHNESS_PARA == 2` from Gordon & "
                 "Wang 1992"
             ),
-            valid_range=np.array((0.1, 15), dtype=np.float32),
+            dim="Wave_Mean_Square_Slope",
+            valid_range=np.array((0, 30), dtype=np.float32),
             dtype=np.float32,
         ),
     )
-    # NB use of "Wind_Speed" in Parameters.Mean_Square_Slope
 
     water_depth_max: Any = field(
         default=None,

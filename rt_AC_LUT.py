@@ -3,7 +3,7 @@ import xarray as xr
 
 from .kit import cli, ZhaiRT
 from .parameters import Parameters as P
-from .parameters import AM, RH, WI, SZ, DT
+from .parameters import SZ, DT
 
 
 def main(argv=None):
@@ -50,24 +50,24 @@ def main(argv=None):
         for k, v in values.items()
     }
     values[P.Wind_Speed] = wndspd
+    values[P.Wave_Mean_Square_Slope] = wmss
 
     # create a dataset to hold the inputs as coordinates
     params = P()
-    values[P.Wave_Mean_Square_Slope] = wmss
     dataset = params.make_dataset(values)
-    values.pop(P.Wave_Mean_Square_Slope)
 
     # replace independent sza and dt dimensions with a single index, so we
     # only run simulations over sza for dt == 0.
     dim = {"sza-dt": (SZ, DT)}
     dataset = dataset.stack(dimensions=dim, create_index=False)
     dataset = dataset.where(
-        ~np.logical_and(dataset[DT] == 1, dataset[SZ] != 0.0),
+        np.logical_or(dataset[DT] == 0, dataset[SZ] == 0.0),
         drop=True,
     )
     dataset["sza-dt"] = dataset.get_index("sza-dt")
 
     # the callable object that runs the given program
+    values.pop(P.Wave_Mean_Square_Slope)
     prog = AC_LUT(
         program="rtsos_GSFC_AC_LUT.exe",
         defaults=dataset,
@@ -81,65 +81,63 @@ def main(argv=None):
 
 class AC_LUT(ZhaiRT):
     """Class that drives rt-AC-LUT, having a `post` method to normalize the compound
-    dimensions
+    dimension and limit outputs
     """
 
     def post(self, dataset: xr.Dataset) -> xr.Dataset:
         # replace am and sza-dt coordinates with model parameters
-        # TODO move as much of the renaming/slicing to ac-luts as possible
-        # drop unneeded coordinates
+        # TODO drop unneeded coordinates range in FORTRAN
         dataset = dataset.sel({"ThetaV": slice(0, 90)})
+        # TODO drop unneeded dimension in FORTRAN
         dataset = dataset.drop_dims("Altitude")
-        # unstack the sza-dt dimension into separate datasets
-        diffuse = dataset[DT] == 1
-        dt = (
-            dataset.sel({"sza-dt": diffuse}).squeeze("sza-dt").drop_vars([DT, "sza-dt"])
-        )
-        rename = {
-            "Radiance_TOA": "LT_TOA",
-            "Radiance_BOA": "LT_BOA",
-        }
-        dt = dt.rename(rename)[list(rename.values())]
-        sza = (
-            dataset.sel({"sza-dt": ~diffuse})
-            .swap_dims({"sza-dt": SZ})
-            .drop_vars([DT, "sza-dt"])
-        )
-        # calculate aggregrates, ignoring dimensions known to have no effect
-        sza["aot"] = sza["Tau_Aerosol_Extinction"].sum("NTLYERA")
-        sza["aot"].attrs.update(
+        # split the flag for diffuse transmittance into separate datasets
+        dataset = dataset.set_index({"sza-dt": [SZ, DT]})
+        td = dataset.sel({DT: 1}).squeeze(SZ).reset_coords(drop=True)
+        dataset = dataset.sel({DT: 0}).drop_vars(DT)
+        # calculate ratios and aggregrates
+        variable = []
+        variable.append("diffuse_transmittance")
+        dataset[variable[-1]] = td["Radiance_TOA"] / td["Radiance_BOA"]
+        dataset[variable[-1]].attrs.update(
             {
-                "long_name": "Optical Thickness",
+                "long_name": "Diffuse Transmittance",
+            }
+        )
+        variable.append("aerosol_optical_thickness")
+        dataset[variable[-1]] = dataset["Tau_Aerosol_Extinction"].sum("NTLYERA")
+        dataset[variable[-1]].attrs.update(
+            {
+                "long_name": "Aerosol Optical Thickness",
                 "units": "unitless",
             }
         )
         # FIXME rot has Tau_NIR dim in Amir's code, but not here
-        sza["rot"] = sza["Tau_Rayleigh_Extinction"].sum("NTLYERA")
-        sza["rot"].attrs.update(
+        variable.append("rayleigh_optical_thickness")
+        dataset[variable[-1]] = dataset["Tau_Rayleigh_Extinction"].sum("NTLYERA")
+        dataset[variable[-1]].attrs.update(
             {
-                "long_name": "Optical Thickness",
+                "long_name": "Rayleigh Optical Thickness",
                 "units": "unitless",
             }
         )
-        sza["depol"] = sza["Rayleigh_Depolarization_Ratio"].mean("NTLYERA")
-        sza["depol"].attrs.update(
+        variable.append("depolarization")
+        dataset[variable[-1]] = dataset["Rayleigh_Depolarization_Ratio"].mean("NTLYERA")
+        dataset[variable[-1]].attrs.update(
             {
-                "long_name": "Depolarization Factor",
+                "long_name": "Rayleigh Depolarization Factor",
                 "units": "unitless",
             }
         )
-        rename = {
-            "Radiance_TOA": "Lt",
-            "Q_TOA": "LQ",
-            "U_TOA": "LU",
-            "Radiance_TOA_Glint": "TLg",
-            "Q_TOA_Glint": "TQg",
-            "U_TOA_Glint": "TUg",
-            "Irrad_Down_TOA": "diff_irrad",
-        }
-        sza = sza.rename(rename)
-        sza = sza[list(rename.values()) + ["aot", "rot", "depol"]]
-        # merge the sza and dt datasets back together
-        coords = dataset.drop_dims("sza-dt").coords
-        dataset = xr.merge((coords, dt, sza))
-        return dataset
+        # limit the outputs
+        variable = [
+            "Radiance_TOA",
+            "Radiance_TOA_Glint",
+            "Q_TOA",
+            "Q_TOA_Glint",
+            "U_TOA",
+            "U_TOA_Glint",
+            "Irrad_Down_TOA",
+            *variable,
+            *dataset.coords,
+        ]
+        return dataset[variable]
