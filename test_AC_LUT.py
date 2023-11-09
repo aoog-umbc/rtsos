@@ -24,7 +24,7 @@ def tmp_input(tmp_default):
     ds["NWV"][...] = 6
     ds = ds.isel(
         {
-            "Wind_Speed": slice(0, 1),
+            "Wave_Mean_Square_Slope": slice(0, 1),
             "sza-dt": slice(0, 3),  # three sza-dt folders
             "Tau_NIR": slice(0, 2),  # two parameter files in each sza-dt folder
         },
