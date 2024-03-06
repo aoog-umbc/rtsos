@@ -5043,6 +5043,7 @@ END MODULE nr
           w=c(i+1)-d(i)
           den=ho-hp
           if(den.eq.0.0d0) then
+              write(*,*)'polint data=',xa,ya,n,x
               stop 'failure in polint'
 		  endif
           den=w/den
