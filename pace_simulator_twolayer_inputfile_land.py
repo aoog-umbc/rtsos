@@ -10,8 +10,10 @@ def RossLi_input_writer(filestrbase,ipss,iocean):
     f.write("%f" % wv_pace_ref + '        #WV_PACE_REF \n')
     f.write("%f" % tau_ref_hi + '        #top layer aerosol TAU_REF \n')
     f.write("%f" % Height_Particle_hi + '    # top layer scatteror height \n')
+    f.write("%f" % Height_Variance_Particle_hi + '    # top layer scatteror height variance \n')
     f.write("%f" % tau_ref_low + '        #lower layer aerosol TAU_REF \n')
     f.write("%f" % Height_Particle_low + '    # lower layer scatteror height \n')
+    f.write("%f" % Height_Variance_Particle_low + '  # lower layer scatteror height variance \n')
     f.write("%d" % Aerosol_Model[iaerosol]+ '  #IAEROSOL=-99,-98,-1,1,20. -99 read aerosol pmhx in from file; -98 read water cloud phmx from file; -1 Ahmad model with flexbile RH and FMF; 1-10 is Shettle and Fenn, 11-20 is Ahmad model \n')
     f.write("%f" % AeroFMF + '        #Aerosol fine mode fraction, only used when Aerosol_Model[iaerosol]==-1 \n')
     f.write("%f" % RH[irh]+ '        #Relative Humidity IRH=1,8, RH=[0.30,0.50,0.70,0.75,0.80,0.85,0.90,0.95] \n')
@@ -63,6 +65,9 @@ tau_ref_low=0.1
 
 Height_Particle_hi=12.0
 Height_Particle_low=4.0
+
+Height_Variance_Particle_hi=2.0
+Height_Variance_Particle_low=2.0
 
 Aerosol_Model=([-99,-98, -97, -1,11,12,13,14,15,16,17,18,19,20])
 #Aerosol_Model=([-1]) # flexible FMF and RH options for Ahmad's aerosol model.
