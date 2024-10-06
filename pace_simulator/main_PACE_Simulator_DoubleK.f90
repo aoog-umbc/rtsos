@@ -1978,44 +1978,7 @@ DEALLOCATE(HDF5RARR)
 CALL h5dsset_scale_f(c_dim_nwv_band, hdferr)
 CALL h5sclose_f(space, hdferr)
 
-CALL h5screate_simple_f(1, dimscl, space, hdferr)
-CALL h5dcreate_f(file, 'fiso', H5T_IEEE_F32LE, space, c_dim_nwv_band, hdferr)
-ALLOCATE(HDF5RARR(NWV_BAND))
-HDF5RARR=fiso_avg
-CALL h5dwrite_f(c_dim_nwv_band, H5T_NATIVE_REAL, C_LOC(HDF5RARR(1)), hdferr)
-DEALLOCATE(HDF5RARR)
-CALL h5dsset_scale_f(c_dim_nwv_band, hdferr)
-CALL h5sclose_f(space, hdferr)
-
-CALL h5screate_simple_f(1, dimscl, space, hdferr)
-CALL h5dcreate_f(file, 'fgeo', H5T_IEEE_F32LE, space, c_dim_nwv_band, hdferr)
-ALLOCATE(HDF5RARR(NWV_BAND))
-HDF5RARR=fgeo_avg
-CALL h5dwrite_f(c_dim_nwv_band, H5T_NATIVE_REAL, C_LOC(HDF5RARR(1)), hdferr)
-DEALLOCATE(HDF5RARR)
-CALL h5dsset_scale_f(c_dim_nwv_band, hdferr)
-CALL h5sclose_f(space, hdferr)
-
-CALL h5screate_simple_f(1, dimscl, space, hdferr)
-CALL h5dcreate_f(file, 'fvol', H5T_IEEE_F32LE, space, c_dim_nwv_band, hdferr)
-ALLOCATE(HDF5RARR(NWV_BAND))
-HDF5RARR=fvol_avg
-CALL h5dwrite_f(c_dim_nwv_band, H5T_NATIVE_REAL, C_LOC(HDF5RARR(1)), hdferr)
-DEALLOCATE(HDF5RARR)
-CALL h5dsset_scale_f(c_dim_nwv_band, hdferr)
-CALL h5sclose_f(space, hdferr)
-
-CALL h5screate_simple_f(1, dimscl, space, hdferr)
-CALL h5dcreate_f(file, 'Bpol', H5T_IEEE_F32LE, space, c_dim_nwv_band, hdferr)
-ALLOCATE(HDF5RARR(NWV_BAND))
-HDF5RARR=Bpol_avg
-CALL h5dwrite_f(c_dim_nwv_band, H5T_NATIVE_REAL, C_LOC(HDF5RARR(1)), hdferr)
-DEALLOCATE(HDF5RARR)
-CALL h5dsset_scale_f(c_dim_nwv_band, hdferr)
-CALL h5sclose_f(space, hdferr)
-
 dimscl=(/ NWV_OUTPUT /)
-
 CALL h5screate_simple_f(1, dimscl, space, hdferr)
 CALL h5dcreate_f(file, 'WaveLength_Simulation', H5T_IEEE_F32LE, space, c_dim_nwv_output, hdferr)
 ALLOCATE(HDF5RARR(NWV_OUTPUT))
@@ -2028,6 +1991,44 @@ CALL h5dwrite_f(c_dim_nwv_output, H5T_NATIVE_REAL, C_LOC(HDF5RARR(1)), hdferr)
 DEALLOCATE(HDF5RARR)
 CALL h5dsset_scale_f(c_dim_nwv_output, hdferr)
 CALL h5sclose_f(space, hdferr)
+
+IF(ILS_FLAG)THEN
+	CALL h5screate_simple_f(1, dimscl, space, hdferr)
+	CALL h5dcreate_f(file, 'fiso', H5T_IEEE_F32LE, space, c_dim_nwv_output, hdferr)
+	ALLOCATE(HDF5RARR(NWV_OUTPUT))
+	HDF5RARR(1:NWV_OUTPUT)=fiso_avg(NWV_START:NWV_END)
+	CALL h5dwrite_f(c_dim_nwv_output, H5T_NATIVE_REAL, C_LOC(HDF5RARR(1)), hdferr)
+	DEALLOCATE(HDF5RARR)
+	CALL h5dsset_scale_f(c_dim_nwv_output, hdferr)
+	CALL h5sclose_f(space, hdferr)
+
+	CALL h5screate_simple_f(1, dimscl, space, hdferr)
+	CALL h5dcreate_f(file, 'fgeo', H5T_IEEE_F32LE, space, c_dim_nwv_output, hdferr)
+	ALLOCATE(HDF5RARR(NWV_OUTPUT))
+	HDF5RARR(1:NWV_OUTPUT)=fgeo_avg(NWV_START:NWV_END)
+	CALL h5dwrite_f(c_dim_nwv_output, H5T_NATIVE_REAL, C_LOC(HDF5RARR(1)), hdferr)
+	DEALLOCATE(HDF5RARR)
+	CALL h5dsset_scale_f(c_dim_nwv_output, hdferr)
+	CALL h5sclose_f(space, hdferr)
+
+	CALL h5screate_simple_f(1, dimscl, space, hdferr)
+	CALL h5dcreate_f(file, 'fvol', H5T_IEEE_F32LE, space, c_dim_nwv_output, hdferr)
+	ALLOCATE(HDF5RARR(NWV_OUTPUT))
+	HDF5RARR(1:NWV_OUTPUT)=fvol_avg(NWV_START:NWV_END)
+	CALL h5dwrite_f(c_dim_nwv_output, H5T_NATIVE_REAL, C_LOC(HDF5RARR(1)), hdferr)
+	DEALLOCATE(HDF5RARR)
+	CALL h5dsset_scale_f(c_dim_nwv_output, hdferr)
+	CALL h5sclose_f(space, hdferr)
+
+	CALL h5screate_simple_f(1, dimscl, space, hdferr)
+	CALL h5dcreate_f(file, 'Bpol', H5T_IEEE_F32LE, space, c_dim_nwv_output, hdferr)
+	ALLOCATE(HDF5RARR(NWV_OUTPUT))
+	HDF5RARR(1:NWV_OUTPUT)=Bpol_avg(NWV_START:NWV_END)
+	CALL h5dwrite_f(c_dim_nwv_output, H5T_NATIVE_REAL, C_LOC(HDF5RARR(1)), hdferr)
+	DEALLOCATE(HDF5RARR)
+	CALL h5dsset_scale_f(c_dim_nwv_output, hdferr)
+	CALL h5sclose_f(space, hdferr)
+ENDIF
 
 dimscl=(/ NUMMIEUSE /)
 CALL h5screate_simple_f(1, dimscl, space, hdferr)
@@ -2091,84 +2092,80 @@ CALL h5dwrite_f(dset, H5T_NATIVE_REAL,f_ptr, hdferr)
 CALL h5dclose_f(dset, hdferr)
 CALL h5sclose_f(space, hdferr)
 
-dims= (/NUMMIEUSE,NWV_BAND /)
-c_dim_nwv=c_dim_nwv_band
-ALLOCATE(HDF5RARR2DIM(NUMMIEUSE,NWV_BAND))
-HDF5RARR2DIM=MRR1_Save(1:NUMMIEUSE,1:NWV_BAND)
-CALL h5screate_simple_f(2, dims, space, hdferr)
-CALL h5dcreate_f(file, 'Aerosol_Mrf', H5T_IEEE_F32LE, space, dset, hdferr)
-CALL h5dwrite_f(dset, H5T_NATIVE_REAL, C_LOC(HDF5RARR2DIM(1,1)), hdferr)
-CALL h5dsattach_scale_f(dset, c_dim_nwv, 1, hdferr)
-CALL h5dsattach_scale_f(dset, c_dim_nummieuse, 2, hdferr)
-CALL h5dclose_f(dset, hdferr)
-CALL h5sclose_f(space, hdferr)
-DEALLOCATE(HDF5RARR2DIM)
+IF(ILS_FLAG)THEN
+	dims= (/NUMMIEUSE,NWV_OUTPUT /)
+	ALLOCATE(HDF5RARR2DIM(NUMMIEUSE,NWV_OUTPUT))
+	HDF5RARR2DIM(1:NUMMIEUSE,1:NWV_OUTPUT)=MRR1_Save(1:NUMMIEUSE,NWV_START:NWV_END)
+	CALL h5screate_simple_f(2, dims, space, hdferr)
+	CALL h5dcreate_f(file, 'Aerosol_Mrf', H5T_IEEE_F32LE, space, dset, hdferr)
+	CALL h5dwrite_f(dset, H5T_NATIVE_REAL, C_LOC(HDF5RARR2DIM(1,1)), hdferr)
+	CALL h5dsattach_scale_f(dset, c_dim_nwv_output, 1, hdferr)
+	CALL h5dsattach_scale_f(dset, c_dim_nummieuse, 2, hdferr)
+	CALL h5dclose_f(dset, hdferr)
+	CALL h5sclose_f(space, hdferr)
+	DEALLOCATE(HDF5RARR2DIM)
 
 
-dims= (/NUMMIEUSE,NWV_BAND /)
-c_dim_nwv=c_dim_nwv_band
-ALLOCATE(HDF5RARR2DIM(NUMMIEUSE,NWV_BAND))
-HDF5RARR2DIM=MRI1_Save(1:NUMMIEUSE,1:NWV_BAND)
-CALL h5screate_simple_f(2, dims, space, hdferr)
-CALL h5dcreate_f(file, 'Aerosol_Mif', H5T_IEEE_F32LE, space, dset, hdferr)
-CALL h5dwrite_f(dset, H5T_NATIVE_REAL, C_LOC(HDF5RARR2DIM(1,1)), hdferr)
-CALL h5dsattach_scale_f(dset, c_dim_nwv, 1, hdferr)
-CALL h5dsattach_scale_f(dset, c_dim_nummieuse, 2, hdferr)
-CALL h5dclose_f(dset, hdferr)
-CALL h5sclose_f(space, hdferr)
-DEALLOCATE(HDF5RARR2DIM)
+	dims= (/NUMMIEUSE,NWV_OUTPUT /)
+	ALLOCATE(HDF5RARR2DIM(NUMMIEUSE,NWV_OUTPUT))
+	HDF5RARR2DIM(1:NUMMIEUSE,1:NWV_OUTPUT)=MRI1_Save(1:NUMMIEUSE,NWV_START:NWV_END)
+	CALL h5screate_simple_f(2, dims, space, hdferr)
+	CALL h5dcreate_f(file, 'Aerosol_Mif', H5T_IEEE_F32LE, space, dset, hdferr)
+	CALL h5dwrite_f(dset, H5T_NATIVE_REAL, C_LOC(HDF5RARR2DIM(1,1)), hdferr)
+	CALL h5dsattach_scale_f(dset, c_dim_nwv_output, 1, hdferr)
+	CALL h5dsattach_scale_f(dset, c_dim_nummieuse, 2, hdferr)
+	CALL h5dclose_f(dset, hdferr)
+	CALL h5sclose_f(space, hdferr)
+	DEALLOCATE(HDF5RARR2DIM)
 
 
-dims= (/NUMMIEUSE,NWV_BAND /)
-c_dim_nwv=c_dim_nwv_band
-ALLOCATE(HDF5RARR2DIM(NUMMIEUSE,NWV_BAND))
-HDF5RARR2DIM=MRR2_Save(1:NUMMIEUSE,1:NWV_BAND)
-CALL h5screate_simple_f(2, dims, space, hdferr)
-CALL h5dcreate_f(file, 'Aerosol_Mrc', H5T_IEEE_F32LE, space, dset, hdferr)
-CALL h5dwrite_f(dset, H5T_NATIVE_REAL, C_LOC(HDF5RARR2DIM(1,1)), hdferr)
-CALL h5dsattach_scale_f(dset, c_dim_nwv, 1, hdferr)
-CALL h5dsattach_scale_f(dset, c_dim_nummieuse, 2, hdferr)
-CALL h5dclose_f(dset, hdferr)
-CALL h5sclose_f(space, hdferr)
-DEALLOCATE(HDF5RARR2DIM)
+	dims= (/NUMMIEUSE,NWV_OUTPUT /)
+	ALLOCATE(HDF5RARR2DIM(NUMMIEUSE,NWV_OUTPUT))
+	HDF5RARR2DIM(1:NUMMIEUSE,1:NWV_OUTPUT)=MRR2_Save(1:NUMMIEUSE,NWV_START:NWV_END)
+	CALL h5screate_simple_f(2, dims, space, hdferr)
+	CALL h5dcreate_f(file, 'Aerosol_Mrc', H5T_IEEE_F32LE, space, dset, hdferr)
+	CALL h5dwrite_f(dset, H5T_NATIVE_REAL, C_LOC(HDF5RARR2DIM(1,1)), hdferr)
+	CALL h5dsattach_scale_f(dset, c_dim_nwv_output, 1, hdferr)
+	CALL h5dsattach_scale_f(dset, c_dim_nummieuse, 2, hdferr)
+	CALL h5dclose_f(dset, hdferr)
+	CALL h5sclose_f(space, hdferr)
+	DEALLOCATE(HDF5RARR2DIM)
 
-dims= (/NUMMIEUSE,NWV_BAND /)
-c_dim_nwv=c_dim_nwv_band
-ALLOCATE(HDF5RARR2DIM(NUMMIEUSE,NWV_BAND))
-HDF5RARR2DIM=MRI2_Save(1:NUMMIEUSE,1:NWV_BAND)
-CALL h5screate_simple_f(2, dims, space, hdferr)
-CALL h5dcreate_f(file, 'Aerosol_Mic', H5T_IEEE_F32LE, space, dset, hdferr)
-CALL h5dwrite_f(dset, H5T_NATIVE_REAL, C_LOC(HDF5RARR2DIM(1,1)), hdferr)
-CALL h5dsattach_scale_f(dset, c_dim_nwv, 1, hdferr)
-CALL h5dsattach_scale_f(dset, c_dim_nummieuse, 2, hdferr)
-CALL h5dclose_f(dset, hdferr)
-CALL h5sclose_f(space, hdferr)
-DEALLOCATE(HDF5RARR2DIM)
+	dims= (/NUMMIEUSE,NWV_OUTPUT /)
+	ALLOCATE(HDF5RARR2DIM(NUMMIEUSE,NWV_OUTPUT))
+	HDF5RARR2DIM(1:NUMMIEUSE,1:NWV_OUTPUT)=MRI2_Save(1:NUMMIEUSE,NWV_START:NWV_END)
+	CALL h5screate_simple_f(2, dims, space, hdferr)
+	CALL h5dcreate_f(file, 'Aerosol_Mic', H5T_IEEE_F32LE, space, dset, hdferr)
+	CALL h5dwrite_f(dset, H5T_NATIVE_REAL, C_LOC(HDF5RARR2DIM(1,1)), hdferr)
+	CALL h5dsattach_scale_f(dset, c_dim_nwv_output, 1, hdferr)
+	CALL h5dsattach_scale_f(dset, c_dim_nummieuse, 2, hdferr)
+	CALL h5dclose_f(dset, hdferr)
+	CALL h5sclose_f(space, hdferr)
+	DEALLOCATE(HDF5RARR2DIM)
 
-dimscl=(/ NWV_BAND /)
-c_dim_nwv=c_dim_nwv_band
-ALLOCATE(HDF5RARR(NWV_BAND))
-HDF5RARR(1:NWV_BAND)=MRR_NonSpherical(1:NWV_BAND)
-CALL h5screate_simple_f(1, dimscl, space, hdferr)
-CALL h5dcreate_f(file, 'Aerosol_Mr_NONSPHERE', H5T_IEEE_F32LE, space, dset, hdferr)
-CALL h5dwrite_f(dset, H5T_NATIVE_REAL, C_LOC(HDF5RARR(1)), hdferr)
-CALL h5dsattach_scale_f(dset, c_dim_nwv, 1, hdferr)
-CALL h5dclose_f(dset, hdferr)
-CALL h5sclose_f(space, hdferr)
-DEALLOCATE(HDF5RARR)
+	dimscl=(/ NWV_OUTPUT /)
+	ALLOCATE(HDF5RARR(NWV_OUTPUT))
+	HDF5RARR(1:NWV_OUTPUT)=MRR_NonSpherical(NWV_START:NWV_END)
+	CALL h5screate_simple_f(1, dimscl, space, hdferr)
+	CALL h5dcreate_f(file, 'Aerosol_Mr_NONSPHERE', H5T_IEEE_F32LE, space, dset, hdferr)
+	CALL h5dwrite_f(dset, H5T_NATIVE_REAL, C_LOC(HDF5RARR(1)), hdferr)
+	CALL h5dsattach_scale_f(dset, c_dim_nwv_output, 1, hdferr)
+	CALL h5dclose_f(dset, hdferr)
+	CALL h5sclose_f(space, hdferr)
+	DEALLOCATE(HDF5RARR)
 
 
-dimscl=(/ NWV_BAND/)
-c_dim_nwv=c_dim_nwv_band
-ALLOCATE(HDF5RARR(NWV_BAND))
-HDF5RARR(1:NWV_BAND)=MRI_NonSpherical(1:NWV_BAND)
-CALL h5screate_simple_f(1, dimscl, space, hdferr)
-CALL h5dcreate_f(file, 'Aerosol_Mic_NONSPHERE', H5T_IEEE_F32LE, space, dset, hdferr)
-CALL h5dwrite_f(dset, H5T_NATIVE_REAL, C_LOC(HDF5RARR(1)), hdferr)
-CALL h5dsattach_scale_f(dset, c_dim_nwv, 1, hdferr)
-CALL h5dclose_f(dset, hdferr)
-CALL h5sclose_f(space, hdferr)
-DEALLOCATE(HDF5RARR)
+	dimscl=(/ NWV_OUTPUT/)
+	ALLOCATE(HDF5RARR(NWV_OUTPUT))
+	HDF5RARR(1:NWV_OUTPUT)=MRI_NonSpherical(NWV_START:NWV_END)
+	CALL h5screate_simple_f(1, dimscl, space, hdferr)
+	CALL h5dcreate_f(file, 'Aerosol_Mic_NONSPHERE', H5T_IEEE_F32LE, space, dset, hdferr)
+	CALL h5dwrite_f(dset, H5T_NATIVE_REAL, C_LOC(HDF5RARR(1)), hdferr)
+	CALL h5dsattach_scale_f(dset, c_dim_nwv_output, 1, hdferr)
+	CALL h5dclose_f(dset, hdferr)
+	CALL h5sclose_f(space, hdferr)
+	DEALLOCATE(HDF5RARR)
+ENDIF
 
 dimscl=(/ NTLYERA /)
 CALL h5screate_simple_f(1, dimscl, space, hdferr)
@@ -2176,66 +2173,65 @@ CALL h5dcreate_f(file, 'NTLYERA', H5T_NATIVE_INTEGER, space, c_dim_ntlyera, hdfe
 CALL h5dsset_scale_f(c_dim_ntlyera, hdferr, dim_not_var)
 CALL h5sclose_f(space, hdferr)
 
-dims= (/NWV_BAND,NTLYERA /)
-c_dim_nwv=c_dim_nwv_band
-ALLOCATE(HDF5RARR2DIM(NWV_BAND,NTLYERA ))
-HDF5RARR2DIM=TAU_ARSL_Ext_AVG(1:NWV_BAND,1:NTLYERA)
-CALL h5screate_simple_f(2, dims, space, hdferr)
-CALL h5dcreate_f(file, 'Tau_Aerosol_Extinction', H5T_IEEE_F32LE, space, dset, hdferr)
-CALL h5dwrite_f(dset, H5T_NATIVE_REAL, C_LOC(HDF5RARR2DIM(1,1)), hdferr)
-CALL h5dsattach_scale_f(dset, c_dim_ntlyera, 1, hdferr)
-CALL h5dsattach_scale_f(dset, c_dim_nwv, 2, hdferr)
-CALL h5dclose_f(dset, hdferr)
-CALL h5sclose_f(space, hdferr)
-DEALLOCATE(HDF5RARR2DIM)
+IF(ILS_FLAG)THEN
+
+	dims= (/NWV_OUTPUT,NTLYERA /)
+	ALLOCATE(HDF5RARR2DIM(NWV_OUTPUT,NTLYERA ))
+	HDF5RARR2DIM(1:NWV_OUTPUT,1:NTLYERA)=TAU_ARSL_Ext_AVG(NWV_START:NWV_END,1:NTLYERA)
+	CALL h5screate_simple_f(2, dims, space, hdferr)
+	CALL h5dcreate_f(file, 'Tau_Aerosol_Extinction', H5T_IEEE_F32LE, space, dset, hdferr)
+	CALL h5dwrite_f(dset, H5T_NATIVE_REAL, C_LOC(HDF5RARR2DIM(1,1)), hdferr)
+	CALL h5dsattach_scale_f(dset, c_dim_ntlyera, 1, hdferr)
+	CALL h5dsattach_scale_f(dset, c_dim_nwv_output, 2, hdferr)
+	CALL h5dclose_f(dset, hdferr)
+	CALL h5sclose_f(space, hdferr)
+	DEALLOCATE(HDF5RARR2DIM)
 
 
-dims= (/NWV_BAND,NTLYERA /)
-c_dim_nwv=c_dim_nwv_band
-ALLOCATE(HDF5RARR2DIM(NWV_BAND,NTLYERA ))
-HDF5RARR2DIM=TAU_ARSL_Scat_AVG(1:NWV_BAND,1:NTLYERA)
-CALL h5screate_simple_f(2, dims, space, hdferr)
-CALL h5dcreate_f(file, 'Tau_Aerosol_Scattering', H5T_IEEE_F32LE, space, dset, hdferr)
-CALL h5dwrite_f(dset, H5T_NATIVE_REAL, C_LOC(HDF5RARR2DIM(1,1)), hdferr)
-CALL h5dsattach_scale_f(dset, c_dim_ntlyera, 1, hdferr)
-CALL h5dsattach_scale_f(dset, c_dim_nwv, 2, hdferr)
-CALL h5dclose_f(dset, hdferr)
-CALL h5sclose_f(space, hdferr)
-DEALLOCATE(HDF5RARR2DIM)
+	dims= (/NWV_OUTPUT,NTLYERA /)
+	ALLOCATE(HDF5RARR2DIM(NWV_OUTPUT,NTLYERA ))
+	HDF5RARR2DIM(1:NWV_OUTPUT,1:NTLYERA)=TAU_ARSL_Scat_AVG(NWV_START:NWV_END,1:NTLYERA)
+	CALL h5screate_simple_f(2, dims, space, hdferr)
+	CALL h5dcreate_f(file, 'Tau_Aerosol_Scattering', H5T_IEEE_F32LE, space, dset, hdferr)
+	CALL h5dwrite_f(dset, H5T_NATIVE_REAL, C_LOC(HDF5RARR2DIM(1,1)), hdferr)
+	CALL h5dsattach_scale_f(dset, c_dim_ntlyera, 1, hdferr)
+	CALL h5dsattach_scale_f(dset, c_dim_nwv_output, 2, hdferr)
+	CALL h5dclose_f(dset, hdferr)
+	CALL h5sclose_f(space, hdferr)
+	DEALLOCATE(HDF5RARR2DIM)
 
 
-dims= (/NWV_BAND,NTLYERA /)
-c_dim_nwv=c_dim_nwv_band
-ALLOCATE(HDF5RARR2DIM(NWV_BAND,NTLYERA ))
-HDF5RARR2DIM=TAU_RAY_AVG(1:NWV_BAND,1:NTLYERA)
-CALL h5screate_simple_f(2, dims, space, hdferr)
-CALL h5dcreate_f(file, 'Tau_Rayleigh_Extinction', H5T_IEEE_F32LE, space, dset, hdferr)
-CALL h5dwrite_f(dset, H5T_NATIVE_REAL, C_LOC(HDF5RARR2DIM(1,1)), hdferr)
-CALL h5dsattach_scale_f(dset, c_dim_ntlyera, 1, hdferr)
-CALL h5dsattach_scale_f(dset, c_dim_nwv, 2, hdferr)
-CALL h5dclose_f(dset, hdferr)
-CALL h5sclose_f(space, hdferr)
-DEALLOCATE(HDF5RARR2DIM)
+	dims= (/NWV_OUTPUT,NTLYERA /)
+	ALLOCATE(HDF5RARR2DIM(NWV_OUTPUT,NTLYERA ))
+	HDF5RARR2DIM(1:NWV_OUTPUT,1:NTLYERA)=TAU_RAY_AVG(NWV_START:NWV_END,1:NTLYERA)
+	CALL h5screate_simple_f(2, dims, space, hdferr)
+	CALL h5dcreate_f(file, 'Tau_Rayleigh_Extinction', H5T_IEEE_F32LE, space, dset, hdferr)
+	CALL h5dwrite_f(dset, H5T_NATIVE_REAL, C_LOC(HDF5RARR2DIM(1,1)), hdferr)
+	CALL h5dsattach_scale_f(dset, c_dim_ntlyera, 1, hdferr)
+	CALL h5dsattach_scale_f(dset, c_dim_nwv_output, 2, hdferr)
+	CALL h5dclose_f(dset, hdferr)
+	CALL h5sclose_f(space, hdferr)
+	DEALLOCATE(HDF5RARR2DIM)
 
-dims= (/NWV_BAND,NTLYERA /)
-c_dim_nwv=c_dim_nwv_band
-ALLOCATE(HDF5RARR2DIM(NWV_BAND,NTLYERA ))
-HDF5RARR2DIM=DEPOL_A_AVG(1:NWV_BAND,1:NTLYERA)
-CALL h5screate_simple_f(2, dims, space, hdferr)
-CALL h5dcreate_f(file, 'Rayleigh_Depolization_Ratio', H5T_IEEE_F32LE, space, dset, hdferr)
-CALL h5dwrite_f(dset, H5T_NATIVE_REAL, C_LOC(HDF5RARR2DIM(1,1)), hdferr)
-CALL h5dsattach_scale_f(dset, c_dim_ntlyera, 1, hdferr)
-CALL h5dsattach_scale_f(dset, c_dim_nwv, 2, hdferr)
-CALL h5dclose_f(dset, hdferr)
-CALL h5sclose_f(space, hdferr)
-DEALLOCATE(HDF5RARR2DIM)
+	dims= (/NWV_OUTPUT,NTLYERA /)
+	ALLOCATE(HDF5RARR2DIM(NWV_OUTPUT,NTLYERA ))
+	HDF5RARR2DIM(1:NWV_OUTPUT,1:NTLYERA)=DEPOL_A_AVG(NWV_START:NWV_END,1:NTLYERA)
+	CALL h5screate_simple_f(2, dims, space, hdferr)
+	CALL h5dcreate_f(file, 'Rayleigh_Depolization_Ratio', H5T_IEEE_F32LE, space, dset, hdferr)
+	CALL h5dwrite_f(dset, H5T_NATIVE_REAL, C_LOC(HDF5RARR2DIM(1,1)), hdferr)
+	CALL h5dsattach_scale_f(dset, c_dim_ntlyera, 1, hdferr)
+	CALL h5dsattach_scale_f(dset, c_dim_nwv_output, 2, hdferr)
+	CALL h5dclose_f(dset, hdferr)
+	CALL h5sclose_f(space, hdferr)
+	DEALLOCATE(HDF5RARR2DIM)
+ENDIF
 
 dimscl= (/NWV_OUTPUT/)
 ALLOCATE(HDF5RARR(NWV_OUTPUT))
 IF(ILS_FLAG)THEN
-  HDF5RARR=TAU_TG_AVG(NWV_START:NWV_END)
+  HDF5RARR(1:NWV_OUTPUT)=TAU_TG_AVG(NWV_START:NWV_END)
 ELSE
-  HDF5RARR=SUM(TAU_TG_Save(NWV_START:NWV_END,:),2)
+  HDF5RARR(1:NWV_OUTPUT)=SUM(TAU_TG_Save(NWV_START:NWV_END,:),2)
 ENDIF
 CALL h5screate_simple_f(1, dimscl, space, hdferr)
 CALL h5dcreate_f(file, 'Tau_Gas_Absorption_Total', H5T_IEEE_F32LE, space, dset, hdferr)
@@ -2248,9 +2244,9 @@ DEALLOCATE(HDF5RARR)
 dimscl= (/NWV_OUTPUT /)
 ALLOCATE(HDF5RARR(NWV_OUTPUT ))
 IF(ILS_FLAG)THEN
-  HDF5RARR=TAU_TG_H2O_AVG(NWV_START:NWV_END)
+  HDF5RARR(1:NWV_OUTPUT)=TAU_TG_H2O_AVG(NWV_START:NWV_END)
 ELSE
-  HDF5RARR=SUM(TAU_TG_H2O_Save(NWV_START:NWV_END,:),2)
+  HDF5RARR(1:NWV_OUTPUT)=SUM(TAU_TG_H2O_Save(NWV_START:NWV_END,:),2)
 ENDIF
 CALL h5screate_simple_f(1, dimscl, space, hdferr)
 CALL h5dcreate_f(file, 'Tau_H2O_Absorption', H5T_IEEE_F32LE, space, dset, hdferr)
@@ -2263,9 +2259,9 @@ DEALLOCATE(HDF5RARR)
 dimscl= (/NWV_OUTPUT /)
 ALLOCATE(HDF5RARR(NWV_OUTPUT ))
 IF(ILS_FLAG)THEN
-  HDF5RARR=TAU_TG_CO2_AVG(NWV_START:NWV_END)
+  HDF5RARR(1:NWV_OUTPUT)=TAU_TG_CO2_AVG(NWV_START:NWV_END)
 ELSE
-  HDF5RARR=SUM(TAU_TG_CO2_Save(NWV_START:NWV_END,:),2)
+  HDF5RARR(1:NWV_OUTPUT)=SUM(TAU_TG_CO2_Save(NWV_START:NWV_END,:),2)
 ENDIF
 CALL h5screate_simple_f(1, dimscl, space, hdferr)
 CALL h5dcreate_f(file, 'Tau_CO2_Absorption', H5T_IEEE_F32LE, space, dset, hdferr)
@@ -2278,9 +2274,9 @@ DEALLOCATE(HDF5RARR)
 dimscl= (/NWV_OUTPUT /)
 ALLOCATE(HDF5RARR(NWV_OUTPUT ))
 IF(ILS_FLAG)THEN
-  HDF5RARR=TAU_TG_CH4_AVG(NWV_START:NWV_END)
+  HDF5RARR(1:NWV_OUTPUT)=TAU_TG_CH4_AVG(NWV_START:NWV_END)
 ELSE
-  HDF5RARR=SUM(TAU_TG_CH4_Save(NWV_START:NWV_END,:),2)
+  HDF5RARR(1:NWV_OUTPUT)=SUM(TAU_TG_CH4_Save(NWV_START:NWV_END,:),2)
 ENDIF
 CALL h5screate_simple_f(1, dimscl, space, hdferr)
 CALL h5dcreate_f(file, 'Tau_CH4_Absorption', H5T_IEEE_F32LE, space, dset, hdferr)
@@ -2293,9 +2289,9 @@ DEALLOCATE(HDF5RARR)
 dimscl= (/NWV_OUTPUT /)
 ALLOCATE(HDF5RARR(NWV_OUTPUT ))
 IF(ILS_FLAG)THEN
-  HDF5RARR=TAU_TG_O2_AVG(NWV_START:NWV_END)
+  HDF5RARR(1:NWV_OUTPUT)=TAU_TG_O2_AVG(NWV_START:NWV_END)
 ELSE
-  HDF5RARR=SUM(TAU_TG_O2_Save(NWV_START:NWV_END,:),2)
+  HDF5RARR(1:NWV_OUTPUT)=SUM(TAU_TG_O2_Save(NWV_START:NWV_END,:),2)
 ENDIF
 CALL h5screate_simple_f(1, dimscl, space, hdferr)
 CALL h5dcreate_f(file, 'Tau_O2_Absorption', H5T_IEEE_F32LE, space, dset, hdferr)
@@ -2308,9 +2304,9 @@ DEALLOCATE(HDF5RARR)
 dimscl= (/NWV_OUTPUT /)
 ALLOCATE(HDF5RARR(NWV_OUTPUT ))
 IF(ILS_FLAG)THEN
-  HDF5RARR=TAU_TG_O3_AVG(NWV_START:NWV_END)
+  HDF5RARR(1:NWV_OUTPUT)=TAU_TG_O3_AVG(NWV_START:NWV_END)
 ELSE
-  HDF5RARR=SUM(TAU_TG_O3_Save(NWV_START:NWV_END,:),2)
+  HDF5RARR(1:NWV_OUTPUT)=SUM(TAU_TG_O3_Save(NWV_START:NWV_END,:),2)
 ENDIF
 CALL h5screate_simple_f(1, dimscl, space, hdferr)
 CALL h5dcreate_f(file, 'Tau_O3_Absorption', H5T_IEEE_F32LE, space, dset, hdferr)
@@ -2323,9 +2319,9 @@ DEALLOCATE(HDF5RARR)
 dimscl= (/NWV_OUTPUT /)
 ALLOCATE(HDF5RARR(NWV_OUTPUT ))
 IF(ILS_FLAG)THEN
-  HDF5RARR=TAU_TG_NO2_AVG(NWV_START:NWV_END)
+  HDF5RARR(1:NWV_OUTPUT)=TAU_TG_NO2_AVG(NWV_START:NWV_END)
 ELSE
-  HDF5RARR=SUM(TAU_TG_NO2_Save(NWV_START:NWV_END,:),2)
+  HDF5RARR(1:NWV_OUTPUT)=SUM(TAU_TG_NO2_Save(NWV_START:NWV_END,:),2)
 ENDIF
 CALL h5screate_simple_f(1, dimscl, space, hdferr)
 CALL h5dcreate_f(file, 'Tau_NO2_Absorption', H5T_IEEE_F32LE, space, dset, hdferr)
@@ -2395,9 +2391,9 @@ DEALLOCATE(HDF5RARR)
 dimscl=(/ NWV_OUTPUT /)
 ALLOCATE(HDF5RARR(NWV_OUTPUT))
 IF(ILS_FLAG)THEN
-  HDF5RARR=AW_AVG(NWV_START:NWV_END)
+  HDF5RARR(1:NWV_OUTPUT)=AW_AVG(NWV_START:NWV_END)
 ELSE
-  HDF5RARR=AW(NWV_START:NWV_END)
+  HDF5RARR(1:NWV_OUTPUT)=AW(NWV_START:NWV_END)
 ENDIF
 CALL h5screate_simple_f(1, dimscl, space, hdferr)
 CALL h5dcreate_f(file, 'aw_Ocean_Water_Absorption_Coefficient', H5T_IEEE_F32LE, space, dset, hdferr)
@@ -2410,9 +2406,9 @@ DEALLOCATE(HDF5RARR)
 dimscl=(/ NWV_OUTPUT /)
 ALLOCATE(HDF5RARR(NWV_OUTPUT))
 IF(ILS_FLAG)THEN
-  HDF5RARR=BW_AVG(NWV_START:NWV_END)
+  HDF5RARR(1:NWV_OUTPUT)=BW_AVG(NWV_START:NWV_END)
 ELSE
-  HDF5RARR=BW(NWV_START:NWV_END)
+  HDF5RARR(1:NWV_OUTPUT)=BW(NWV_START:NWV_END)
 ENDIF
 CALL h5screate_simple_f(1, dimscl, space, hdferr)
 CALL h5dcreate_f(file, 'bw_Ocean_Water_Scattering_Coefficient', H5T_IEEE_F32LE, space, dset, hdferr)
@@ -2425,9 +2421,9 @@ DEALLOCATE(HDF5RARR)
 dimscl=(/ NWV_OUTPUT /)
 ALLOCATE(HDF5RARR(NWV_OUTPUT))
 IF(ILS_FLAG)THEN
-  HDF5RARR=RINDX_WATER_AVG(NWV_START:NWV_END)
+  HDF5RARR(1:NWV_OUTPUT)=RINDX_WATER_AVG(NWV_START:NWV_END)
 ELSE
-  HDF5RARR=RINDX_WATER(NWV_START:NWV_END)
+  HDF5RARR(1:NWV_OUTPUT)=RINDX_WATER(NWV_START:NWV_END)
 ENDIF
 CALL h5screate_simple_f(1, dimscl, space, hdferr)
 CALL h5dcreate_f(file, 'Refractive_Index_Ocean_Water', H5T_IEEE_F32LE, space, dset, hdferr)
@@ -2440,9 +2436,9 @@ DEALLOCATE(HDF5RARR)
 dimscl=(/ NWV_OUTPUT /)
 ALLOCATE(HDF5RARR(NWV_OUTPUT))
 IF(ILS_FLAG)THEN
-  HDF5RARR=APTC_AVG(NWV_START:NWV_END)
+  HDF5RARR(1:NWV_OUTPUT)=APTC_AVG(NWV_START:NWV_END)
 ELSE
-  HDF5RARR=APTC(NWV_START:NWV_END)
+  HDF5RARR(1:NWV_OUTPUT)=APTC(NWV_START:NWV_END)
 ENDIF
 CALL h5screate_simple_f(1, dimscl, space, hdferr)
 CALL h5dcreate_f(file, 'ap_Phytoplankton_Absorption_Coefficient_TopLayer', H5T_IEEE_F32LE, space, dset, hdferr)
@@ -2455,9 +2451,9 @@ DEALLOCATE(HDF5RARR)
 dimscl=(/ NWV_OUTPUT /)
 ALLOCATE(HDF5RARR(NWV_OUTPUT))
 IF(ILS_FLAG)THEN
-  HDF5RARR=BPTC_AVG(NWV_START:NWV_END)
+  HDF5RARR(1:NWV_OUTPUT)=BPTC_AVG(NWV_START:NWV_END)
 ELSE
-  HDF5RARR=BPTC(NWV_START:NWV_END)
+  HDF5RARR(1:NWV_OUTPUT)=BPTC(NWV_START:NWV_END)
 ENDIF
 CALL h5screate_simple_f(1, dimscl, space, hdferr)
 CALL h5dcreate_f(file, 'bp_Phytoplankton_Scattering_Coefficient_TopLayer', H5T_IEEE_F32LE, space, dset, hdferr)
@@ -2470,9 +2466,9 @@ DEALLOCATE(HDF5RARR)
 dimscl=(/ NWV_OUTPUT /)
 ALLOCATE(HDF5RARR(NWV_OUTPUT))
 IF(ILS_FLAG)THEN
-  HDF5RARR=BBPTC_AVG(NWV_START:NWV_END)
+  HDF5RARR(1:NWV_OUTPUT)=BBPTC_AVG(NWV_START:NWV_END)
 ELSE
-  HDF5RARR=BBPTC(NWV_START:NWV_END)
+  HDF5RARR(1:NWV_OUTPUT)=BBPTC(NWV_START:NWV_END)
 ENDIF
 CALL h5screate_simple_f(1, dimscl, space, hdferr)
 CALL h5dcreate_f(file, 'bbp_Phytoplankton_Backscattering_Coefficient_TopLayer', H5T_IEEE_F32LE, space, dset, hdferr)
@@ -2485,9 +2481,9 @@ DEALLOCATE(HDF5RARR)
 dimscl=(/ NWV_OUTPUT /)
 ALLOCATE(HDF5RARR(NWV_OUTPUT))
 IF(ILS_FLAG)THEN
-  HDF5RARR=BBPTCfrac_AVG(NWV_START:NWV_END)
+  HDF5RARR(1:NWV_OUTPUT)=BBPTCfrac_AVG(NWV_START:NWV_END)
 ELSE
-  HDF5RARR=BBPTCfrac(NWV_START:NWV_END)
+  HDF5RARR(1:NWV_OUTPUT)=BBPTCfrac(NWV_START:NWV_END)
 ENDIF
 CALL h5screate_simple_f(1, dimscl, space, hdferr)
 CALL h5dcreate_f(file, 'Bbp_Phytoplankton_Backscattering_fraction_TopLayer', H5T_IEEE_F32LE, space, dset, hdferr)
@@ -2500,9 +2496,9 @@ DEALLOCATE(HDF5RARR)
 dimscl=(/ NWV_OUTPUT /)
 ALLOCATE(HDF5RARR(NWV_OUTPUT))
 IF(ILS_FLAG)THEN
-  HDF5RARR=BSTC_AVG(NWV_START:NWV_END)
+  HDF5RARR(1:NWV_OUTPUT)=BSTC_AVG(NWV_START:NWV_END)
 ELSE
-  HDF5RARR=BSTC(NWV_START:NWV_END)
+  HDF5RARR(1:NWV_OUTPUT)=BSTC(NWV_START:NWV_END)
 ENDIF
 CALL h5screate_simple_f(1, dimscl, space, hdferr)
 CALL h5dcreate_f(file, 'bp_SEDIMENT_Scattering_Coefficient_TopLayer', H5T_IEEE_F32LE, space, dset, hdferr)
@@ -2515,9 +2511,9 @@ DEALLOCATE(HDF5RARR)
 dimscl=(/ NWV_OUTPUT /)
 ALLOCATE(HDF5RARR(NWV_OUTPUT))
 IF(ILS_FLAG)THEN
-  HDF5RARR=BBSTC_AVG(NWV_START:NWV_END)
+  HDF5RARR(1:NWV_OUTPUT)=BBSTC_AVG(NWV_START:NWV_END)
 ELSE
-  HDF5RARR=BBSTC(NWV_START:NWV_END)
+  HDF5RARR(1:NWV_OUTPUT)=BBSTC(NWV_START:NWV_END)
 ENDIF
 CALL h5screate_simple_f(1, dimscl, space, hdferr)
 CALL h5dcreate_f(file, 'bbp_SEDIMENT_Backscattering_Coefficient_TopLayer', H5T_IEEE_F32LE, space, dset, hdferr)
@@ -2530,9 +2526,9 @@ DEALLOCATE(HDF5RARR)
 dimscl=(/ NWV_OUTPUT /)
 ALLOCATE(HDF5RARR(NWV_OUTPUT))
 IF(ILS_FLAG)THEN
-  HDF5RARR=BBSTCfrac_AVG(NWV_START:NWV_END)
+  HDF5RARR(1:NWV_OUTPUT)=BBSTCfrac_AVG(NWV_START:NWV_END)
 ELSE
-  HDF5RARR=BBSTCfrac(NWV_START:NWV_END)
+  HDF5RARR(1:NWV_OUTPUT)=BBSTCfrac(NWV_START:NWV_END)
 ENDIF
 CALL h5screate_simple_f(1, dimscl, space, hdferr)
 CALL h5dcreate_f(file, 'Bbp_SEDIMENT_Backscattering_fraction_TopLayer', H5T_IEEE_F32LE, space, dset, hdferr)
@@ -2545,9 +2541,9 @@ DEALLOCATE(HDF5RARR)
 dimscl=(/ NWV_OUTPUT /)
 ALLOCATE(HDF5RARR(NWV_OUTPUT))
 IF(ILS_FLAG)THEN
-  HDF5RARR=ASTC_AVG(NWV_START:NWV_END)
+  HDF5RARR(1:NWV_OUTPUT)=ASTC_AVG(NWV_START:NWV_END)
 ELSE
-  HDF5RARR=ASTC(NWV_START:NWV_END)
+  HDF5RARR(1:NWV_OUTPUT)=ASTC(NWV_START:NWV_END)
 ENDIF
 CALL h5screate_simple_f(1, dimscl, space, hdferr)
 CALL h5dcreate_f(file, 'ap_SEDIMENT_Absorption_Coefficient_TopLayer', H5T_IEEE_F32LE, space, dset, hdferr)
@@ -2560,9 +2556,9 @@ DEALLOCATE(HDF5RARR)
 dimscl=(/ NWV_OUTPUT /)
 ALLOCATE(HDF5RARR(NWV_OUTPUT))
 IF(ILS_FLAG)THEN
-  HDF5RARR=ACDM_AVG(NWV_START:NWV_END)
+  HDF5RARR(1:NWV_OUTPUT)=ACDM_AVG(NWV_START:NWV_END)
 ELSE
-  HDF5RARR=ACDM(NWV_START:NWV_END)
+  HDF5RARR(1:NWV_OUTPUT)=ACDM(NWV_START:NWV_END)
 ENDIF
 CALL h5screate_simple_f(1, dimscl, space, hdferr)
 CALL h5dcreate_f(file, 'ay_CDOM_Absorption_Coefficient_TopLayer', H5T_IEEE_F32LE, space, dset, hdferr)
@@ -2844,9 +2840,9 @@ CALL h5sclose_f(space, hdferr)
 dimscl=(/ NWV_OUTPUT /)
 ALLOCATE(HDF5RARR(NWV_OUTPUT))
 IF(ILS_FLAG .OR. MONOCHROMATIC_FLAG)THEN
-  HDF5RARR=DIRADFULL_AVG(1,NWV_START:NWV_END,1)
+  HDF5RARR(1:NWV_OUTPUT)=DIRADFULL_AVG(1,NWV_START:NWV_END,1)
 ELSE
-  HDF5RARR=DIRADFULL(1,NWV_START:NWV_END,1)
+  HDF5RARR(1:NWV_OUTPUT)=DIRADFULL(1,NWV_START:NWV_END,1)
 ENDIF
 CALL h5screate_simple_f(1, dimscl, space, hdferr)
 CALL h5dcreate_f(file, 'Irradiance_TOA_Downwelling', H5T_IEEE_F32LE, space, dset, hdferr)
@@ -2859,9 +2855,9 @@ DEALLOCATE(HDF5RARR)
 dimscl=(/ NWV_OUTPUT /)
 ALLOCATE(HDF5RARR(NWV_OUTPUT))
 IF(ILS_FLAG .OR. MONOCHROMATIC_FLAG)THEN
-  HDF5RARR=DIRADFULL_AVG(1,NWV_START:NWV_END,2)
+  HDF5RARR(1:NWV_OUTPUT)=DIRADFULL_AVG(1,NWV_START:NWV_END,2)
 ELSE
-  HDF5RARR=DIRADFULL(1,NWV_START:NWV_END,2)
+  HDF5RARR(1:NWV_OUTPUT)=DIRADFULL(1,NWV_START:NWV_END,2)
 ENDIF
 CALL h5screate_simple_f(1, dimscl, space, hdferr)
 CALL h5dcreate_f(file, 'Irradiance_TOA_Upwelling', H5T_IEEE_F32LE, space, dset, hdferr)
@@ -2874,9 +2870,9 @@ DEALLOCATE(HDF5RARR)
 dimscl=(/ NWV_OUTPUT /)
 ALLOCATE(HDF5RARR(NWV_OUTPUT))
 IF(ILS_FLAG .OR. MONOCHROMATIC_FLAG)THEN
-  HDF5RARR=DIRADFULL_AVG(2,NWV_START:NWV_END,1)
+  HDF5RARR(1:NWV_OUTPUT)=DIRADFULL_AVG(2,NWV_START:NWV_END,1)
 ELSE
-  HDF5RARR=DIRADFULL(2,NWV_START:NWV_END,1)
+  HDF5RARR(1:NWV_OUTPUT)=DIRADFULL(2,NWV_START:NWV_END,1)
 ENDIF
 CALL h5screate_simple_f(1, dimscl, space, hdferr)
 CALL h5dcreate_f(file, 'Irradiance_AirSensor_Downwelling', H5T_IEEE_F32LE, space, dset, hdferr)
@@ -2889,9 +2885,9 @@ DEALLOCATE(HDF5RARR)
 dimscl=(/ NWV_OUTPUT /)
 ALLOCATE(HDF5RARR(NWV_OUTPUT))
 IF(ILS_FLAG .OR. MONOCHROMATIC_FLAG)THEN
-  HDF5RARR=DIRADFULL_AVG(2,NWV_START:NWV_END,2)
+  HDF5RARR(1:NWV_OUTPUT)=DIRADFULL_AVG(2,NWV_START:NWV_END,2)
 ELSE
-  HDF5RARR=DIRADFULL(2,NWV_START:NWV_END,2)
+  HDF5RARR(1:NWV_OUTPUT)=DIRADFULL(2,NWV_START:NWV_END,2)
 ENDIF
 CALL h5screate_simple_f(1, dimscl, space, hdferr)
 CALL h5dcreate_f(file, 'Irradiance_AirSensor_Upwelling', H5T_IEEE_F32LE, space, dset, hdferr)
@@ -2904,9 +2900,9 @@ DEALLOCATE(HDF5RARR)
 dimscl=(/ NWV_OUTPUT /)
 ALLOCATE(HDF5RARR(NWV_OUTPUT))
 IF(ILS_FLAG .OR. MONOCHROMATIC_FLAG)THEN
-  HDF5RARR=DIRADFULL_AVG(3,NWV_START:NWV_END,1)
+  HDF5RARR(1:NWV_OUTPUT)=DIRADFULL_AVG(3,NWV_START:NWV_END,1)
 ELSE
-  HDF5RARR=DIRADFULL(3,NWV_START:NWV_END,1)
+  HDF5RARR(1:NWV_OUTPUT)=DIRADFULL(3,NWV_START:NWV_END,1)
 ENDIF
 CALL h5screate_simple_f(1, dimscl, space, hdferr)
 CALL h5dcreate_f(file, 'Irradiance_BOA_Downwelling', H5T_IEEE_F32LE, space, dset, hdferr)
@@ -2919,9 +2915,9 @@ DEALLOCATE(HDF5RARR)
 dimscl=(/ NWV_OUTPUT /)
 ALLOCATE(HDF5RARR(NWV_OUTPUT))
 IF(ILS_FLAG .OR. MONOCHROMATIC_FLAG)THEN
-  HDF5RARR=DIRADFULL_AVG(3,NWV_START:NWV_END,2)
+  HDF5RARR(1:NWV_OUTPUT)=DIRADFULL_AVG(3,NWV_START:NWV_END,2)
 ELSE
-  HDF5RARR=DIRADFULL(3,NWV_START:NWV_END,2)
+  HDF5RARR(1:NWV_OUTPUT)=DIRADFULL(3,NWV_START:NWV_END,2)
 ENDIF
 CALL h5screate_simple_f(1, dimscl, space, hdferr)
 CALL h5dcreate_f(file, 'Irradiance_BOA_Upwelling', H5T_IEEE_F32LE, space, dset, hdferr)
@@ -2935,9 +2931,9 @@ IF(OCEAN_CASE_SELECT >= 0)THEN
 	dimscl=(/ NWV_OUTPUT /)
 	ALLOCATE(HDF5RARR(NWV_OUTPUT))
 	IF(ILS_FLAG .OR. MONOCHROMATIC_FLAG)THEN
-	  HDF5RARR=DIRADFULL_AVG(4,NWV_START:NWV_END,1)
+	  HDF5RARR(1:NWV_OUTPUT)=DIRADFULL_AVG(4,NWV_START:NWV_END,1)
 	ELSE
-	  HDF5RARR=DIRADFULL(4,NWV_START:NWV_END,1)
+	  HDF5RARR(1:NWV_OUTPUT)=DIRADFULL(4,NWV_START:NWV_END,1)
 	ENDIF
 	CALL h5screate_simple_f(1, dimscl, space, hdferr)
 	CALL h5dcreate_f(file, 'Irradiance_TOO_Downwelling', H5T_IEEE_F32LE, space, dset, hdferr)
@@ -2950,9 +2946,9 @@ IF(OCEAN_CASE_SELECT >= 0)THEN
 	dimscl=(/ NWV_OUTPUT /)
 	ALLOCATE(HDF5RARR(NWV_OUTPUT))
 	IF(ILS_FLAG .OR. MONOCHROMATIC_FLAG)THEN
-	  HDF5RARR=DIRADFULL_AVG(4,NWV_START:NWV_END,2)
+	  HDF5RARR(1:NWV_OUTPUT)=DIRADFULL_AVG(4,NWV_START:NWV_END,2)
 	ELSE
-	  HDF5RARR=DIRADFULL(4,NWV_START:NWV_END,2)
+	  HDF5RARR(1:NWV_OUTPUT)=DIRADFULL(4,NWV_START:NWV_END,2)
 	ENDIF
 	CALL h5screate_simple_f(1, dimscl, space, hdferr)
 	CALL h5dcreate_f(file, 'Irradiance_TOO_Upwelling', H5T_IEEE_F32LE, space, dset, hdferr)
