@@ -1,0 +1,23 @@
+add_library(core
+    Atmosphere_Profile.f90
+    Gas_Absorption_CS_Readin.f90
+    RossLiBRDF.f90
+    Save_Ocean_Rad.f90
+    SnowBRDF.f90
+    aerosol_microphysical_model.f90
+    bessel.f
+    bfit.f90
+    deltafit.f90
+    emis_sea.f90
+    nrlib.f90
+    refwat1.f
+    rt_single_scattering.f90
+    rtsos_rao_dg.f90
+    rtspecfunc.f90
+    rttype_sos_rao_dg.f90
+    spher.f
+    surface_glint.f90
+)
+target_link_libraries(core
+    ${HDF5_Fortran_LIBRARIES}
+)

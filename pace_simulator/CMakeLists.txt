@@ -1,0 +1,9 @@
+add_library(pace_simulator
+   MAP_Instrument.f90
+   PACE_Instrument.f90
+   PACE_MIE_PHMX_Init.f90
+)
+target_link_libraries(pace_simulator
+    core
+    ${HDF5_Fortran_LIBRARIES}
+)
