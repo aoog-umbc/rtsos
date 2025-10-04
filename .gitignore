@@ -1,2 +1,7 @@
 /aux
 /atmos
+
+## TODO: ask Pengwag to not generate these
+/COEFF_FITTED
+/PHASETEST
+/fftest
