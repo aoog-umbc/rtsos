@@ -59,7 +59,7 @@ def main(argv=None):
     # replace independent sza and dt dimensions with a single index, so we
     # only run simulations over sza for dt == 0.
     dim = {"sza-dt": (SZ, DT)}
-    dataset = dataset.stack(dimensions=dim, create_index=False)
+    dataset = dataset.stack(dim=dim, create_index=False)
     dataset = dataset.where(
         np.logical_or(dataset[DT] == 0, dataset[SZ] == 0.0),
         drop=True,

@@ -190,7 +190,7 @@ class ZhaiRT:
             outdir.mkdir(parents=True, exist_ok=True)
             # iterate over all coordinate combinations
             datasets = []
-            shape = tuple(inputs.dims.values())
+            shape = tuple(inputs.sizes.values())
             each_input = xr.DataArray(
                 # FIXME dtype should be int (the default), but see https://github.com/pydata/xarray/issues/7423
                 data=np.arange(np.prod(shape), dtype=float).reshape(shape),
