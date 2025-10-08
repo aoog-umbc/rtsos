@@ -3,15 +3,17 @@ from .parameters import Parameters as P
 
 
 def main(argv: str = None) -> None:
-    # values to write, in the order below, to the RT input file
+    # values to write, in the order below, to the input file
     values = {
         P.Wind_Speed: 5.0,
         P.Solar_Zenith_Angle: [20.0, 60.0],
         P.wv_pace_ref: 532.0,
         P.tau_ref_hi: [0.1, 0.3],
         P.height_particle_hi: 15.0,
+        P.height_particle_variance_hi: 2.0,
         P.tau_ref_low: 0.0,
         P.height_particle_low: -1,
+        P.height_particle_variance_low: -1,
         P.Aerosol_Model: -1,
         P.Aerosol_FMF: 0.3,
         P.Relative_Humidity: 0.3,
@@ -55,10 +57,9 @@ def main(argv: str = None) -> None:
         P.WAVEBAND_SEG_FLAG: 0,
         P.AirSensor_Height: 2.2,
         P.pss_flag: 0,
-        P.Aux_Dir: "aux",
-        P.Atmos_Dir: "atmos",
+        P.Aux_Dir: "Auxiliary_Files",
+        P.Atmos_Dir: "Gas_Absorption_Coefficients",
         P.CFILE_AP: "afglus.dat",
-        # for Aerosol Model "-1", there are no aerosol_phasematrix_files
         P.Aerosol_Phasematrix_File_Hi: "",
         P.Aerosol_Phasematrix_File_Low: "",
     }
@@ -69,7 +70,7 @@ def main(argv: str = None) -> None:
 
     # the callable object that runs the given program
     prog = ZhaiRT(
-        program="rtsos_PACE_Simulator_DoubleK.exe",
+        program="rtsos_PACE_Simulator_DoubleK",
         defaults=dataset,
         params=tuple(values),
     )

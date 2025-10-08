@@ -9,7 +9,7 @@ from .parameters import SZ, DT
 def main(argv=None):
     """Entry point for rt-AC-LUT command line tool"""
 
-    # values to write, in the order below, to the RT input file
+    # values to write, in the order below, to the input file
     # NWV should come from CFILE_INSTRUMENT (but is not enforced to allow a fast path)
     # Wind_Speed will be calculated from Wave_Mean_Square_Slope (which becomes an aux coord)
     # SZA will be set to vary only when `Diffuse_Transmittance_Flag == 0`
@@ -17,8 +17,8 @@ def main(argv=None):
         P.NWV: 0,
         P.WAVELENGTH_MICRON_REF: 0.870,
         P.CFILE_INSTRUMENT: "afinp.txt",
-        P.Aux_Dir: "aux",
-        P.Atmos_Dir: "atmos",
+        P.Aux_Dir: "Auxiliary_Files",
+        P.Atmos_Dir: "Gas_Absorption_Coefficients",
         P.Mie_Database_Dir: "",
         P.MIE_TABLE_CAL: 2,
         P.Aerosol_Model: range(11, 21),
@@ -69,7 +69,7 @@ def main(argv=None):
     # the callable object that runs the given program
     values.pop(P.Wave_Mean_Square_Slope)
     prog = AC_LUT(
-        program="rtsos_GSFC_AC_LUT.exe",
+        program="rtsos_GSFC_AC_LUT",
         defaults=dataset,
         params=tuple(values),
     )

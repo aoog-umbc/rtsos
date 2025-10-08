@@ -4,6 +4,7 @@ from pathlib import Path
 from shutil import copy
 from tempfile import gettempdir, TemporaryDirectory
 from typing import Iterable
+from platform import system
 import subprocess
 
 import dask
@@ -12,10 +13,10 @@ import xarray as xr
 
 from .parameters import Parameters as P
 
+expect_exe = system() == "Windows"
 
 # TODO Slurm, threading, and https://github.com/pydata/xarray/issues/7549
 dask.config.set(scheduler="synchronous")
-
 
 cli = ArgumentParser()
 cli.add_argument(
@@ -43,6 +44,13 @@ cli.add_argument(
     type=Path,
     default=gettempdir(),
     help="path where temporary directories will be created",
+)
+cli.add_argument(
+    "--dry-run",
+    default=False,
+    dest="dry",
+    action="store_true",
+    help="only generate parameter files",
 )
 cli.add_argument(
     "inputs",
@@ -139,7 +147,7 @@ class ZhaiRT:
         defaults: xr.Dataset,
         params: tuple = (),
     ) -> None:
-        self.program = program
+        self.program = program + (".exe" if expect_exe else "")
         self.defaults = defaults
         # initialize the params @property
         self._params = tuple(i.__name__ for i in params)
@@ -166,7 +174,7 @@ class ZhaiRT:
             inputs, outdirs = reduce_by_coords(coordinates, inputs, prefix)
             prefix = Path()
         # with the `--post` argument, combine RT outputs (after --cluster) and return
-        if args.post:
+        if args.post and not args.dry:
             coordinates = split_list_arg(args.post)
             for key, value in groupby(dataset=inputs, groups=outdirs):
                 _, postdirs = reduce_by_coords(coordinates, value, key)
@@ -179,9 +187,10 @@ class ZhaiRT:
             return
         # execute the RT simulations in a temp directory then copy to outputs
         for key, value in groupby(dataset=inputs, groups=outdirs):
-            self.rtsos(args.tmp, value, args.outputs.parent / key / args.outputs.name)
+            path = args.outputs.parent / key / args.outputs.name
+            self.rtsos(value, path, args.tmp, args.dry)
 
-    def rtsos(self, tmp: Path, inputs: xr.Dataset, outputs: Path) -> None:
+    def rtsos(self, inputs: xr.Dataset, outputs: Path, tmp: Path, dry: bool) -> None:
         # within a temporary directory, write the rtsos input files and store
         # outputs from each rtsos calculation, run as a subprocess
         with TemporaryDirectory(dir=tmp) as tmpdir:
@@ -201,6 +210,8 @@ class ZhaiRT:
                 # that gets copied to the folder with the combined outputs
                 infile, outfile = self.infile(tmpdir, one_input.squeeze())
                 copy(tmpdir / infile, outdir)
+                if dry:
+                    continue
                 # run RT as subprocess
                 # TODO wrap Fortran to call the program directly
                 subprocess.run(args=[self.program, str(tmpdir / infile)], check=True)
@@ -242,7 +253,7 @@ class ZhaiRT:
                 ds = xr.combine_by_coords(datasets, data_vars="different")
                 # write the concatenated datasets to the outputs directory, with
                 # length one coordinates returned to scalars
-                return ds.to_netcdf(path=outputs)
+                ds.to_netcdf(path=outputs)
 
     def infile(self, path: Path, dataset: xr.Dataset) -> Path:
         """Write parameters to a text file, and return its path."""

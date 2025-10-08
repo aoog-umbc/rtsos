@@ -6,7 +6,7 @@ from .parameters import Parameters as P
 
 
 def main(argv: str = None) -> None:
-    # values to write to the default RT input file
+    # values to write to the default input file
     # nb. not all parameters are used and the order is set by PHMX.params
     values = {
         P.Aerosol_Model: -96,
@@ -37,7 +37,7 @@ def main(argv: str = None) -> None:
         P.r0_s: 0.05,
         P.r0_ss: 2.0194,
         P.WAVEBAND_SEG_FLAG: 0,
-        P.Aux_Dir: "aux",
+        P.Aux_Dir: "Auxiliary_Files",
     }
 
     # create a dataset to hold the inputs as coordinates
@@ -46,7 +46,7 @@ def main(argv: str = None) -> None:
 
     # the callable object that runs the given program
     prog = PHMX(
-        program="rtsos_Aerosol_Phmx_Cal.exe",
+        program="rtsos_Aerosol_Phmx_Cal",
         defaults=dataset,
     )
 

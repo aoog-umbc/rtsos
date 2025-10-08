@@ -297,12 +297,28 @@ class Parameters:
         ),
     )
 
+    height_particle_variance_hi: Any = field(
+        default=None,
+        metadata=dict(
+            long_name="top layer scatteror centroid height variance",
+            dtype=np.float32,
+        ),
+    )
+
     height_particle_low: Any = field(
         default=None,
         metadata=dict(
             long_name="lower layer scatteror centroid height",
             comment="set to a negative number for one aerosol layer",
             valid_min=np.float32(-100),
+            dtype=np.float32,
+        ),
+    )
+    height_particle_variance_low: Any = field(
+        default=None,
+        metadata=dict(
+            long_name="lower layer scatteror centroid height variance",
+            comment="set to a negative number for one aerosol layer",
             dtype=np.float32,
         ),
     )
