@@ -2,6 +2,7 @@ from pytest import fixture
 import xarray as xr
 
 from zhai_rt import rt_AC_LUT
+from zhai_rt.parameters import Parameters as P
 
 
 @fixture(scope="module")
@@ -21,7 +22,7 @@ def tmp_default(cache_dir):
 def tmp_input(tmp_default):
     path = tmp_default.parent / "input.nc"
     ds = xr.load_dataset(tmp_default)
-    ds["NWV"][...] = 6
+    ds[P.NWV.__name__][...] = 6
     ds = ds.isel(
         {
             "Wave_Mean_Square_Slope": slice(0, 1),
@@ -37,25 +38,27 @@ def tmp_input(tmp_default):
 @fixture(scope="module")
 def cache_output(tmp_input):
     path = tmp_input.parent / "output.nc"
-    if not any((path.parent / "output").glob("**/output.nc")):
+    parent = path.parent / "output"
+    if not any(parent.glob("**/output.nc")):
+        # run one AM, one RH, and every sza-dt
         rt_AC_LUT.main(
             [
-                # run one AM, one RH, and every sza-dt
                 "--cluster=Aerosol_Model:2,Relative_Humidity:4,sza-dt",
                 str(tmp_input),
                 str(path),
             ],
         )
+        for item in parent.glob("**/*.infile.txt"):
+            item.unlink()
     return path
 
 
 @fixture
 def tmp_cluster_post(tmp_input, cache_output):
+    # aggregate sza-dt only, not AM or RH
     rt_AC_LUT.main(
         [
-            # do not aggregate above AM and RH levels
             "--cluster=Aerosol_Model:2,Relative_Humidity:4",
-            # aggregate sza-dt
             "--post=sza-dt",
             str(tmp_input),
             str(cache_output),
@@ -85,9 +88,21 @@ def test_default(tmp_default):
     assert len(ds.data_vars) == 0
 
 
-def test_infile(cache_output):
-    path = cache_output.parent / "output"
-    assert len(tuple(path.glob("**/*.infile.txt"))) == 6
+def test_infile(tmp_input):
+    path = tmp_input.parent / "output.nc"
+    # generate infiles for one AM, one RH, and every sza-dt
+    rt_AC_LUT.main(
+        [
+            "--dry-run",
+            "--cluster=Aerosol_Model:2,Relative_Humidity:4,sza-dt",
+            str(tmp_input),
+            str(path),
+        ],
+    )
+    infile = tuple((path.parent / "output").glob("**/*.infile.txt"))
+    for item in infile:
+        item.unlink()
+    assert len(infile) == 6
 
 
 def test_output(cache_output):

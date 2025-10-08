@@ -27,6 +27,8 @@ def cache_output(tmp_default):
                 str(path),
             ],
         )
+        for item in (path.parent / "output").glob("**/*.infile.txt"):
+            item.unlink()
     return path
 
 

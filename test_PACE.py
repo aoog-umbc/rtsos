@@ -41,20 +41,24 @@ def tmp_input(tmp_default):
 @fixture(scope="module")
 def cache_output(tmp_input):
     path = tmp_input.parent / "output.nc"
-    if not any((path.parent / "output").glob("chla/**/output.nc")):
+    parent = path.parent / "output"
+    if not any(parent.glob("chla/**/output.nc")):
+        # run for only chla 0 and each tau_ref_hi
         rt_PACE.main(
             [
-                "--cluster=chla:0,tau_ref_hi",  # run only chla 0, run for each tau_ref_hi
+                "--cluster=chla:0,tau_ref_hi",
                 str(tmp_input),
                 str(path),
             ],
         )
+        for item in parent.glob("**/*.infile.txt"):
+            item.unlink()
     return path
 
 
 @fixture(scope="module")
-def tmp_two_layer_input(tmp_input):
-    # TODO resolve cross module fixture
+def tmp_phmx_input(tmp_input):
+    # TODO resolve cross module fixture: pace needs phmx
     phmx = tmp_input.parent.parent / "phmx" / "output.nc"
     path = tmp_input.parent / "phmx-input.nc"
     ds = xr.load_dataset(tmp_input)
@@ -72,15 +76,17 @@ def tmp_two_layer_input(tmp_input):
 
 
 @fixture(scope="module")
-def cache_two_layer_output(tmp_two_layer_input):
-    path = tmp_two_layer_input.parent / "phmx-output.nc"
+def cache_phmx_output(tmp_phmx_input):
+    path = tmp_phmx_input.parent / "phmx-output.nc"
     if not path.exists():
         rt_PACE.main(
             [
-                str(tmp_two_layer_input),
+                str(tmp_phmx_input),
                 str(path),
             ],
         )
+        for item in path.parent.glob("**/*.infile.txt"):
+            item.unlink()
     return path
 
 
@@ -103,9 +109,21 @@ def test_default(tmp_default):
     assert ds["wv_pace_ref"].item() == np.float32(532.0)
 
 
-def test_infile(cache_output):
-    path = cache_output.parent / "output"
-    assert len(tuple(path.glob("**/*.infile.txt"))) == 4
+def test_infile(tmp_input):
+    path = tmp_input.parent / "output.nc"
+    # generate infiles for only chla 0 and each tau_ref_hi
+    rt_PACE.main(
+        [
+            "--dry-run",
+            "--cluster=chla:0,tau_ref_hi",
+            str(tmp_input),
+            str(path),
+        ],
+    )
+    infile = tuple((path.parent / "output").glob("**/*.infile.txt"))
+    for item in infile:
+        item.unlink()
+    assert len(infile) == 4
 
 
 def test_output(cache_output):
@@ -123,6 +141,6 @@ def test_post(tmp_post):
     assert ds.sizes["Solar_Zenith_Angle"] == 2
 
 
-def test_two_layer_output(cache_two_layer_output):
-    ds = xr.open_dataset(cache_two_layer_output)
+def test_phmx_output(cache_phmx_output):
+    ds = xr.open_dataset(cache_phmx_output)
     assert ds.sizes["NUMMIEUSE"] == 2
