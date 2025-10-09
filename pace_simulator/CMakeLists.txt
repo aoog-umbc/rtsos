@@ -5,5 +5,5 @@ add_library(pace_simulator
 )
 target_link_libraries(pace_simulator
     core
-    ${HDF5_Fortran_LIBRARIES}
+    HDF5::HDF5
 )

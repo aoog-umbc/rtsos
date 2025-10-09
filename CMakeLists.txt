@@ -19,8 +19,7 @@ add_executable(rtsos_GSFC_AC_LUT
 )
 target_link_libraries(rtsos_GSFC_AC_LUT
     core
-    ${HDF5_Fortran_LIBRARIES}
-    ${HDF5_Fortran_HL_LIBRARIES}
+    hdf5::hdf5_hl_fortran
 )
 
 add_executable(rtsos_Aerosol_Phmx_Cal
@@ -29,7 +28,7 @@ add_executable(rtsos_Aerosol_Phmx_Cal
 target_link_libraries(rtsos_Aerosol_Phmx_Cal
     core
     aerosol_phasematrix_preparation
-    ${HDF5_Fortran_LIBRARIES}
+    hdf5::hdf5_hl_fortran
 )
 
 add_executable(rtsos_rao_dg
@@ -45,5 +44,5 @@ add_executable(rtsos_PACE_Simulator_DoubleK
 target_link_libraries(rtsos_PACE_Simulator_DoubleK
     core
     pace_simulator
-    ${HDF5_Fortran_HL_LIBRARIES}
+    hdf5::hdf5_hl_fortran
 )

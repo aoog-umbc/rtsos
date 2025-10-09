@@ -9,7 +9,7 @@ add_library(core
     bfit.f90
     deltafit.f90
     emis_sea.f90
-    nrlib.f90
+    mathlib.f90
     refwat1.f
     rt_single_scattering.f90
     rtsos_rao_dg.f90
@@ -19,5 +19,6 @@ add_library(core
     surface_glint.f90
 )
 target_link_libraries(core
-    ${HDF5_Fortran_LIBRARIES}
+    HDF5::HDF5
+    LAPACK::LAPACK
 )

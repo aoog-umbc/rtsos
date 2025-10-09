@@ -4,5 +4,5 @@ add_library(aerosol_phasematrix_preparation
 )
 target_link_libraries(aerosol_phasematrix_preparation
     pace_simulator
-    ${HDF5_Fortran_LIBRARIES}
+    HDF5::HDF5
 )
