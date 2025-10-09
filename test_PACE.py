@@ -1,5 +1,3 @@
-from pathlib import Path
-
 from pytest import fixture
 import numpy as np
 import xarray as xr
@@ -57,10 +55,8 @@ def cache_output(tmp_input):
 
 
 @fixture(scope="module")
-def tmp_phmx_input(tmp_input):
-    # TODO resolve cross module fixture: pace needs phmx
-    phmx = tmp_input.parent.parent / "phmx" / "output.nc"
-    path = tmp_input.parent / "phmx-input.nc"
+def tmp_input_with_phmx(tmp_input, phmx_cache_output):
+    path = tmp_input.parent / "input-with-phmx.nc"
     ds = xr.load_dataset(tmp_input)
     ds = ds.isel({"Solar_Zenith_Angle": 0, "tau_ref_hi": 0, "chla": 0})
     ds["Aerosol_Model"][()] = -97
@@ -68,20 +64,20 @@ def tmp_phmx_input(tmp_input):
     ds["tau_ref_low"][()] = 0.1
     ds["height_particle_hi"] = 12.0
     ds["height_particle_low"] = 4.0
-    ds["Aerosol_Phasematrix_File_Hi"] = str(phmx)
-    ds["Aerosol_Phasematrix_File_Low"] = str(phmx)
+    ds["Aerosol_Phasematrix_File_Hi"] = str(phmx_cache_output)
+    ds["Aerosol_Phasematrix_File_Low"] = str(phmx_cache_output)
     ds.to_netcdf(path)
     yield path
     path.unlink()
 
 
 @fixture(scope="module")
-def cache_phmx_output(tmp_phmx_input):
-    path = tmp_phmx_input.parent / "phmx-output.nc"
+def cache_output_with_phmx(tmp_input_with_phmx):
+    path = tmp_input_with_phmx.parent / "output-with-phmx.nc"
     if not path.exists():
         rt_PACE.main(
             [
-                str(tmp_phmx_input),
+                str(tmp_input_with_phmx),
                 str(path),
             ],
         )
@@ -141,6 +137,6 @@ def test_post(tmp_post):
     assert ds.sizes["Solar_Zenith_Angle"] == 2
 
 
-def test_phmx_output(cache_phmx_output):
-    ds = xr.open_dataset(cache_phmx_output)
+def test_output_with_phmx(cache_output_with_phmx):
+    ds = xr.open_dataset(cache_output_with_phmx)
     assert ds.sizes["NUMMIEUSE"] == 2
