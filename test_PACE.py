@@ -116,7 +116,7 @@ def test_infile(tmp_input):
             str(path),
         ],
     )
-    infile = tuple((path.parent / "output").glob("**/*.infile.txt"))
+    infile = tuple(path.parent.glob("**/*.infile.txt"))
     for item in infile:
         item.unlink()
     assert len(infile) == 4

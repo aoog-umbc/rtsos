@@ -26,6 +26,6 @@ def phmx_cache_output(phmx_tmp_default):
                 str(path),
             ],
         )
-        for item in (path.parent / "output").glob("**/*.infile.txt"):
+        for item in path.parent.glob("**/*.infile.txt"):
             item.unlink()
     return path
