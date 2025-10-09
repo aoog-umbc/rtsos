@@ -51,6 +51,7 @@ C     wl                   : wavelenght converted to microns
       real wavepope97(mxpope), abspope97(mxpope)
       common    /pope97/ wavepope97, abspope97      
       complex refwat, cxref
+      integer, external :: bisearch
 C convert absorption index to refractive index
       RN=0.0
       CN=0.0
@@ -71,8 +72,10 @@ C Correct  Segelstein, D., 1981 complex part with Pope, R.M.; Fry, E.S., 1997
       wavenano=wl*1000.
 C interpolation is  done in log
       if(wavenano.ge.380.  .and.  wavenano.le.727.5) then
-        call locate(wavepope97,mxpope,wavenano,j)
-        fact=(wavenano-wavepope97(j))/(wavepope97(j+1)-wavepope97(j))      
+!        call locate(wavepope97,mxpope,wavenano,j)
+        j=bisearch(mxpope,wavepope97,wavenano)
+
+        fact=(wavenano-wavepope97(j))/(wavepope97(j+1)-wavepope97(j))
         abscof=abspope97(j)*(abspope97(j+1)/abspope97(j))**fact
         absind=cn/rn
         cn=(wavenano*1.e-9)*abscof/(4.*pi)
@@ -81,30 +84,6 @@ C interpolation is  done in log
       return
       end
 
-      SUBROUTINE locate(xx,n,x,j)
-      INTEGER j,n
-      REAL x,xx(n)
-      INTEGER jl,jm,ju 
-      jl=0
-      ju=n+1
-10    if(ju-jl.gt.1)then
-        jm=(ju+jl)/2
-        if((xx(n).ge.xx(1)).eqv.(x.ge.xx(jm)))then
-          jl=jm
-        else
-          ju=jm
-        endif
-      goto 10
-      endif
-      if(x.eq.xx(1))then
-        j=1
-      else if(x.eq.xx(n))then
-        j=n-1
-      else
-        j=jl
-      endif
-      return
-      END
 
       COMPLEX FUNCTION REFWAT( WL, TEMP)
 

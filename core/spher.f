@@ -222,13 +222,13 @@ C        180*(I-1)/(NPNA-1) (DEGREES), WHERE I NUMBERS THE ANGLES
 
       SUBROUTINE MATR (A1,A2,A3,A4,B1,B2,LMAX,NUMMIEANGMAX,
      &                 NANGMIE_LOCAL,PHMXMIE_LOCAL)
-      IMPLICIT REAL*8 (A-H,O-Z)
+      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
 
       INTEGER :: NUMMIEANGMAX,NANGMIE_LOCAL
-      REAL*8,DIMENSION(NUMMIEANGMAX,0:6) :: PHMXMIE_LOCAL
+      DOUBLE PRECISION,DIMENSION(NUMMIEANGMAX,0:6) :: PHMXMIE_LOCAL
       PARAMETER (NMIE=50000, NPL=2*NMIE, NPNA=201) !NPNA=721
 
-      REAL*8 A1(NPL),A2(NPL),A3(NPL),A4(NPL),B1(NPL),B2(NPL)
+      DOUBLE PRECISION A1(NPL),A2(NPL),A3(NPL),A4(NPL),B1(NPL),B2(NPL)
       L1MAX=LMAX+1
       D6=DSQRT(6D0)*0.25D0
 !      WRITE(10,1003)
@@ -330,8 +330,8 @@ C        F34=100d0*F34/F11
      *            VOLUME,RVW,RMEAN,REFF,VEFF,AA1,BB1,AA2,BB2,DDELT)              
       PARAMETER (NGRAD=100000, NMIE=50000, NPL=2*NMIE,
      *           NDRDI=3*NMIE)
-      IMPLICIT REAL*8 (A-H,O-Z)                                                 
-      REAL*8 LAM,MRR,MRI,MRII, 
+      IMPLICIT DOUBLE PRECISION (A-H,O-Z)                                                 
+      DOUBLE PRECISION LAM,MRR,MRI,MRII, 
      *       PSI(NMIE),HI(NDRDI),RPSI(NDRDI),                                
      *       AL1(NPL),AL2(NPL),AL3(NPL),AL4(NPL),BET1(NPL),           
      *       BET2(NPL),P1(NPL),P2(NPL),P3(NPL),P4(NPL),            
@@ -674,8 +674,8 @@ C   N.LE.NMAX
                                                                                 
       SUBROUTINE ANGL (NMAX,U,PIN,TAUN)                                         
       PARAMETER (NMIE=50000)
-      IMPLICIT REAL*8 (A-H,O-Z)                                                 
-      REAL*8 PIN(NMAX),TAUN(NMAX),COEFF1(NMIE)                                  
+      IMPLICIT DOUBLE PRECISION (A-H,O-Z)                                                 
+      DOUBLE PRECISION PIN(NMAX),TAUN(NMAX),COEFF1(NMIE)                                  
       COMMON /COEFF/ COEFF1                                                     
       P1=0D0                                                                    
       P2=1D0                                                                    
@@ -697,8 +697,8 @@ C  CALCULATION OF THE GENERALIZED SPHERICAL FUNCTIONS
                                                                                 
       SUBROUTINE GENER (U,L1MAX)                                                
       PARAMETER (NMIE=50000, NPL=2*NMIE)
-      IMPLICIT REAL*8 (A-H,O-Z)                                                 
-      REAL*8 P1(NPL),P2(NPL),P3(NPL),P4(NPL),                           
+      IMPLICIT DOUBLE PRECISION (A-H,O-Z)                                                 
+      DOUBLE PRECISION P1(NPL),P2(NPL),P3(NPL),P4(NPL),                           
      *       COEF1(NPL),COEF2(NPL),COEF3(NPL),COEF4(NPL),               
      *       COEF5(NPL),COEF6(NPL),COEF7(NPL),COEF8(NPL)                
       COMMON /COEF/ COEF1,COEF2,COEF3,COEF4,COEF5,COEF6,COEF7,COEF8,D6          
@@ -745,8 +745,8 @@ C*********************************************************************
 
       SUBROUTINE DISTRB (NNK,YY,WY,NDISTR,AA,BB,GAM,R1,R2,REFF,                 
      &                   VEFF,AREA,VOLUME,RVW,RMEAN,PI,AA1,BB1,AA2,BB2)
-      IMPLICIT REAL*8 (A-H,O-Z)                                                 
-      REAL*8 YY(NNK),WY(NNK)                                                    
+      IMPLICIT DOUBLE PRECISION (A-H,O-Z)                                                 
+      DOUBLE PRECISION YY(NNK),WY(NNK)                                                    
       IF (NDISTR.EQ.2) GO TO 100                                                
       IF (NDISTR.EQ.3) GO TO 200                                                
       IF (NDISTR.EQ.4) GO TO 300                                                
@@ -877,8 +877,8 @@ C ADDITION OVER BY ZHAI, PENGWANG
 C**********************************************************                     
                                                                                 
       SUBROUTINE GAUSS ( N,IND1,IND2,Z,W )
-      IMPLICIT REAL*8 (A-H,P-Z)
-      REAL*8 Z(N),W(N)
+      IMPLICIT DOUBLE PRECISION (A-H,P-Z)
+      DOUBLE PRECISION Z(N),W(N)
       DATA A,B,C /1D0,2D0,3D0/
       IND=MOD(N,2)
       K=N/2+IND
@@ -940,7 +940,7 @@ C  COMPUTATION OF R1 AND R2 FOR THE POWER LAW SIZE DISTRIBUTION WITH
 C  EFFECTIVE RADIUS A AND EFFECTIVE VARIANCE B
  
       SUBROUTINE POWER (A,B,R1,R2)
-      IMPLICIT REAL*8 (A-H,O-Z)
+      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
       EXTERNAL F
       COMMON AA,BB
       AA=A
@@ -955,7 +955,7 @@ C  EFFECTIVE RADIUS A AND EFFECTIVE VARIANCE B
 C***********************************************************************
  
       DOUBLE PRECISION FUNCTION F(R1)
-      IMPLICIT REAL*8 (A-H,O-Z)
+      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
       COMMON A,B
       R2=(1D0+B)*2D0*A-R1
       F=(R2-R1)/DLOG(R2/R1)-A
@@ -965,7 +965,7 @@ C***********************************************************************
 C***********************************************************************
  
       DOUBLE PRECISION FUNCTION ZEROIN (AX,BX,F,TOL)
-      IMPLICIT REAL*8 (A-H,O-Z)
+      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
       EPS=1D0
    10 EPS=0.5D0*EPS
       TOL1=1D0+EPS

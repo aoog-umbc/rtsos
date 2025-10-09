@@ -304,9 +304,9 @@ endif
 do iangle=1,nangle
 ! seaemis1_lut dimension: (nwave_lut,ntheta_lut)
 
-   call polin2(wavelength_micron_lut,secang_lut,seaemis1_lut, &
+   call interpl2d(wavelength_micron_lut,secang_lut,seaemis1_lut, &
                nwave_lut,ntheta_lut,wavelength_micron_tmp,secantv(iangle),ylo,dy)
-   call polin2(wavelength_micron_lut,secang_lut,seaemis2_lut, &
+   call interpl2d(wavelength_micron_lut,secang_lut,seaemis2_lut, &
 			   nwave_lut,ntheta_lut,wavelength_micron_tmp,secantv(iangle),yhi,dy)
 
    emis_val(iangle)=(yhi - ylo)*(windspeed_tmp-windspeed_lut(iwindspeed)) / &
