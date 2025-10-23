@@ -97,7 +97,7 @@ def input_writer_flexible_nmode3(filestrbase,irh,iaerosol,rf2,rf3,fmfrac,dustfra
     f.close
 
 # aux_dir definition
-aux_dir='/Users/pwzhai/Research/RT/SOS/SOS_Callable/test/PACE_Simulator/auxiliary_files/'
+aux_dir='/Users/pwzhai/Research/RT/SOS/SOS_Callable/Data/'
 
 #Common parameters
 wv_seg_flag=0
