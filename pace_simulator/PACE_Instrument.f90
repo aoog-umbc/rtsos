@@ -91,9 +91,9 @@ ALLOCATE(ILS_WaveLength(NILS_PACE_RAW), &
          ILS_PACE_RAW(NWV_BAND,NILS_PACE_RAW))
 
 !OCI_ILS_Filename=trim(aux_dir)//'/OCI_RSR_2.5nm_v7_convert2.h5'
-OCI_ILS_Filename=trim(aux_dir)//'PACE_OCI_L1B_LUT_RSR_baseline_1.1.1.nc'
-SPEXone_ILS_Filename=trim(aux_dir)//'spexone_isrf.nc'
-HARP2_ILS_Filename=trim(aux_dir)//'HARP2_RSR_Composite_v01b.csv'
+OCI_ILS_Filename=trim(aux_dir)//'/PACE_OCI_L1B_LUT_RSR_baseline_1.1.1.nc'
+SPEXone_ILS_Filename=trim(aux_dir)//'/spexone_isrf.nc'
+HARP2_ILS_Filename=trim(aux_dir)//'/HARP2_RSR_Composite_v01b.csv'
 
 CALL h5open_f(hdferr)
 CALL h5fopen_f(OCI_ILS_Filename, H5F_ACC_RDONLY_F, file, hdferr)
