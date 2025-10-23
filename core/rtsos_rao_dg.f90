@@ -1,13 +1,26 @@
-!NAME:            rtsos.f90
-!RADIATION:       Vector 
+! ===============================================================
+!  RTSOS – Radiative Transfer model based on Successive Orders of Scattering
+!  Copyright (C) 2025  Pengwang Zhai, University of Maryland Baltimore County
+!
+!  Licensed under the Creative Commons Attribution–NonCommercial 4.0
+!  International License (CC BY-NC 4.0).
+!  You may use, modify, and share this code for research and
+!  educational purposes with proper attribution.
+!  Commercial use requires written permission from the author.
+!
+!  Full license: https://creativecommons.org/licenses/by-nc/4.0/
+!  Contact: Pengwang Zhai  |  [pwzhai@umbc.edu]
+! ===============================================================
+
+!RADIATION:       Vector
 !GEOMETRY:        Plane-parallel
 !METHOD:          Successive order of scattering
 !DETECTORS:       User Defined Position
 !SCATTERING:      Multiple
 !INTERFACE:       COX MUNK MODEL
-!                 Pengwang Zhai
+
 !DATE:            Mar 15 2009
-!COMMENTS:        IF "TRUC_FLAG==.TRUE." AND THE INCORRECT SIMULATION, 
+!COMMENTS:        IF "TRUC_FLAG==.TRUE." AND THE INCORRECT SIMULATION,
 !                 CHECK INPUT FILE FOR THE CORRECT VALUE OF "FTRUNC"
 
 !COMMENTS:        IF The radiance calculation at the forward direction 

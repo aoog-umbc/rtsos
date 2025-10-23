@@ -1,3 +1,17 @@
+! ===============================================================
+!  RTSOS – Radiative Transfer model based on Successive Orders of Scattering
+!  Copyright (C) 2025  Pengwang Zhai, University of Maryland Baltimore County
+!
+!  Licensed under the Creative Commons Attribution–NonCommercial 4.0
+!  International License (CC BY-NC 4.0).
+!  You may use, modify, and share this code for research and
+!  educational purposes with proper attribution.
+!  Commercial use requires written permission from the author.
+!
+!  Full license: https://creativecommons.org/licenses/by-nc/4.0/
+!  Contact: Pengwang Zhai  |  [pwzhai@umbc.edu]
+! ===============================================================
+
 ! April 20, 2017 copied main_PACE_AC.f90 to main_PACE_Simulator.f90
 ! April 20, 2017 old main_PACE_Simulator has been deleted
 ! pay attention to PHIOUT in both STOKESOUT and MUPHIOUTASS

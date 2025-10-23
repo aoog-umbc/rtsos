@@ -1,3 +1,17 @@
+! ===============================================================
+!  RTSOS – Radiative Transfer model based on Successive Orders of Scattering
+!  Copyright (C) 2025  Pengwang Zhai, University of Maryland Baltimore County
+!
+!  Licensed under the Creative Commons Attribution–NonCommercial 4.0
+!  International License (CC BY-NC 4.0).
+!  You may use, modify, and share this code for research and
+!  educational purposes with proper attribution.
+!  Commercial use requires written permission from the author.
+!
+!  Full license: https://creativecommons.org/licenses/by-nc/4.0/
+!  Contact: Pengwang Zhai  |  [pwzhai@umbc.edu]
+! ===============================================================
+
 MODULE SnowBRDF
 USE RTTYPE, ONLY : PI
 
@@ -34,7 +48,7 @@ INTEGER,PARAMETER :: NHEADER=1
 INTEGER :: ITEMP,ITEMP1
 
 ! Read in albedo
-filename_readin=trim(snow_brdf_path)//'albedo.txt'
+filename_readin=trim(snow_brdf_path)//'/albedo.txt'
 OPEN(unit=1,file=filename_readin,status='old',action='read');
 DO ITEMP=1,NHEADER
   READ(1,*)
@@ -46,7 +60,7 @@ ENDDO
 CLOSE(1)
 
 ! Read in EOF_A
-filename_readin=trim(snow_brdf_path)//'eof_A.txt'
+filename_readin=trim(snow_brdf_path)//'/eof_A.txt'
 OPEN(unit=1,file=filename_readin,status='old',action='read');
 DO ITEMP=1,NHEADER
   READ(1,*)
@@ -60,7 +74,7 @@ ENDDO
 CLOSE(1)
 
 ! Read in EOF_B
-filename_readin=trim(snow_brdf_path)//'eof_B.txt'
+filename_readin=trim(snow_brdf_path)//'/eof_B.txt'
 OPEN(unit=1,file=filename_readin,status='old',action='read');
 DO ITEMP=1,NHEADER
   READ(1,*)
@@ -74,7 +88,7 @@ ENDDO
 CLOSE(1)
 
 ! Read in EOF_C
-filename_readin=trim(snow_brdf_path)//'eof_C.txt'
+filename_readin=trim(snow_brdf_path)//'/eof_C.txt'
 OPEN(unit=1,file=filename_readin,status='old',action='read');
 DO ITEMP=1,NHEADER
   READ(1,*)
@@ -88,7 +102,7 @@ ENDDO
 CLOSE(1)
 
 ! Read in EOF_D
-filename_readin=trim(snow_brdf_path)//'eof_D.txt'
+filename_readin=trim(snow_brdf_path)//'/eof_D.txt'
 OPEN(unit=1,file=filename_readin,status='old',action='read');
 DO ITEMP=1,NHEADER
   READ(1,*)
@@ -104,7 +118,7 @@ CLOSE(1)
 
 
 ! Read in EOF_E
-filename_readin=trim(snow_brdf_path)//'eof_E.txt'
+filename_readin=trim(snow_brdf_path)//'/eof_E.txt'
 OPEN(unit=1,file=filename_readin,status='old',action='read');
 DO ITEMP=1,NHEADER
   READ(1,*)
@@ -118,7 +132,7 @@ ENDDO
 CLOSE(1)
 
 ! Read in EOF_F
-filename_readin=trim(snow_brdf_path)//'eof_F.txt'
+filename_readin=trim(snow_brdf_path)//'/eof_F.txt'
 OPEN(unit=1,file=filename_readin,status='old',action='read');
 DO ITEMP=1,NHEADER
   READ(1,*)

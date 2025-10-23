@@ -96,8 +96,10 @@ if( (mono_increase .and. X<=XX(1)) .or. &
 		Func_UVIP3P=YY(1)+RTMP1*(YY(2)-YY(1))/RTMP
         RETURN
    ELSE
-		WRITE(*,*) 'Func_UVIP3P, X=',X,'OUT OF XX RANGE,XX(1),XX(2)=',XX(1),XX(2)
-        STOP
+		WRITE(*,*) 'Warning: Func_UVIP3P, X=',X,'OUT OF XX RANGE,XX(1),XX(2)=',XX(1),XX(2)
+        WRITE(*,*) 'Use nearest point approximation'
+		Func_UVIP3P=YY(1)
+        RETURN
    ENDIF
 else
 	RTMP=XX(NXX-1)-XX(NXX)
@@ -107,7 +109,9 @@ else
 		RETURN
    ELSE
 	 WRITE(*,*) 'Func_UVIP3P, X=',X,'OUT OF XX RANGE,XX(NXX-1),XX(NXX)=',XX(NXX-1),XX(NXX)
-	 STOP
+     WRITE(*,*) 'Use nearest point approximation'
+     Func_UVIP3P=YY(NXX)
+     RETURN
    ENDIF
 endif
 
