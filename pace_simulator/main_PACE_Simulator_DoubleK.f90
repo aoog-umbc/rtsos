@@ -1,6 +1,6 @@
 ! ===============================================================
 !  RTSOS – Radiative Transfer model based on Successive Orders of Scattering
-!  Copyright (C) 2025  Pengwang Zhai, University of Maryland Baltimore County
+!  Copyright (C) 2025  Pengwang Zhai
 !
 !  Licensed under the Creative Commons Attribution–NonCommercial 4.0
 !  International License (CC BY-NC 4.0).
@@ -9,7 +9,7 @@
 !  Commercial use requires written permission from the author.
 !
 !  Full license: https://creativecommons.org/licenses/by-nc/4.0/
-!  Contact: Pengwang Zhai  |  [pwzhai@umbc.edu]
+!  Contact: Pengwang Zhai  |  [pwzhai@gmail.com]
 ! ===============================================================
 
 ! April 20, 2017 copied main_PACE_AC.f90 to main_PACE_Simulator.f90
