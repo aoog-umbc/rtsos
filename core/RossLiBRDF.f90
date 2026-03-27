@@ -33,7 +33,7 @@ DOUBLE PRECISION,DIMENSION(4,4),INTENT(OUT) :: BRDML
 
 DOUBLE PRECISION :: SINT1,SINT2,THETA1,THETA2, PHIV
 
-DOUBLE PRECISION :: thetascat,costhetascat,sinthetascat
+DOUBLE PRECISION :: thetaphase,costhetaphase,sinthetaphase
 
 SINT1=DSQRT(1.0D0-COST1*COST1)
 SINT2=DSQRT(1.0D0-COST2*COST2)
@@ -41,12 +41,12 @@ PHIV=PHI2-PHI1+PI
 !IF(PHIV<0.0D0)PHIV=PHIV+2.0D0*PI
 !IF(PHIV>2.0D0*PI)PHIV=PHIV-2.0D0*PI
 
-costhetascat=abs(COST1*COST2)+SINT1*SINT2*COS(PHIV)
-IF(ABS(costhetascat)>1.0D0) STOP 'CHECK COST1 AND COST2 IN RossLi_Kernel_vol'
-sinthetascat=DSQRT(1.0D0-costhetascat*costhetascat)
-thetascat=ACOS(costhetascat)
+costhetaphase=abs(COST1*COST2)+SINT1*SINT2*COS(PHIV)
+IF(ABS(costhetaphase)>1.0D0) STOP 'CHECK COST1 AND COST2 IN RossLi_Kernel_vol'
+sinthetaphase=DSQRT(1.0D0-costhetaphase*costhetaphase)
+thetaphase=ACOS(costhetaphase)
 BRDML=0.0D0
-BRDML(1,1)=((0.5D0*PI-thetascat)*costhetascat+sinthetascat)/(abs(COST1)+abs(COST2))
+BRDML(1,1)=((0.5D0*PI-thetaphase)*costhetaphase+sinthetaphase)/(abs(COST1)+abs(COST2))
 BRDML(1,1)=BRDML(1,1)-0.25D0*PI
 ENDSUBROUTINE RossLi_Kernel_vol
 
