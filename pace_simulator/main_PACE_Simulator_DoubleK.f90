@@ -19,8 +19,7 @@
 ! NOV. 26, 2018, CREATE AP_SELECT TO MAKE AP INDEPENDENT WITH OCEAN_CASE_SELECT
 
 MODULE GLOBAL_DATA
-INTEGER,PARAMETER :: NWV=36074,NWV_SEG1=27223,NWV_SEG2=8851
-DOUBLE PRECISION,DIMENSION(NWV):: WV
+USE WV_LBL_GRID
 
 DOUBLE PRECISION,DIMENSION(:,:,:) ,ALLOCATABLE:: DIRADFULL  ! DIRAD(:,1) DOWNWELLING IRADIANCE
 											! DIRAD(:,2) UPWELLING IRADIANCE
@@ -4674,8 +4673,7 @@ IF(OCEAN_CASE_SELECT==1 .or. OCEAN_CASE_SELECT==2)THEN
 
 ! See Eq.13 in Morel and Maritorena, JGR, 2001
 !	BPTC550=0.416*CHLaVal**0.766
-!   RTMP=(WAVELENGTH_MICRON/0.55)**BPTC_exp_coeff
-!   BBPTCLOCAL=BPTC550*(0.002d0+0.01d0*(0.50d0-0.25d0*log10(CHLaVal))*RTMP)
+!    BPTCLOCAL=BPTC550*(WAVELENGTH_MICRON/0.55)**BPTC_exp_coeff
 ! See Eq.12 in Morel and Maritorena, JGR, 2001
 	BPTC660=0.347*CHLaVal**0.766
     BPTCLOCAL=BPTC660*(WAVELENGTH_MICRON/0.66)**BPTC_exp_coeff
@@ -6018,60 +6016,6 @@ DEALLOCATE( TAU_ABS_GRID,TAU_ABS_CUMSUM, TAU_ABS_H2O_CUMSUM, &
 
 
 ENDSUBROUTINE TAU_TG_INIT
-
-
-SUBROUTINE WV_LBL_SETUP
-USE GLOBAL_DATA, ONLY : NWV, WV,NWV_SEG1,NWV_SEG2
-IMPLICIT NONE
-INTEGER,PARAMETER :: N_BAND_INDX=25
-DOUBLE PRECISION, DIMENSION(N_BAND_INDX):: WAVELENGTH_STEP= &
-             (/1.0d0,   0.5d0, 0.01d0,   0.5d0, 0.005d0,   0.5d0,  0.01d0,  &
-			   0.5d0, 0.005d0, 0.01d0,   0.5d0, 0.005d0,  0.01d0,   0.2d0,  &
-               0.1d0,  0.02d0,  0.1d0,                                      &
-               1.0d0,                                                       &
-               0.1d0,                                                       &
-               0.1d0,  0.02d0,  0.1d0,                                      &
-               0.1d0,                                                       &
-               0.05d0,                                                      &
-               1.0d0/)
-DOUBLE PRECISION, DIMENSION(N_BAND_INDX):: WAVELENGTH_BAND_START=                     &
-           (/299.0d0, 349.5d0, 586.d0, 606.0d0, 627.0d0, 637.0d0, 641.0d0,  &
-             666.0d0, 686.0d0, 700.d0, 751.0d0, 758.0d0, 780.0d0, 856.0d0,  &
-	         896d0,     918d0, 962.7d0,                                     &
-			 985.0d0,                                                       &
-			 1220.d0,                                                       &
-			 1348d0, 1363.1d0, 1393.2d0,                                    &
-			 1540.0d0,                                                      &
-			 2080.0d0,                                                      &
-			 2185.0d0/)
-INTEGER, DIMENSION(N_BAND_INDX):: WAVELENGTH_BAND_SIZE=                     &
-              (/  50,     474,   2000,      42,    2000,       8,    2500,  &
-                  40,    2800,   5100,      14,    4400,    7600,     195,  &
-			      219,   2230,   220,                                       &
-				  130,                                                      &
-				  600,                                                      &
-				  150,   1500,   150,                                       &
-				  1501,                                                     &
-				  2001,                                                     &
-				  150/)
-
-INTEGER :: IWV,I_BAND_INDX,I_WV_DSPLC
-
-IF(NWV .NE. NWV_SEG1+NWV_SEG2) STOP 'NWV .NE. NWV_SEG1+NWV_SEG2'
-IWV=SUM(WAVELENGTH_BAND_SIZE(1:14))
-IF(NWV_SEG1 .NE. IWV) STOP 'CHECK NWV_SEG1'
-
-I_WV_DSPLC=0
-DO I_BAND_INDX=1,N_BAND_INDX
-  IF(I_BAND_INDX>1)I_WV_DSPLC=I_WV_DSPLC+WAVELENGTH_BAND_SIZE(I_BAND_INDX-1)
-  DO IWV=1,WAVELENGTH_BAND_SIZE(I_BAND_INDX)
-    WV(I_WV_DSPLC+IWV)=WAVELENGTH_BAND_START(I_BAND_INDX) + &
-                         IWV*WAVELENGTH_STEP(I_BAND_INDX)
-  ENDDO
-ENDDO
-
-IF(I_WV_DSPLC+WAVELENGTH_BAND_SIZE(N_BAND_INDX) .NE. NWV)STOP 'CHECK WV ASSIGNMENT'
-END SUBROUTINE WV_LBL_SETUP
 
 SUBROUTINE Particle_PHMX_Assign(NWV_PHMX,IAEROSOL,AeroFMF,RH_simu,REFF1_Save,    &
                  REFF2_Save,VEFF1_Save,VEFF2_Save,MRR1_Save,MRI1_Save,MRR2_Save,&

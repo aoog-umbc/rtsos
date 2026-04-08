@@ -1,0 +1,58 @@
+MODULE WV_LBL_GRID
+INTEGER,PARAMETER :: NWV=37618,NWV_SEG1=27222,NWV_SEG2=10396
+DOUBLE PRECISION,DIMENSION(NWV):: WV
+
+CONTAINS
+
+SUBROUTINE WV_LBL_SETUP
+IMPLICIT NONE
+INTEGER,PARAMETER :: N_BAND_INDX=27
+DOUBLE PRECISION, DIMENSION(N_BAND_INDX):: WAVELENGTH_STEP= &
+			 (/1.0d0,   0.5d0, 0.01d0,   0.5d0, 0.005d0,   0.5d0,  0.01d0,  &
+			   0.5d0, 0.005d0, 0.01d0,   0.5d0, 0.005d0,  0.01d0,   0.2d0,  &
+			   0.1d0,  0.02d0,  0.1d0,   1.0d0,  0.1d0,                     &
+			   0.1d0,  0.02d0,  0.1d0,                                      &
+			   1.0d0,   0.1d0,  1.0d0,  0.05d0,  1.0d0/)
+DOUBLE PRECISION, DIMENSION(N_BAND_INDX):: WAVELENGTH_BAND_START=           &
+		   (/299.0d0, 349.5d0, 586.d0, 606.0d0, 627.0d0, 637.0d0, 641.0d0,  &
+			 666.0d0, 686.0d0, 700.d0, 751.0d0, 758.0d0, 780.0d0, 856.0d0,  &
+			 895d0,     918d0, 962.7d0,985.0d0, 1220.d0,                    &
+			 1348d0, 1363.1d0,1393.2d0,                                     &
+			 1409.0d0,1540.0d0,1691.0d0,2080.0d0,2181.0d0/)
+INTEGER, DIMENSION(N_BAND_INDX):: WAVELENGTH_BAND_SIZE=                     &
+			  (/  50,     473,   2000,      42,    2000,       8,    2500,  &
+				  40,    2800,   5100,      14,    4400,    7600,     195,  &
+				  230,   2239,   223,      235,    1280,                    &
+				  151,   1505,   161,                                       &
+				  131,   1511,   389,     2022,     319/)
+
+INTEGER :: IWV,I_BAND_INDX,I_WV_DSPLC
+
+IF(NWV .NE. NWV_SEG1+NWV_SEG2) STOP 'NWV .NE. NWV_SEG1+NWV_SEG2'
+IWV=SUM(WAVELENGTH_BAND_SIZE(1:14))
+IF(NWV_SEG1 .NE. IWV) THEN
+   WRITE(*,*)'NWV_SEG1=',NWV_SEG1,IWV
+   STOP 'CHECK NWV_SEG1'
+ENDIF
+I_WV_DSPLC=0
+DO I_BAND_INDX=1,N_BAND_INDX
+  IF(I_BAND_INDX>1)I_WV_DSPLC=I_WV_DSPLC+WAVELENGTH_BAND_SIZE(I_BAND_INDX-1)
+  DO IWV=1,WAVELENGTH_BAND_SIZE(I_BAND_INDX)
+	WV(I_WV_DSPLC+IWV)=WAVELENGTH_BAND_START(I_BAND_INDX) + &
+						 IWV*WAVELENGTH_STEP(I_BAND_INDX)
+  ENDDO
+ENDDO
+!open(unit=1,file='wavelength_grid',action='write')
+!do iwv=1,nwv
+!write(1,*)WV(iwv)
+!enddo
+!close(1)
+IF(I_WV_DSPLC+WAVELENGTH_BAND_SIZE(N_BAND_INDX) .NE. NWV)THEN
+  WRITE(*,*)'NWV=',NWV,I_WV_DSPLC+WAVELENGTH_BAND_SIZE(N_BAND_INDX)
+  STOP 'CHECK WV ASSIGNMENT'
+ENDIF
+!stop 'stopping simulation'
+END SUBROUTINE WV_LBL_SETUP
+
+ENDMODULE WV_LBL_GRID
+
