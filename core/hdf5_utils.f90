@@ -173,7 +173,7 @@ SUBROUTINE write_2d_real(file, name, data, dim1, dim2)
   INTEGER(HSIZE_T), DIMENSION(2) :: dims
   INTEGER :: hdferr
 
-  dims = SHAPE(data)
+  dims = INT(SHAPE(data), KIND=HSIZE_T)
 
   CALL h5screate_simple_f(2, dims, space, hdferr)
   CALL h5dcreate_f(file, name, H5T_IEEE_F32LE, space, dset, hdferr)
@@ -199,7 +199,7 @@ SUBROUTINE write_3d_real(file, name, data, dim1, dim2, dim3)
   INTEGER(HSIZE_T), DIMENSION(3) :: dims
   INTEGER :: hdferr
 
-  dims = SHAPE(data)
+  dims = INT(SHAPE(data), KIND=HSIZE_T)
 
   CALL h5screate_simple_f(3, dims, space, hdferr)
   CALL h5dcreate_f(file, name, H5T_IEEE_F32LE, space, dset, hdferr)
@@ -226,7 +226,7 @@ SUBROUTINE write_4d_real(file, name, data, dim1, dim2, dim3, dim4)
   INTEGER(HSIZE_T), DIMENSION(4) :: dims
   INTEGER :: hdferr
 
-  dims = SHAPE(data)
+  dims = INT(SHAPE(data), KIND=HSIZE_T)
 
   CALL h5screate_simple_f(4, dims, space, hdferr)
   CALL h5dcreate_f(file, name, H5T_IEEE_F32LE, space, dset, hdferr)
