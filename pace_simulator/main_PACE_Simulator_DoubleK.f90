@@ -1544,12 +1544,13 @@ USE FLUORESCENCEDATA
 USE MIE_PHMX_PACE,ONLY : BBFRAC_Plankton_BAND,BBFRAC_Mineral_BAND
 USE HDF5
 USE H5DS
+USE hdf5_utils
 USE ISO_C_BINDING
 
 IMPLICIT none
 CHARACTER*360 :: CFILE1
 INTEGER,INTENT(IN) :: NWV_BAND_CAL,IAEROSOL
-INTEGER :: NTHETAOUT,NPHIOUT,NTLYERA,ICOM
+INTEGER :: NTHETAOUT,NPHIOUT,NTLYERA,N_Stokes_Parameter,ICOM
 
 DOUBLE PRECISION,DIMENSION(NWV_BAND_CAL) :: WAVELENGTH_Table_Save
 DOUBLE PRECISION,DIMENSION(NWV_BAND_CAL,NTLYERA) ::TAU_ARSL_Ext_Save,TAU_ARSL_Scat_Save, &
@@ -1610,7 +1611,6 @@ INTEGER(hsize_t),DIMENSION(1:2) :: dims
 INTEGER(hsize_t),DIMENSION(1) :: dimscl
 INTEGER(HSIZE_T),DIMENSION(1:2) :: maxdims
 TYPE(C_PTR) :: f_ptr
-REAL,DIMENSION(1),TARGET :: HDF5RTMP
 INTEGER,DIMENSION(1),TARGET :: HDF5ITMP
 REAL,DIMENSION(:),TARGET,ALLOCATABLE :: HDF5RARR
 REAL,DIMENSION(:,:),TARGET,ALLOCATABLE :: HDF5RARR2DIM
@@ -1633,6 +1633,11 @@ DOUBLE PRECISION,DIMENSION(:),ALLOCATABLE :: XK,YK
 DOUBLE PRECISION,DIMENSION(:),ALLOCATABLE :: XU,YU,ZU,TempU
 DOUBLE PRECISION :: Func_UVIP3P,ILS_INT_CONST,TRAPZOID
 logical:: exist
+
+INTERFACE write_real
+  MODULE PROCEDURE write_1d_real, write_2d_real, write_3d_real, write_4d_real
+END INTERFACE
+
 ALLOCATE(DIRADFULL_AVG(NDET,NWV_BAND,2),&
 		 DSTOKESFULL_AVG(NDET,NWV_BAND,NTHETAOUT,NPHIOUT,4))
 ALLOCATE(XK(MAXVAL(NILS_PACE)),YK(MAXVAL(NILS_PACE)))
@@ -2027,133 +2032,27 @@ ENDIF
 CALL h5open_f(hdferr)
 CALL h5fcreate_f(CFILE1, H5F_ACC_TRUNC_F, file, hdferr)
 
-CALL h5screate_f(H5S_SCALAR_F, space, hdferr)
-CALL h5dcreate_f(file, 'MU_SOLAR', H5T_IEEE_F32LE, space, dset, hdferr)
-HDF5RTMP=MU_IN
-f_ptr=C_LOC(HDF5RTMP(1))
-CALL h5dwrite_f(dset,H5T_NATIVE_REAL,f_ptr, hdferr)
-CALL h5dclose_f(dset, hdferr)
-CALL h5sclose_f(space, hdferr)
-
-CALL h5screate_f(H5S_SCALAR_F, space, hdferr)
-CALL h5dcreate_f(file, 'OZONE_COLUMN_DobsonUnit', H5T_IEEE_F32LE, space, dset, hdferr)
-HDF5RTMP=OZONE_COLUMN
-f_ptr=C_LOC(HDF5RTMP(1))
-CALL h5dwrite_f(dset,H5T_NATIVE_REAL,f_ptr, hdferr)
-CALL h5dclose_f(dset, hdferr)
-CALL h5sclose_f(space, hdferr)
-
-CALL h5screate_f(H5S_SCALAR_F, space, hdferr)
-CALL h5dcreate_f(file, 'H2O_COLUMN_Centimeter', H5T_IEEE_F32LE, space, dset, hdferr)
-HDF5RTMP=H2O_COLUMN
-f_ptr=C_LOC(HDF5RTMP(1))
-CALL h5dwrite_f(dset,H5T_NATIVE_REAL,f_ptr, hdferr)
-CALL h5dclose_f(dset, hdferr)
-CALL h5sclose_f(space, hdferr)
-
-CALL h5screate_f(H5S_SCALAR_F, space, hdferr)
-CALL h5dcreate_f(file, 'NO2_COLUMN_DobsonUnit', H5T_IEEE_F32LE, space, dset, hdferr)
-HDF5RTMP=NO2_COLUMN
-f_ptr=C_LOC(HDF5RTMP(1))
-CALL h5dwrite_f(dset,H5T_NATIVE_REAL,f_ptr, hdferr)
-CALL h5dclose_f(dset, hdferr)
-CALL h5sclose_f(space, hdferr)
-
-CALL h5screate_f(H5S_SCALAR_F, space, hdferr)
-CALL h5dcreate_f(file, 'Pressure_Surface_mb', H5T_IEEE_F32LE, space, dset, hdferr)
-HDF5RTMP=PRESSURE_SURFACE/100.0d0
-f_ptr=C_LOC(HDF5RTMP(1))
-CALL h5dwrite_f(dset,H5T_NATIVE_REAL,f_ptr, hdferr)
-CALL h5dclose_f(dset, hdferr)
-CALL h5sclose_f(space, hdferr)
+CALL write_scalar_real(file,'MU_SOLAR',real(MU_IN))
+CALL write_scalar_real(file, 'OZONE_COLUMN_DobsonUnit',real(OZONE_COLUMN))
+CALL write_scalar_real(file, 'H2O_COLUMN_Centimeter',real(H2O_COLUMN))
+CALL write_scalar_real(file, 'NO2_COLUMN_DobsonUnit',real(NO2_COLUMN))
+CALL write_scalar_real(file, 'Pressure_Surface_mb',real(PRESSURE_SURFACE/100.0d0))
 
 IF(IAEROSOL>10 .OR. IAEROSOL==-1)THEN
-	HDF5RTMP=AeroFMF
-  CALL h5screate_f(H5S_SCALAR_F, space, hdferr)
-	CALL h5dcreate_f(file, 'AerosolFineModeFraction', H5T_IEEE_F32LE, space, dset, hdferr)
-	f_ptr=C_LOC(HDF5RTMP(1))
-	CALL h5dwrite_f(dset, H5T_NATIVE_REAL,f_ptr, hdferr)
-	CALL h5sclose_f(space, hdferr)
-	CALL h5dclose_f(dset, hdferr)
+  CALL write_scalar_real(file, 'AerosolFineModeFraction',real(AeroFMF))
 ENDIF
 
-CALL h5screate_f(H5S_SCALAR_F, space, hdferr)
-CALL h5dcreate_f(file, 'Relative_Humidity', H5T_IEEE_F32LE, space, dset, hdferr)
-HDF5RTMP=RH_simu
-f_ptr=C_LOC(HDF5RTMP(1))
-CALL h5dwrite_f(dset,H5T_NATIVE_REAL,f_ptr, hdferr)
-CALL h5dclose_f(dset, hdferr)
-CALL h5sclose_f(space, hdferr)
+CALL write_scalar_real(file, 'Relative_Humidity',real(RH_simu))
+CALL write_scalar_real(file, 'Wind_Speed',real(WNDSPD))
 
-CALL h5screate_f(H5S_SCALAR_F, space, hdferr)
-CALL h5dcreate_f(file, 'Wind_Speed', H5T_IEEE_F32LE, space, dset, hdferr)
-HDF5RTMP=WNDSPD
-f_ptr=C_LOC(HDF5RTMP(1))
-CALL h5dwrite_f(dset,H5T_NATIVE_REAL,f_ptr, hdferr)
-CALL h5dclose_f(dset, hdferr)
-CALL h5sclose_f(space, hdferr)
+CALL create_dim_scale(file, 'WaveLength_PACE', real(WV_BAND), c_dim_nwv_band)
 
-dimscl=(/ NWV_BAND /)
-
-CALL h5screate_simple_f(1, dimscl, space, hdferr)
-CALL h5dcreate_f(file, 'WaveLength_PACE', H5T_IEEE_F32LE, space, c_dim_nwv_band, hdferr)
-ALLOCATE(HDF5RARR(NWV_BAND))
-HDF5RARR=WV_BAND
-CALL h5dwrite_f(c_dim_nwv_band, H5T_NATIVE_REAL, C_LOC(HDF5RARR(1)), hdferr)
-DEALLOCATE(HDF5RARR)
-CALL h5dsset_scale_f(c_dim_nwv_band, hdferr)
-CALL h5sclose_f(space, hdferr)
-
-dimscl=(/ NWV_OUTPUT /)
-CALL h5screate_simple_f(1, dimscl, space, hdferr)
-CALL h5dcreate_f(file, 'WaveLength_Simulation', H5T_IEEE_F32LE, space, c_dim_nwv_output, hdferr)
-ALLOCATE(HDF5RARR(NWV_OUTPUT))
-IF(ILS_FLAG)THEN
-  HDF5RARR(1:NWV_OUTPUT)=WV_BAND(NWV_START:NWV_END)
+IF (ILS_FLAG) THEN
+  CALL create_dim_scale(file, 'WaveLength_Simulation', &
+	   real(WV_BAND(NWV_START:NWV_END)), c_dim_nwv_output)
 ELSE
-  HDF5RARR(1:NWV_OUTPUT)=WV(NWV_START:NWV_END)
-ENDIF
-CALL h5dwrite_f(c_dim_nwv_output, H5T_NATIVE_REAL, C_LOC(HDF5RARR(1)), hdferr)
-DEALLOCATE(HDF5RARR)
-CALL h5dsset_scale_f(c_dim_nwv_output, hdferr)
-CALL h5sclose_f(space, hdferr)
-
-IF(ILS_FLAG)THEN
-	CALL h5screate_simple_f(1, dimscl, space, hdferr)
-	CALL h5dcreate_f(file, 'fiso', H5T_IEEE_F32LE, space, c_dim_nwv_output, hdferr)
-	ALLOCATE(HDF5RARR(NWV_OUTPUT))
-	HDF5RARR(1:NWV_OUTPUT)=fiso_avg(NWV_START:NWV_END)
-	CALL h5dwrite_f(c_dim_nwv_output, H5T_NATIVE_REAL, C_LOC(HDF5RARR(1)), hdferr)
-	DEALLOCATE(HDF5RARR)
-	CALL h5dsset_scale_f(c_dim_nwv_output, hdferr)
-	CALL h5sclose_f(space, hdferr)
-
-	CALL h5screate_simple_f(1, dimscl, space, hdferr)
-	CALL h5dcreate_f(file, 'fgeo', H5T_IEEE_F32LE, space, c_dim_nwv_output, hdferr)
-	ALLOCATE(HDF5RARR(NWV_OUTPUT))
-	HDF5RARR(1:NWV_OUTPUT)=fgeo_avg(NWV_START:NWV_END)
-	CALL h5dwrite_f(c_dim_nwv_output, H5T_NATIVE_REAL, C_LOC(HDF5RARR(1)), hdferr)
-	DEALLOCATE(HDF5RARR)
-	CALL h5dsset_scale_f(c_dim_nwv_output, hdferr)
-	CALL h5sclose_f(space, hdferr)
-
-	CALL h5screate_simple_f(1, dimscl, space, hdferr)
-	CALL h5dcreate_f(file, 'fvol', H5T_IEEE_F32LE, space, c_dim_nwv_output, hdferr)
-	ALLOCATE(HDF5RARR(NWV_OUTPUT))
-	HDF5RARR(1:NWV_OUTPUT)=fvol_avg(NWV_START:NWV_END)
-	CALL h5dwrite_f(c_dim_nwv_output, H5T_NATIVE_REAL, C_LOC(HDF5RARR(1)), hdferr)
-	DEALLOCATE(HDF5RARR)
-	CALL h5dsset_scale_f(c_dim_nwv_output, hdferr)
-	CALL h5sclose_f(space, hdferr)
-
-	CALL h5screate_simple_f(1, dimscl, space, hdferr)
-	CALL h5dcreate_f(file, 'Bpol', H5T_IEEE_F32LE, space, c_dim_nwv_output, hdferr)
-	ALLOCATE(HDF5RARR(NWV_OUTPUT))
-	HDF5RARR(1:NWV_OUTPUT)=Bpol_avg(NWV_START:NWV_END)
-	CALL h5dwrite_f(c_dim_nwv_output, H5T_NATIVE_REAL, C_LOC(HDF5RARR(1)), hdferr)
-	DEALLOCATE(HDF5RARR)
-	CALL h5dsset_scale_f(c_dim_nwv_output, hdferr)
-	CALL h5sclose_f(space, hdferr)
+  CALL create_dim_scale(file, 'WaveLength_Simulation', &
+	   real(WV(NWV_START:NWV_END)), c_dim_nwv_output)
 ENDIF
 
 dimscl=(/ NUMMIEUSE /)
@@ -2162,952 +2061,404 @@ CALL h5dcreate_f(file, 'NUMMIEUSE', H5T_NATIVE_INTEGER, space, c_dim_nummieuse, 
 CALL h5dsset_scale_f(c_dim_nummieuse, hdferr, dim_not_var)
 CALL h5sclose_f(space, hdferr)
 
-dimscl=(/ NUMMIEUSE /)
-CALL h5screate_simple_f(1, dimscl, space, hdferr)
-CALL h5dcreate_f(file, 'Aerosol_Rf', H5T_IEEE_F32LE, space, dset, hdferr)
-ALLOCATE(HDF5RARR(NUMMIEUSE))
-HDF5RARR=REFF1_Save
-CALL h5dwrite_f(dset, H5T_NATIVE_REAL, C_LOC(HDF5RARR(1)), hdferr)
-DEALLOCATE(HDF5RARR)
-CALL h5dsattach_scale_f(dset, c_dim_nummieuse, 1, hdferr)
-CALL h5sclose_f(space, hdferr)
-
-dimscl=(/ NUMMIEUSE /)
-CALL h5screate_simple_f(1, dimscl, space, hdferr)
-CALL h5dcreate_f(file, 'Aerosol_Vf', H5T_IEEE_F32LE, space, dset, hdferr)
-ALLOCATE(HDF5RARR(NUMMIEUSE))
-HDF5RARR=VEFF1_Save
-CALL h5dwrite_f(dset, H5T_NATIVE_REAL, C_LOC(HDF5RARR(1)), hdferr)
-DEALLOCATE(HDF5RARR)
-CALL h5dsattach_scale_f(dset, c_dim_nummieuse, 1, hdferr)
-CALL h5sclose_f(space, hdferr)
-
-dimscl=(/ NUMMIEUSE /)
-CALL h5screate_simple_f(1, dimscl, space, hdferr)
-CALL h5dcreate_f(file, 'Aerosol_Rc', H5T_IEEE_F32LE, space, dset, hdferr)
-ALLOCATE(HDF5RARR(NUMMIEUSE))
-HDF5RARR=REFF2_Save
-CALL h5dwrite_f(dset, H5T_NATIVE_REAL, C_LOC(HDF5RARR(1)), hdferr)
-DEALLOCATE(HDF5RARR)
-CALL h5dsattach_scale_f(dset, c_dim_nummieuse, 1, hdferr)
-CALL h5sclose_f(space, hdferr)
-
-dimscl=(/ NUMMIEUSE /)
-CALL h5screate_simple_f(1, dimscl, space, hdferr)
-CALL h5dcreate_f(file, 'Aerosol_Vc', H5T_IEEE_F32LE, space, dset, hdferr)
-ALLOCATE(HDF5RARR(NUMMIEUSE))
-HDF5RARR=VEFF2_Save
-CALL h5dwrite_f(dset, H5T_NATIVE_REAL, C_LOC(HDF5RARR(1)), hdferr)
-DEALLOCATE(HDF5RARR)
-CALL h5dsattach_scale_f(dset, c_dim_nummieuse, 1, hdferr)
-CALL h5sclose_f(space, hdferr)
-
-CALL h5screate_f(H5S_SCALAR_F, space, hdferr)
-CALL h5dcreate_f(file, 'Aerosol_R_NONSPHERE', H5T_IEEE_F32LE, space, dset, hdferr)
-HDF5RTMP=REFF_NonSpherical
-f_ptr=C_LOC(HDF5RTMP(1))
-CALL h5dwrite_f(dset, H5T_NATIVE_REAL,f_ptr, hdferr)
-CALL h5dclose_f(dset, hdferr)
-CALL h5sclose_f(space, hdferr)
-
-CALL h5screate_f(H5S_SCALAR_F, space, hdferr)
-CALL h5dcreate_f(file, 'Aerosol_V_NONSPHERE', H5T_IEEE_F32LE, space, dset, hdferr)
-HDF5RTMP=VEFF_NonSpherical
-f_ptr=C_LOC(HDF5RTMP(1))
-CALL h5dwrite_f(dset, H5T_NATIVE_REAL,f_ptr, hdferr)
-CALL h5dclose_f(dset, hdferr)
-CALL h5sclose_f(space, hdferr)
-
-IF(ILS_FLAG)THEN
-	dims= (/NUMMIEUSE,NWV_OUTPUT /)
-	ALLOCATE(HDF5RARR2DIM(NUMMIEUSE,NWV_OUTPUT))
-	HDF5RARR2DIM(1:NUMMIEUSE,1:NWV_OUTPUT)=MRR1_Save(1:NUMMIEUSE,NWV_START:NWV_END)
-	CALL h5screate_simple_f(2, dims, space, hdferr)
-	CALL h5dcreate_f(file, 'Aerosol_Mrf', H5T_IEEE_F32LE, space, dset, hdferr)
-	CALL h5dwrite_f(dset, H5T_NATIVE_REAL, C_LOC(HDF5RARR2DIM(1,1)), hdferr)
-	CALL h5dsattach_scale_f(dset, c_dim_nwv_output, 1, hdferr)
-	CALL h5dsattach_scale_f(dset, c_dim_nummieuse, 2, hdferr)
-	CALL h5dclose_f(dset, hdferr)
-	CALL h5sclose_f(space, hdferr)
-	DEALLOCATE(HDF5RARR2DIM)
-
-
-	dims= (/NUMMIEUSE,NWV_OUTPUT /)
-	ALLOCATE(HDF5RARR2DIM(NUMMIEUSE,NWV_OUTPUT))
-	HDF5RARR2DIM(1:NUMMIEUSE,1:NWV_OUTPUT)=MRI1_Save(1:NUMMIEUSE,NWV_START:NWV_END)
-	CALL h5screate_simple_f(2, dims, space, hdferr)
-	CALL h5dcreate_f(file, 'Aerosol_Mif', H5T_IEEE_F32LE, space, dset, hdferr)
-	CALL h5dwrite_f(dset, H5T_NATIVE_REAL, C_LOC(HDF5RARR2DIM(1,1)), hdferr)
-	CALL h5dsattach_scale_f(dset, c_dim_nwv_output, 1, hdferr)
-	CALL h5dsattach_scale_f(dset, c_dim_nummieuse, 2, hdferr)
-	CALL h5dclose_f(dset, hdferr)
-	CALL h5sclose_f(space, hdferr)
-	DEALLOCATE(HDF5RARR2DIM)
-
-
-	dims= (/NUMMIEUSE,NWV_OUTPUT /)
-	ALLOCATE(HDF5RARR2DIM(NUMMIEUSE,NWV_OUTPUT))
-	HDF5RARR2DIM(1:NUMMIEUSE,1:NWV_OUTPUT)=MRR2_Save(1:NUMMIEUSE,NWV_START:NWV_END)
-	CALL h5screate_simple_f(2, dims, space, hdferr)
-	CALL h5dcreate_f(file, 'Aerosol_Mrc', H5T_IEEE_F32LE, space, dset, hdferr)
-	CALL h5dwrite_f(dset, H5T_NATIVE_REAL, C_LOC(HDF5RARR2DIM(1,1)), hdferr)
-	CALL h5dsattach_scale_f(dset, c_dim_nwv_output, 1, hdferr)
-	CALL h5dsattach_scale_f(dset, c_dim_nummieuse, 2, hdferr)
-	CALL h5dclose_f(dset, hdferr)
-	CALL h5sclose_f(space, hdferr)
-	DEALLOCATE(HDF5RARR2DIM)
-
-	dims= (/NUMMIEUSE,NWV_OUTPUT /)
-	ALLOCATE(HDF5RARR2DIM(NUMMIEUSE,NWV_OUTPUT))
-	HDF5RARR2DIM(1:NUMMIEUSE,1:NWV_OUTPUT)=MRI2_Save(1:NUMMIEUSE,NWV_START:NWV_END)
-	CALL h5screate_simple_f(2, dims, space, hdferr)
-	CALL h5dcreate_f(file, 'Aerosol_Mic', H5T_IEEE_F32LE, space, dset, hdferr)
-	CALL h5dwrite_f(dset, H5T_NATIVE_REAL, C_LOC(HDF5RARR2DIM(1,1)), hdferr)
-	CALL h5dsattach_scale_f(dset, c_dim_nwv_output, 1, hdferr)
-	CALL h5dsattach_scale_f(dset, c_dim_nummieuse, 2, hdferr)
-	CALL h5dclose_f(dset, hdferr)
-	CALL h5sclose_f(space, hdferr)
-	DEALLOCATE(HDF5RARR2DIM)
-
-	dimscl=(/ NWV_OUTPUT /)
-	ALLOCATE(HDF5RARR(NWV_OUTPUT))
-	HDF5RARR(1:NWV_OUTPUT)=MRR_NonSpherical(NWV_START:NWV_END)
-	CALL h5screate_simple_f(1, dimscl, space, hdferr)
-	CALL h5dcreate_f(file, 'Aerosol_Mr_NONSPHERE', H5T_IEEE_F32LE, space, dset, hdferr)
-	CALL h5dwrite_f(dset, H5T_NATIVE_REAL, C_LOC(HDF5RARR(1)), hdferr)
-	CALL h5dsattach_scale_f(dset, c_dim_nwv_output, 1, hdferr)
-	CALL h5dclose_f(dset, hdferr)
-	CALL h5sclose_f(space, hdferr)
-	DEALLOCATE(HDF5RARR)
-
-
-	dimscl=(/ NWV_OUTPUT/)
-	ALLOCATE(HDF5RARR(NWV_OUTPUT))
-	HDF5RARR(1:NWV_OUTPUT)=MRI_NonSpherical(NWV_START:NWV_END)
-	CALL h5screate_simple_f(1, dimscl, space, hdferr)
-	CALL h5dcreate_f(file, 'Aerosol_Mic_NONSPHERE', H5T_IEEE_F32LE, space, dset, hdferr)
-	CALL h5dwrite_f(dset, H5T_NATIVE_REAL, C_LOC(HDF5RARR(1)), hdferr)
-	CALL h5dsattach_scale_f(dset, c_dim_nwv_output, 1, hdferr)
-	CALL h5dclose_f(dset, hdferr)
-	CALL h5sclose_f(space, hdferr)
-	DEALLOCATE(HDF5RARR)
-ENDIF
-
 dimscl=(/ NTLYERA /)
 CALL h5screate_simple_f(1, dimscl, space, hdferr)
 CALL h5dcreate_f(file, 'NTLYERA', H5T_NATIVE_INTEGER, space, c_dim_ntlyera, hdferr)
 CALL h5dsset_scale_f(c_dim_ntlyera, hdferr, dim_not_var)
 CALL h5sclose_f(space, hdferr)
 
-IF(ILS_FLAG)THEN
+CALL create_dim_scale(file, 'WATER_DEPTH_LEVELS', real(WATER_DEPTH), c_dim_nwater_depth)
+CALL create_dim_scale(file, 'Atmosphere_Layer_Altitudes', real(ALT_LYRA),c_dim_ntlyera1)
 
-	dims= (/NWV_OUTPUT,NTLYERA /)
-	ALLOCATE(HDF5RARR2DIM(NWV_OUTPUT,NTLYERA ))
-	HDF5RARR2DIM(1:NWV_OUTPUT,1:NTLYERA)=TAU_ARSL_Ext_AVG(NWV_START:NWV_END,1:NTLYERA)
-	CALL h5screate_simple_f(2, dims, space, hdferr)
-	CALL h5dcreate_f(file, 'Tau_Aerosol_Extinction', H5T_IEEE_F32LE, space, dset, hdferr)
-	CALL h5dwrite_f(dset, H5T_NATIVE_REAL, C_LOC(HDF5RARR2DIM(1,1)), hdferr)
-	CALL h5dsattach_scale_f(dset, c_dim_ntlyera, 1, hdferr)
-	CALL h5dsattach_scale_f(dset, c_dim_nwv_output, 2, hdferr)
-	CALL h5dclose_f(dset, hdferr)
-	CALL h5sclose_f(space, hdferr)
-	DEALLOCATE(HDF5RARR2DIM)
+IF (ILS_FLAG) THEN
+  CALL write_1d_real(file, 'fiso', real(fiso_avg(NWV_START:NWV_END)), &
+					 dim1=c_dim_nwv_output)
 
+  CALL write_1d_real(file, 'fgeo', real(fgeo_avg(NWV_START:NWV_END)), &
+					 dim1=c_dim_nwv_output)
 
-	dims= (/NWV_OUTPUT,NTLYERA /)
-	ALLOCATE(HDF5RARR2DIM(NWV_OUTPUT,NTLYERA ))
-	HDF5RARR2DIM(1:NWV_OUTPUT,1:NTLYERA)=TAU_ARSL_Scat_AVG(NWV_START:NWV_END,1:NTLYERA)
-	CALL h5screate_simple_f(2, dims, space, hdferr)
-	CALL h5dcreate_f(file, 'Tau_Aerosol_Scattering', H5T_IEEE_F32LE, space, dset, hdferr)
-	CALL h5dwrite_f(dset, H5T_NATIVE_REAL, C_LOC(HDF5RARR2DIM(1,1)), hdferr)
-	CALL h5dsattach_scale_f(dset, c_dim_ntlyera, 1, hdferr)
-	CALL h5dsattach_scale_f(dset, c_dim_nwv_output, 2, hdferr)
-	CALL h5dclose_f(dset, hdferr)
-	CALL h5sclose_f(space, hdferr)
-	DEALLOCATE(HDF5RARR2DIM)
+  CALL write_1d_real(file, 'fvol', real(fvol_avg(NWV_START:NWV_END)), &
+					 dim1=c_dim_nwv_output)
 
-
-	dims= (/NWV_OUTPUT,NTLYERA /)
-	ALLOCATE(HDF5RARR2DIM(NWV_OUTPUT,NTLYERA ))
-	HDF5RARR2DIM(1:NWV_OUTPUT,1:NTLYERA)=TAU_RAY_AVG(NWV_START:NWV_END,1:NTLYERA)
-	CALL h5screate_simple_f(2, dims, space, hdferr)
-	CALL h5dcreate_f(file, 'Tau_Rayleigh_Extinction', H5T_IEEE_F32LE, space, dset, hdferr)
-	CALL h5dwrite_f(dset, H5T_NATIVE_REAL, C_LOC(HDF5RARR2DIM(1,1)), hdferr)
-	CALL h5dsattach_scale_f(dset, c_dim_ntlyera, 1, hdferr)
-	CALL h5dsattach_scale_f(dset, c_dim_nwv_output, 2, hdferr)
-	CALL h5dclose_f(dset, hdferr)
-	CALL h5sclose_f(space, hdferr)
-	DEALLOCATE(HDF5RARR2DIM)
-
-	dims= (/NWV_OUTPUT,NTLYERA /)
-	ALLOCATE(HDF5RARR2DIM(NWV_OUTPUT,NTLYERA ))
-	HDF5RARR2DIM(1:NWV_OUTPUT,1:NTLYERA)=DEPOL_A_AVG(NWV_START:NWV_END,1:NTLYERA)
-	CALL h5screate_simple_f(2, dims, space, hdferr)
-	CALL h5dcreate_f(file, 'Rayleigh_Depolization_Ratio', H5T_IEEE_F32LE, space, dset, hdferr)
-	CALL h5dwrite_f(dset, H5T_NATIVE_REAL, C_LOC(HDF5RARR2DIM(1,1)), hdferr)
-	CALL h5dsattach_scale_f(dset, c_dim_ntlyera, 1, hdferr)
-	CALL h5dsattach_scale_f(dset, c_dim_nwv_output, 2, hdferr)
-	CALL h5dclose_f(dset, hdferr)
-	CALL h5sclose_f(space, hdferr)
-	DEALLOCATE(HDF5RARR2DIM)
+  CALL write_1d_real(file, 'Bpol', real(Bpol_avg(NWV_START:NWV_END)), &
+					 dim1=c_dim_nwv_output)
 ENDIF
 
-dimscl= (/NWV_OUTPUT/)
-ALLOCATE(HDF5RARR(NWV_OUTPUT))
+
+CALL write_1d_real(file, 'Aerosol_Rf', real(REFF1_Save), dim1=c_dim_nummieuse)
+CALL write_1d_real(file, 'Aerosol_Vf', real(VEFF1_Save), dim1=c_dim_nummieuse)
+CALL write_1d_real(file, 'Aerosol_Rc', real(REFF2_Save), dim1=c_dim_nummieuse)
+CALL write_1d_real(file, 'Aerosol_Vc', real(VEFF2_Save), dim1=c_dim_nummieuse)
+
+call write_scalar_real(file, 'Aerosol_R_NONSPHERE', real(REFF_NonSpherical))
+call write_scalar_real(file, 'Aerosol_V_NONSPHERE', real(VEFF_NonSpherical))
+
 IF(ILS_FLAG)THEN
-  HDF5RARR(1:NWV_OUTPUT)=TAU_TG_AVG(NWV_START:NWV_END)
+
+	CALL write_2d_real(file, 'Aerosol_Mrf', &
+		 real(MRR1_Save(:, NWV_START:NWV_END)), &
+		 dim1=c_dim_nummieuse, dim2=c_dim_nwv_output)
+
+	CALL write_2d_real(file, 'Aerosol_Mif', &
+		 real(MRI1_Save(:, NWV_START:NWV_END)), &
+		 dim1=c_dim_nummieuse, dim2=c_dim_nwv_output)
+
+	CALL write_2d_real(file, 'Aerosol_Mrc', &
+		 real(MRR2_Save(:, NWV_START:NWV_END)), &
+		 dim1=c_dim_nummieuse, dim2=c_dim_nwv_output)
+
+	CALL write_2d_real(file, 'Aerosol_Mic', &
+		 real(MRI2_Save(:, NWV_START:NWV_END)), &
+		 dim1=c_dim_nummieuse, dim2=c_dim_nwv_output)
+
+    CALL write_1d_real(file, 'Aerosol_Mr_NONSPHERE', &
+		 real(MRR_NonSpherical(NWV_START:NWV_END)), &
+				dim1=c_dim_nwv_output)
+	CALL write_1d_real(file, 'Aerosol_Mi_NONSPHERE', &
+		 real(MRI_NonSpherical(NWV_START:NWV_END)), &
+				dim1=c_dim_nwv_output)
+
+	CALL write_2d_real(file, 'Tau_Aerosol_Extinction', &
+		 real(TAU_ARSL_Ext_AVG(NWV_START:NWV_END, :)), &
+		 dim1=c_dim_nwv_output, dim2=c_dim_ntlyera)
+
+	CALL write_2d_real(file, 'Tau_Aerosol_Scattering', &
+		 real(TAU_ARSL_Scat_AVG(NWV_START:NWV_END, :)), &
+		 dim1=c_dim_nwv_output, dim2=c_dim_ntlyera)
+
+	CALL write_2d_real(file, 'Tau_Rayleigh_Extinction', &
+		 real(TAU_RAY_AVG(NWV_START:NWV_END, :)), &
+		 dim1=c_dim_nwv_output, dim2=c_dim_ntlyera)
+
+	CALL write_2d_real(file, 'Rayleigh_Depolization_Ratio', &
+		 real(DEPOL_A_AVG(NWV_START:NWV_END, :)), &
+		 dim1=c_dim_nwv_output, dim2=c_dim_ntlyera)
+
+ENDIF
+
+IF (ILS_FLAG) THEN
+	CALL write_1d_real(file, 'Tau_Gas_Absorption_Total', &
+         real(TAU_TG_AVG(NWV_START:NWV_END)), dim1=c_dim_nwv_output)
+
+	CALL write_1d_real(file, 'Tau_H2O_Absorption', &
+		 real(TAU_TG_H2O_AVG(NWV_START:NWV_END)), dim1=c_dim_nwv_output)
+
+	CALL write_1d_real(file, 'Tau_CO2_Absorption', &
+		 real(TAU_TG_CO2_AVG(NWV_START:NWV_END)), dim1=c_dim_nwv_output)
+
+	CALL write_1d_real(file, 'Tau_CH4_Absorption', &
+		 real(TAU_TG_CH4_AVG(NWV_START:NWV_END)), dim1=c_dim_nwv_output)
+
+	CALL write_1d_real(file, 'Tau_O2_Absorption', &
+		 real(TAU_TG_O2_AVG(NWV_START:NWV_END)), dim1=c_dim_nwv_output)
+
+	CALL write_1d_real(file, 'Tau_O3_Absorption', &
+		 real(TAU_TG_O3_AVG(NWV_START:NWV_END)), dim1=c_dim_nwv_output)
+
+	CALL write_1d_real(file, 'Tau_NO2_Absorption', &
+		 real(TAU_TG_NO2_AVG(NWV_START:NWV_END)), dim1=c_dim_nwv_output)
+
 ELSE
-  HDF5RARR(1:NWV_OUTPUT)=SUM(TAU_TG_Save(NWV_START:NWV_END,:),2)
-ENDIF
-CALL h5screate_simple_f(1, dimscl, space, hdferr)
-CALL h5dcreate_f(file, 'Tau_Gas_Absorption_Total', H5T_IEEE_F32LE, space, dset, hdferr)
-CALL h5dwrite_f(dset, H5T_NATIVE_REAL, C_LOC(HDF5RARR(1)), hdferr)
-CALL h5dsattach_scale_f(dset, c_dim_nwv_output, 1, hdferr)
-CALL h5dclose_f(dset, hdferr)
-CALL h5sclose_f(space, hdferr)
-DEALLOCATE(HDF5RARR)
+    CALL write_1d_real(file, 'Tau_Gas_Absorption_Total', &
+	     real(SUM(TAU_TG_Save(NWV_START:NWV_END,:),2)), dim1=c_dim_nwv_output)
 
-dimscl= (/NWV_OUTPUT /)
-ALLOCATE(HDF5RARR(NWV_OUTPUT ))
-IF(ILS_FLAG)THEN
-  HDF5RARR(1:NWV_OUTPUT)=TAU_TG_H2O_AVG(NWV_START:NWV_END)
+	CALL write_1d_real(file, 'Tau_H2O_Absorption', &
+		 real(SUM(TAU_TG_H2O_Save(NWV_START:NWV_END,:),2)), dim1=c_dim_nwv_output)
+
+	CALL write_1d_real(file, 'Tau_CO2_Absorption', &
+		 real(SUM(TAU_TG_CO2_Save(NWV_START:NWV_END,:),2)), dim1=c_dim_nwv_output)
+
+	CALL write_1d_real(file, 'Tau_CH4_Absorption', &
+		 real(SUM(TAU_TG_CH4_Save(NWV_START:NWV_END,:),2)), dim1=c_dim_nwv_output)
+
+	CALL write_1d_real(file, 'Tau_O2_Absorption', &
+		 real(SUM(TAU_TG_O2_Save(NWV_START:NWV_END,:),2)), dim1=c_dim_nwv_output)
+
+	CALL write_1d_real(file, 'Tau_O3_Absorption', &
+		 real(SUM(TAU_TG_O3_Save(NWV_START:NWV_END,:),2)), dim1=c_dim_nwv_output)
+
+	CALL write_1d_real(file, 'Tau_NO2_Absorption', &
+		 real(SUM(TAU_TG_NO2_Save(NWV_START:NWV_END,:),2)), dim1=c_dim_nwv_output)
+
+
+ENDIF
+
+CALL write_1d_int(file, 'Aerosol_Types',ARSL_TYPE, dim1=c_dim_ntlyera)
+
+call write_scalar_real(file, 'AirSensor_Height', real(AirSensor_Height))
+
+CALL write_1d_real(file, 'Aerosol_Number_Density_FineMode', &
+                real(ARSLND1_Save),dim1=c_dim_nummieuse)
+CALL write_1d_real(file, 'Aerosol_Number_Density_CoarseMode', &
+				real(ARSLND2_Save),dim1=c_dim_nummieuse)
+
+call write_scalar_real(file,'Aerosol_Number_Density_NONSPHERE', real(ARSLND_NonSpherical))
+
+IF (ILS_FLAG) THEN
+
+	CALL write_1d_real(file, 'aw_Ocean_Water_Absorption_Coefficient', &
+		 real(AW_AVG(NWV_START:NWV_END)), dim1=c_dim_nwv_output)
+
+	CALL write_1d_real(file, 'bw_Ocean_Water_Scattering_Coefficient', &
+		 real(BW_AVG(NWV_START:NWV_END)), dim1=c_dim_nwv_output)
+
+	CALL write_1d_real(file, 'Refractive_Index_Ocean_Water', &
+		 real(RINDX_WATER_AVG(NWV_START:NWV_END)), dim1=c_dim_nwv_output)
+
+	CALL write_1d_real(file, 'ap_Phytoplankton_Absorption_Coefficient_TopLayer', &
+		 real(APTC_AVG(NWV_START:NWV_END)), dim1=c_dim_nwv_output)
+
+	CALL write_1d_real(file, 'bp_Phytoplankton_Scattering_Coefficient_TopLayer', &
+		 real(BPTC_AVG(NWV_START:NWV_END)), dim1=c_dim_nwv_output)
+
+	CALL write_1d_real(file, 'bbp_Phytoplankton_Backscattering_Coefficient_TopLayer', &
+		 real(BBPTC_AVG(NWV_START:NWV_END)), dim1=c_dim_nwv_output)
+
+	CALL write_1d_real(file, 'Bbp_Phytoplankton_Backscattering_fraction_TopLayer', &
+		 real(BBPTCfrac_AVG(NWV_START:NWV_END)), dim1=c_dim_nwv_output)
+
+	CALL write_1d_real(file, 'bp_SEDIMENT_Scattering_Coefficient_TopLayer', &
+		 real(BSTC_AVG(NWV_START:NWV_END)), dim1=c_dim_nwv_output)
+
+	CALL write_1d_real(file, 'bbp_SEDIMENT_Backscattering_Coefficient_TopLayer', &
+		 real(BBSTC_AVG(NWV_START:NWV_END)), dim1=c_dim_nwv_output)
+
+	CALL write_1d_real(file, 'Bbp_SEDIMENT_Backscattering_fraction_TopLayer', &
+		 real(BBSTCfrac_AVG(NWV_START:NWV_END)), dim1=c_dim_nwv_output)
+
+	CALL write_1d_real(file, 'ap_SEDIMENT_Absorption_Coefficient_TopLayer', &
+		 real(ASTC_AVG(NWV_START:NWV_END)), dim1=c_dim_nwv_output)
+
+	CALL write_1d_real(file, 'ay_CDOM_Absorption_Coefficient_TopLayer', &
+		 real(ACDM_AVG(NWV_START:NWV_END)), dim1=c_dim_nwv_output)
+
 ELSE
-  HDF5RARR(1:NWV_OUTPUT)=SUM(TAU_TG_H2O_Save(NWV_START:NWV_END,:),2)
+
+	CALL write_1d_real(file, 'aw_Ocean_Water_Absorption_Coefficient', &
+		 real(AW(NWV_START:NWV_END)), dim1=c_dim_nwv_output)
+
+	CALL write_1d_real(file, 'bw_Ocean_Water_Scattering_Coefficient', &
+		 real(BW(NWV_START:NWV_END)), dim1=c_dim_nwv_output)
+
+	CALL write_1d_real(file, 'Refractive_Index_Ocean_Water', &
+		 real(RINDX_WATER(NWV_START:NWV_END)), dim1=c_dim_nwv_output)
+
+	CALL write_1d_real(file, 'ap_Phytoplankton_Absorption_Coefficient_TopLayer', &
+		 real(APTC(NWV_START:NWV_END)), dim1=c_dim_nwv_output)
+
+	CALL write_1d_real(file, 'bp_Phytoplankton_Scattering_Coefficient_TopLayer', &
+		 real(BPTC(NWV_START:NWV_END)), dim1=c_dim_nwv_output)
+
+	CALL write_1d_real(file, 'bbp_Phytoplankton_Backscattering_Coefficient_TopLayer', &
+		 real(BBPTC(NWV_START:NWV_END)), dim1=c_dim_nwv_output)
+
+	CALL write_1d_real(file, 'Bbp_Phytoplankton_Backscattering_fraction_TopLayer', &
+		 real(BBPTCfrac(NWV_START:NWV_END)), dim1=c_dim_nwv_output)
+
+	CALL write_1d_real(file, 'bp_SEDIMENT_Scattering_Coefficient_TopLayer', &
+		 real(BSTC(NWV_START:NWV_END)), dim1=c_dim_nwv_output)
+
+	CALL write_1d_real(file, 'bbp_SEDIMENT_Backscattering_Coefficient_TopLayer', &
+		 real(BBSTC(NWV_START:NWV_END)), dim1=c_dim_nwv_output)
+
+	CALL write_1d_real(file, 'Bbp_SEDIMENT_Backscattering_fraction_TopLayer', &
+		 real(BBSTCfrac(NWV_START:NWV_END)), dim1=c_dim_nwv_output)
+
+	CALL write_1d_real(file, 'ap_SEDIMENT_Absorption_Coefficient_TopLayer', &
+		 real(ASTC(NWV_START:NWV_END)), dim1=c_dim_nwv_output)
+
+	CALL write_1d_real(file, 'ay_CDOM_Absorption_Coefficient_TopLayer', &
+		 real(ACDM(NWV_START:NWV_END)), dim1=c_dim_nwv_output)
+
+
 ENDIF
-CALL h5screate_simple_f(1, dimscl, space, hdferr)
-CALL h5dcreate_f(file, 'Tau_H2O_Absorption', H5T_IEEE_F32LE, space, dset, hdferr)
-CALL h5dwrite_f(dset, H5T_NATIVE_REAL, C_LOC(HDF5RARR(1)), hdferr)
-CALL h5dsattach_scale_f(dset, c_dim_nwv_output, 1, hdferr)
-CALL h5dclose_f(dset, hdferr)
-CALL h5sclose_f(space, hdferr)
-DEALLOCATE(HDF5RARR)
 
-dimscl= (/NWV_OUTPUT /)
-ALLOCATE(HDF5RARR(NWV_OUTPUT ))
-IF(ILS_FLAG)THEN
-  HDF5RARR(1:NWV_OUTPUT)=TAU_TG_CO2_AVG(NWV_START:NWV_END)
-ELSE
-  HDF5RARR(1:NWV_OUTPUT)=SUM(TAU_TG_CO2_Save(NWV_START:NWV_END,:),2)
-ENDIF
-CALL h5screate_simple_f(1, dimscl, space, hdferr)
-CALL h5dcreate_f(file, 'Tau_CO2_Absorption', H5T_IEEE_F32LE, space, dset, hdferr)
-CALL h5dwrite_f(dset, H5T_NATIVE_REAL, C_LOC(HDF5RARR(1)), hdferr)
-CALL h5dsattach_scale_f(dset, c_dim_nwv_output, 1, hdferr)
-CALL h5dclose_f(dset, hdferr)
-CALL h5sclose_f(space, hdferr)
-DEALLOCATE(HDF5RARR)
+call write_scalar_real(file, 'DEPOL90_KOK', real(Dpol90_Kok))
 
-dimscl= (/NWV_OUTPUT /)
-ALLOCATE(HDF5RARR(NWV_OUTPUT ))
-IF(ILS_FLAG)THEN
-  HDF5RARR(1:NWV_OUTPUT)=TAU_TG_CH4_AVG(NWV_START:NWV_END)
-ELSE
-  HDF5RARR(1:NWV_OUTPUT)=SUM(TAU_TG_CH4_Save(NWV_START:NWV_END,:),2)
-ENDIF
-CALL h5screate_simple_f(1, dimscl, space, hdferr)
-CALL h5dcreate_f(file, 'Tau_CH4_Absorption', H5T_IEEE_F32LE, space, dset, hdferr)
-CALL h5dwrite_f(dset, H5T_NATIVE_REAL, C_LOC(HDF5RARR(1)), hdferr)
-CALL h5dsattach_scale_f(dset, c_dim_nwv_output, 1, hdferr)
-CALL h5dclose_f(dset, hdferr)
-CALL h5sclose_f(space, hdferr)
-DEALLOCATE(HDF5RARR)
-
-dimscl= (/NWV_OUTPUT /)
-ALLOCATE(HDF5RARR(NWV_OUTPUT ))
-IF(ILS_FLAG)THEN
-  HDF5RARR(1:NWV_OUTPUT)=TAU_TG_O2_AVG(NWV_START:NWV_END)
-ELSE
-  HDF5RARR(1:NWV_OUTPUT)=SUM(TAU_TG_O2_Save(NWV_START:NWV_END,:),2)
-ENDIF
-CALL h5screate_simple_f(1, dimscl, space, hdferr)
-CALL h5dcreate_f(file, 'Tau_O2_Absorption', H5T_IEEE_F32LE, space, dset, hdferr)
-CALL h5dwrite_f(dset, H5T_NATIVE_REAL, C_LOC(HDF5RARR(1)), hdferr)
-CALL h5dsattach_scale_f(dset, c_dim_nwv_output, 1, hdferr)
-CALL h5dclose_f(dset, hdferr)
-CALL h5sclose_f(space, hdferr)
-DEALLOCATE(HDF5RARR)
-
-dimscl= (/NWV_OUTPUT /)
-ALLOCATE(HDF5RARR(NWV_OUTPUT ))
-IF(ILS_FLAG)THEN
-  HDF5RARR(1:NWV_OUTPUT)=TAU_TG_O3_AVG(NWV_START:NWV_END)
-ELSE
-  HDF5RARR(1:NWV_OUTPUT)=SUM(TAU_TG_O3_Save(NWV_START:NWV_END,:),2)
-ENDIF
-CALL h5screate_simple_f(1, dimscl, space, hdferr)
-CALL h5dcreate_f(file, 'Tau_O3_Absorption', H5T_IEEE_F32LE, space, dset, hdferr)
-CALL h5dwrite_f(dset, H5T_NATIVE_REAL, C_LOC(HDF5RARR(1)), hdferr)
-CALL h5dsattach_scale_f(dset, c_dim_nwv_output, 1, hdferr)
-CALL h5dclose_f(dset, hdferr)
-CALL h5sclose_f(space, hdferr)
-DEALLOCATE(HDF5RARR)
-
-dimscl= (/NWV_OUTPUT /)
-ALLOCATE(HDF5RARR(NWV_OUTPUT ))
-IF(ILS_FLAG)THEN
-  HDF5RARR(1:NWV_OUTPUT)=TAU_TG_NO2_AVG(NWV_START:NWV_END)
-ELSE
-  HDF5RARR(1:NWV_OUTPUT)=SUM(TAU_TG_NO2_Save(NWV_START:NWV_END,:),2)
-ENDIF
-CALL h5screate_simple_f(1, dimscl, space, hdferr)
-CALL h5dcreate_f(file, 'Tau_NO2_Absorption', H5T_IEEE_F32LE, space, dset, hdferr)
-CALL h5dwrite_f(dset, H5T_NATIVE_REAL, C_LOC(HDF5RARR(1)), hdferr)
-CALL h5dsattach_scale_f(dset, c_dim_nwv_output, 1, hdferr)
-CALL h5dclose_f(dset, hdferr)
-CALL h5sclose_f(space, hdferr)
-DEALLOCATE(HDF5RARR)
-
-dimscl=(/ NTLYERA+1 /)
-ALLOCATE(HDF5RARR(NTLYERA+1 ))
-HDF5RARR=ALT_LYRA(1:NTLYERA+1)
-CALL h5screate_simple_f(1, dimscl, space, hdferr)
-CALL h5dcreate_f(file, 'Atmosphere_Layer_Altitudes', H5T_IEEE_F32LE, space, c_dim_ntlyera1, hdferr)
-CALL h5dwrite_f(c_dim_ntlyera1, H5T_NATIVE_REAL, C_LOC(HDF5RARR(1)), hdferr)
-CALL h5dsset_scale_f(c_dim_ntlyera1, hdferr)
-CALL h5sclose_f(space, hdferr)
-DEALLOCATE(HDF5RARR)
-
-
-dimscl=(/ NTLYERA /)
-ALLOCATE(HDF5IARR(NTLYERA))
-HDF5IARR=ARSL_TYPE(1:NTLYERA)
-CALL h5screate_simple_f(1, dimscl, space, hdferr)
-CALL h5dcreate_f(file, 'Aerosol_Types', H5T_NATIVE_INTEGER, space, c_dim_ntlyera, hdferr)
-CALL h5dwrite_f(c_dim_ntlyera, H5T_NATIVE_INTEGER, C_LOC(HDF5IARR(1)), hdferr)
-CALL h5dsset_scale_f(c_dim_ntlyera, hdferr)
-CALL h5sclose_f(space, hdferr)
-DEALLOCATE(HDF5IARR)
-
-ALLOCATE(HDF5RARR(1 ))
-HDF5RARR=AirSensor_Height
-CALL h5screate_f(H5S_SCALAR_F, space, hdferr)
-CALL h5dcreate_f(file, 'AirSensor_Height', H5T_IEEE_F32LE, space, dset, hdferr)
-CALL h5dwrite_f(dset, H5T_NATIVE_REAL, C_LOC(HDF5RARR(1)), hdferr)
-CALL h5dclose_f(dset, hdferr)
-CALL h5sclose_f(space, hdferr)
-DEALLOCATE(HDF5RARR)
-
-ALLOCATE(HDF5RARR(1 ))
-HDF5RARR=ARSLND1_Save
-CALL h5screate_f(H5S_SCALAR_F, space, hdferr)
-CALL h5dcreate_f(file, 'Aerosol_Number_Density_FineMode', H5T_IEEE_F32LE, space, dset, hdferr)
-CALL h5dwrite_f(dset, H5T_NATIVE_REAL, C_LOC(HDF5RARR(1)), hdferr)
-CALL h5dclose_f(dset, hdferr)
-CALL h5sclose_f(space, hdferr)
-DEALLOCATE(HDF5RARR)
-
-ALLOCATE(HDF5RARR(1))
-HDF5RARR=ARSLND2_Save
-CALL h5screate_f(H5S_SCALAR_F, space, hdferr)
-CALL h5dcreate_f(file, 'Aerosol_Number_Density_CoarseMode', H5T_IEEE_F32LE, space, dset, hdferr)
-CALL h5dwrite_f(dset, H5T_NATIVE_REAL, C_LOC(HDF5RARR(1)), hdferr)
-CALL h5dclose_f(dset, hdferr)
-CALL h5sclose_f(space, hdferr)
-DEALLOCATE(HDF5RARR)
-
-ALLOCATE(HDF5RARR(1))
-HDF5RARR=ARSLND_NonSpherical
-CALL h5screate_f(H5S_SCALAR_F, space, hdferr)
-CALL h5dcreate_f(file, 'Aerosol_Number_Density_NONSPHERE', H5T_IEEE_F32LE, space, dset, hdferr)
-CALL h5dwrite_f(dset, H5T_NATIVE_REAL, C_LOC(HDF5RARR(1)), hdferr)
-CALL h5dclose_f(dset, hdferr)
-CALL h5sclose_f(space, hdferr)
-DEALLOCATE(HDF5RARR)
-
-dimscl=(/ NWV_OUTPUT /)
-ALLOCATE(HDF5RARR(NWV_OUTPUT))
-IF(ILS_FLAG)THEN
-  HDF5RARR(1:NWV_OUTPUT)=AW_AVG(NWV_START:NWV_END)
-ELSE
-  HDF5RARR(1:NWV_OUTPUT)=AW(NWV_START:NWV_END)
-ENDIF
-CALL h5screate_simple_f(1, dimscl, space, hdferr)
-CALL h5dcreate_f(file, 'aw_Ocean_Water_Absorption_Coefficient', H5T_IEEE_F32LE, space, dset, hdferr)
-CALL h5dwrite_f(dset, H5T_NATIVE_REAL, C_LOC(HDF5RARR(1)), hdferr)
-CALL h5dsattach_scale_f(dset, c_dim_nwv_output, 1, hdferr)
-CALL h5dclose_f(dset, hdferr)
-CALL h5sclose_f(space, hdferr)
-DEALLOCATE(HDF5RARR)
-
-dimscl=(/ NWV_OUTPUT /)
-ALLOCATE(HDF5RARR(NWV_OUTPUT))
-IF(ILS_FLAG)THEN
-  HDF5RARR(1:NWV_OUTPUT)=BW_AVG(NWV_START:NWV_END)
-ELSE
-  HDF5RARR(1:NWV_OUTPUT)=BW(NWV_START:NWV_END)
-ENDIF
-CALL h5screate_simple_f(1, dimscl, space, hdferr)
-CALL h5dcreate_f(file, 'bw_Ocean_Water_Scattering_Coefficient', H5T_IEEE_F32LE, space, dset, hdferr)
-CALL h5dwrite_f(dset, H5T_NATIVE_REAL, C_LOC(HDF5RARR(1)), hdferr)
-CALL h5dsattach_scale_f(dset, c_dim_nwv_output, 1, hdferr)
-CALL h5dclose_f(dset, hdferr)
-CALL h5sclose_f(space, hdferr)
-DEALLOCATE(HDF5RARR)
-
-dimscl=(/ NWV_OUTPUT /)
-ALLOCATE(HDF5RARR(NWV_OUTPUT))
-IF(ILS_FLAG)THEN
-  HDF5RARR(1:NWV_OUTPUT)=RINDX_WATER_AVG(NWV_START:NWV_END)
-ELSE
-  HDF5RARR(1:NWV_OUTPUT)=RINDX_WATER(NWV_START:NWV_END)
-ENDIF
-CALL h5screate_simple_f(1, dimscl, space, hdferr)
-CALL h5dcreate_f(file, 'Refractive_Index_Ocean_Water', H5T_IEEE_F32LE, space, dset, hdferr)
-CALL h5dwrite_f(dset, H5T_NATIVE_REAL, C_LOC(HDF5RARR(1)), hdferr)
-CALL h5dsattach_scale_f(dset, c_dim_nwv_output, 1, hdferr)
-CALL h5dclose_f(dset, hdferr)
-CALL h5sclose_f(space, hdferr)
-DEALLOCATE(HDF5RARR)
-
-dimscl=(/ NWV_OUTPUT /)
-ALLOCATE(HDF5RARR(NWV_OUTPUT))
-IF(ILS_FLAG)THEN
-  HDF5RARR(1:NWV_OUTPUT)=APTC_AVG(NWV_START:NWV_END)
-ELSE
-  HDF5RARR(1:NWV_OUTPUT)=APTC(NWV_START:NWV_END)
-ENDIF
-CALL h5screate_simple_f(1, dimscl, space, hdferr)
-CALL h5dcreate_f(file, 'ap_Phytoplankton_Absorption_Coefficient_TopLayer', H5T_IEEE_F32LE, space, dset, hdferr)
-CALL h5dwrite_f(dset, H5T_NATIVE_REAL, C_LOC(HDF5RARR(1)), hdferr)
-CALL h5dsattach_scale_f(dset, c_dim_nwv_output, 1, hdferr)
-CALL h5dclose_f(dset, hdferr)
-CALL h5sclose_f(space, hdferr)
-DEALLOCATE(HDF5RARR)
-
-dimscl=(/ NWV_OUTPUT /)
-ALLOCATE(HDF5RARR(NWV_OUTPUT))
-IF(ILS_FLAG)THEN
-  HDF5RARR(1:NWV_OUTPUT)=BPTC_AVG(NWV_START:NWV_END)
-ELSE
-  HDF5RARR(1:NWV_OUTPUT)=BPTC(NWV_START:NWV_END)
-ENDIF
-CALL h5screate_simple_f(1, dimscl, space, hdferr)
-CALL h5dcreate_f(file, 'bp_Phytoplankton_Scattering_Coefficient_TopLayer', H5T_IEEE_F32LE, space, dset, hdferr)
-CALL h5dwrite_f(dset, H5T_NATIVE_REAL, C_LOC(HDF5RARR(1)), hdferr)
-CALL h5dsattach_scale_f(dset, c_dim_nwv_output, 1, hdferr)
-CALL h5dclose_f(dset, hdferr)
-CALL h5sclose_f(space, hdferr)
-DEALLOCATE(HDF5RARR)
-
-dimscl=(/ NWV_OUTPUT /)
-ALLOCATE(HDF5RARR(NWV_OUTPUT))
-IF(ILS_FLAG)THEN
-  HDF5RARR(1:NWV_OUTPUT)=BBPTC_AVG(NWV_START:NWV_END)
-ELSE
-  HDF5RARR(1:NWV_OUTPUT)=BBPTC(NWV_START:NWV_END)
-ENDIF
-CALL h5screate_simple_f(1, dimscl, space, hdferr)
-CALL h5dcreate_f(file, 'bbp_Phytoplankton_Backscattering_Coefficient_TopLayer', H5T_IEEE_F32LE, space, dset, hdferr)
-CALL h5dwrite_f(dset, H5T_NATIVE_REAL, C_LOC(HDF5RARR(1)), hdferr)
-CALL h5dsattach_scale_f(dset, c_dim_nwv_output, 1, hdferr)
-CALL h5dclose_f(dset, hdferr)
-CALL h5sclose_f(space, hdferr)
-DEALLOCATE(HDF5RARR)
-
-dimscl=(/ NWV_OUTPUT /)
-ALLOCATE(HDF5RARR(NWV_OUTPUT))
-IF(ILS_FLAG)THEN
-  HDF5RARR(1:NWV_OUTPUT)=BBPTCfrac_AVG(NWV_START:NWV_END)
-ELSE
-  HDF5RARR(1:NWV_OUTPUT)=BBPTCfrac(NWV_START:NWV_END)
-ENDIF
-CALL h5screate_simple_f(1, dimscl, space, hdferr)
-CALL h5dcreate_f(file, 'Bbp_Phytoplankton_Backscattering_fraction_TopLayer', H5T_IEEE_F32LE, space, dset, hdferr)
-CALL h5dwrite_f(dset, H5T_NATIVE_REAL, C_LOC(HDF5RARR(1)), hdferr)
-CALL h5dsattach_scale_f(dset, c_dim_nwv_output, 1, hdferr)
-CALL h5dclose_f(dset, hdferr)
-CALL h5sclose_f(space, hdferr)
-DEALLOCATE(HDF5RARR)
-
-dimscl=(/ NWV_OUTPUT /)
-ALLOCATE(HDF5RARR(NWV_OUTPUT))
-IF(ILS_FLAG)THEN
-  HDF5RARR(1:NWV_OUTPUT)=BSTC_AVG(NWV_START:NWV_END)
-ELSE
-  HDF5RARR(1:NWV_OUTPUT)=BSTC(NWV_START:NWV_END)
-ENDIF
-CALL h5screate_simple_f(1, dimscl, space, hdferr)
-CALL h5dcreate_f(file, 'bp_SEDIMENT_Scattering_Coefficient_TopLayer', H5T_IEEE_F32LE, space, dset, hdferr)
-CALL h5dwrite_f(dset, H5T_NATIVE_REAL, C_LOC(HDF5RARR(1)), hdferr)
-CALL h5dsattach_scale_f(dset, c_dim_nwv_output, 1, hdferr)
-CALL h5dclose_f(dset, hdferr)
-CALL h5sclose_f(space, hdferr)
-DEALLOCATE(HDF5RARR)
-
-dimscl=(/ NWV_OUTPUT /)
-ALLOCATE(HDF5RARR(NWV_OUTPUT))
-IF(ILS_FLAG)THEN
-  HDF5RARR(1:NWV_OUTPUT)=BBSTC_AVG(NWV_START:NWV_END)
-ELSE
-  HDF5RARR(1:NWV_OUTPUT)=BBSTC(NWV_START:NWV_END)
-ENDIF
-CALL h5screate_simple_f(1, dimscl, space, hdferr)
-CALL h5dcreate_f(file, 'bbp_SEDIMENT_Backscattering_Coefficient_TopLayer', H5T_IEEE_F32LE, space, dset, hdferr)
-CALL h5dwrite_f(dset, H5T_NATIVE_REAL, C_LOC(HDF5RARR(1)), hdferr)
-CALL h5dsattach_scale_f(dset, c_dim_nwv_output, 1, hdferr)
-CALL h5dclose_f(dset, hdferr)
-CALL h5sclose_f(space, hdferr)
-DEALLOCATE(HDF5RARR)
-
-dimscl=(/ NWV_OUTPUT /)
-ALLOCATE(HDF5RARR(NWV_OUTPUT))
-IF(ILS_FLAG)THEN
-  HDF5RARR(1:NWV_OUTPUT)=BBSTCfrac_AVG(NWV_START:NWV_END)
-ELSE
-  HDF5RARR(1:NWV_OUTPUT)=BBSTCfrac(NWV_START:NWV_END)
-ENDIF
-CALL h5screate_simple_f(1, dimscl, space, hdferr)
-CALL h5dcreate_f(file, 'Bbp_SEDIMENT_Backscattering_fraction_TopLayer', H5T_IEEE_F32LE, space, dset, hdferr)
-CALL h5dwrite_f(dset, H5T_NATIVE_REAL, C_LOC(HDF5RARR(1)), hdferr)
-CALL h5dsattach_scale_f(dset, c_dim_nwv_output, 1, hdferr)
-CALL h5dclose_f(dset, hdferr)
-CALL h5sclose_f(space, hdferr)
-DEALLOCATE(HDF5RARR)
-
-dimscl=(/ NWV_OUTPUT /)
-ALLOCATE(HDF5RARR(NWV_OUTPUT))
-IF(ILS_FLAG)THEN
-  HDF5RARR(1:NWV_OUTPUT)=ASTC_AVG(NWV_START:NWV_END)
-ELSE
-  HDF5RARR(1:NWV_OUTPUT)=ASTC(NWV_START:NWV_END)
-ENDIF
-CALL h5screate_simple_f(1, dimscl, space, hdferr)
-CALL h5dcreate_f(file, 'ap_SEDIMENT_Absorption_Coefficient_TopLayer', H5T_IEEE_F32LE, space, dset, hdferr)
-CALL h5dwrite_f(dset, H5T_NATIVE_REAL, C_LOC(HDF5RARR(1)), hdferr)
-CALL h5dsattach_scale_f(dset, c_dim_nwv_output, 1, hdferr)
-CALL h5dclose_f(dset, hdferr)
-CALL h5sclose_f(space, hdferr)
-DEALLOCATE(HDF5RARR)
-
-dimscl=(/ NWV_OUTPUT /)
-ALLOCATE(HDF5RARR(NWV_OUTPUT))
-IF(ILS_FLAG)THEN
-  HDF5RARR(1:NWV_OUTPUT)=ACDM_AVG(NWV_START:NWV_END)
-ELSE
-  HDF5RARR(1:NWV_OUTPUT)=ACDM(NWV_START:NWV_END)
-ENDIF
-CALL h5screate_simple_f(1, dimscl, space, hdferr)
-CALL h5dcreate_f(file, 'ay_CDOM_Absorption_Coefficient_TopLayer', H5T_IEEE_F32LE, space, dset, hdferr)
-CALL h5dwrite_f(dset, H5T_NATIVE_REAL, C_LOC(HDF5RARR(1)), hdferr)
-CALL h5dsattach_scale_f(dset, c_dim_nwv_output, 1, hdferr)
-CALL h5dclose_f(dset, hdferr)
-CALL h5sclose_f(space, hdferr)
-DEALLOCATE(HDF5RARR)
-
-CALL h5screate_f(H5S_SCALAR_F, space, hdferr)
-CALL h5dcreate_f(file, 'DEPOL90_KOK', H5T_IEEE_F32LE, space, dset, hdferr)
-HDF5RTMP=Dpol90_Kok
-f_ptr=C_LOC(HDF5RTMP(1))
-CALL h5dwrite_f(dset,H5T_NATIVE_REAL,f_ptr, hdferr)
-CALL h5dclose_f(dset, hdferr)
-CALL h5sclose_f(space, hdferr)
-
-CALL h5screate_f(H5S_SCALAR_F, space, hdferr)
-CALL h5dcreate_f(file, 'ABSORPTION_OPTICAL_DEPTH_REDUCTION_FLAG', H5T_NATIVE_INTEGER, space, dset, hdferr)
 IF(ABSORPTION_TAU_REDUCE_FLAG)THEN
   HDF5ITMP=1
 ELSE
   HDF5ITMP=0
 ENDIF
-f_ptr=C_LOC(HDF5ITMP(1))
-CALL h5dwrite_f(dset,H5T_NATIVE_INTEGER,f_ptr, hdferr)
-CALL h5dclose_f(dset, hdferr)
-CALL h5sclose_f(space, hdferr)
+CALL write_scalar_int(file, 'ABSORPTION_OPTICAL_DEPTH_REDUCTION_FLAG',HDF5ITMP(1))
 
-CALL h5screate_f(H5S_SCALAR_F, space, hdferr)
-CALL h5dcreate_f(file, 'Bottom_Case', H5T_NATIVE_INTEGER, space, dset, hdferr)
 HDF5ITMP=OCEAN_CASE_SELECT
-f_ptr=C_LOC(HDF5ITMP(1))
-CALL h5dwrite_f(dset,H5T_NATIVE_INTEGER,f_ptr, hdferr)
-CALL h5dclose_f(dset, hdferr)
-CALL h5sclose_f(space, hdferr)
+CALL write_scalar_int(file, 'Bottom_Case',HDF5ITMP(1))
 
-CALL h5screate_f(H5S_SCALAR_F, space, hdferr)
-CALL h5dcreate_f(file, 'WAVEBAND_SEG_FLAG', H5T_NATIVE_INTEGER, space, dset, hdferr)
 HDF5ITMP=WV_SEG_FLAG
-f_ptr=C_LOC(HDF5ITMP(1))
-CALL h5dwrite_f(dset,H5T_NATIVE_INTEGER,f_ptr, hdferr)
-CALL h5dclose_f(dset, hdferr)
-CALL h5sclose_f(space, hdferr)
+CALL write_scalar_int(file,'WAVEBAND_SEG_FLAG',HDF5ITMP(1))
 
-CALL h5screate_f(H5S_SCALAR_F, space, hdferr)
-CALL h5dcreate_f(file, 'ATMOS_ZERO',H5T_NATIVE_INTEGER, space, dset, hdferr)
 IF(ATMOS_ZERO)THEN
   HDF5ITMP=1
 ELSE
   HDF5ITMP=0
 ENDIF
-f_ptr=C_LOC(HDF5ITMP(1))
-CALL h5dwrite_f(dset,H5T_NATIVE_INTEGER,f_ptr, hdferr)
-CALL h5dclose_f(dset, hdferr)
-CALL h5sclose_f(space, hdferr)
+CALL write_scalar_int(file,'ATMOS_ZERO',HDF5ITMP(1))
 
-CALL h5screate_f(H5S_SCALAR_F, space, hdferr)
-CALL h5dcreate_f(file, 'SUN_GLINT_FLAG',H5T_NATIVE_INTEGER, space, dset, hdferr)
 IF(SUNGLINT_INPUT)THEN
   HDF5ITMP=0
 ELSE
   HDF5ITMP=1
 ENDIF
-f_ptr=C_LOC(HDF5ITMP(1))
-CALL h5dwrite_f(dset,H5T_NATIVE_INTEGER,f_ptr, hdferr)
-CALL h5dclose_f(dset, hdferr)
-CALL h5sclose_f(space, hdferr)
+CALL write_scalar_int(file,'SUN_GLINT_FLAG',HDF5ITMP(1))
 
-CALL h5screate_f(H5S_SCALAR_F, space, hdferr)
-CALL h5dcreate_f(file, 'NonPhotochemicalQuenching_FLAG',H5T_NATIVE_INTEGER, space, dset, hdferr)
 IF(NPQ_FLAG)THEN
   HDF5ITMP=1
 ELSE
   HDF5ITMP=0
 ENDIF
-f_ptr=C_LOC(HDF5ITMP(1))
-CALL h5dwrite_f(dset,H5T_NATIVE_INTEGER,f_ptr, hdferr)
-CALL h5dclose_f(dset, hdferr)
-CALL h5sclose_f(space, hdferr)
+CALL write_scalar_int(file,'NonPhotochemicalQuenching_FLAG',HDF5ITMP(1))
 
-CALL h5screate_f(H5S_SCALAR_F, space, hdferr)
-CALL h5dcreate_f(file, 'OCEAN_FCHLA_FLAG',H5T_NATIVE_INTEGER, space, dset, hdferr)
+
 IF(OCEAN_FCHLA_FLAG)THEN
-HDF5ITMP=1
+	HDF5ITMP=1
 ELSE
-HDF5ITMP=0
+	HDF5ITMP=0
 ENDIF
-f_ptr=C_LOC(HDF5ITMP(1))
-CALL h5dwrite_f(dset,H5T_NATIVE_INTEGER,f_ptr, hdferr)
-CALL h5dclose_f(dset, hdferr)
-CALL h5sclose_f(space, hdferr)
+CALL write_scalar_int(file,'OCEAN_FCHLA_FLAG',HDF5ITMP(1))
 
-CALL h5screate_f(H5S_SCALAR_F, space, hdferr)
-CALL h5dcreate_f(file, 'OCEAN_FCDOM_FLAG', H5T_NATIVE_INTEGER, space, dset, hdferr)
 IF(OCEAN_FCDOM_FLAG)THEN
   HDF5ITMP=1
 ELSE
   HDF5ITMP=0
 ENDIF
-f_ptr=C_LOC(HDF5ITMP(1))
-CALL h5dwrite_f(dset,H5T_NATIVE_INTEGER,f_ptr, hdferr)
-CALL h5dclose_f(dset, hdferr)
-CALL h5sclose_f(space, hdferr)
+CALL write_scalar_int(file,'OCEAN_FCDOM_FLAG',HDF5ITMP(1))
 
-CALL h5screate_f(H5S_SCALAR_F, space, hdferr)
-CALL h5dcreate_f(file, 'OCEAN_RAMAN_FLAG',H5T_NATIVE_INTEGER, space, dset, hdferr)
 IF(OCEAN_RAMAN_FLAG)THEN
   HDF5ITMP=1
 ELSE
   HDF5ITMP=0
 ENDIF
-f_ptr=C_LOC(HDF5ITMP(1))
-CALL h5dwrite_f(dset,H5T_NATIVE_INTEGER,f_ptr, hdferr)
-CALL h5dclose_f(dset, hdferr)
-CALL h5sclose_f(space, hdferr)
+CALL write_scalar_int(file,'OCEAN_RAMAN_FLAG',HDF5ITMP(1))
 
-CALL h5screate_f(H5S_SCALAR_F, space, hdferr)
-CALL h5dcreate_f(file, 'MONOCHROMATIC_FLAG',H5T_NATIVE_INTEGER, space, dset, hdferr)
 IF(MONOCHROMATIC_FLAG)THEN
   HDF5ITMP=1
 ELSE
   HDF5ITMP=0
 ENDIF
-f_ptr=C_LOC(HDF5ITMP(1))
-CALL h5dwrite_f(dset,H5T_NATIVE_INTEGER,f_ptr, hdferr)
-CALL h5dclose_f(dset, hdferr)
-CALL h5sclose_f(space, hdferr)
+CALL write_scalar_int(file,'MONOCHROMATIC_FLAG',HDF5ITMP(1))
 
-CALL h5screate_f(H5S_SCALAR_F, space, hdferr)
-CALL h5dcreate_f(file, 'OCEAN_PHMX_ONE',H5T_NATIVE_INTEGER, space, dset, hdferr)
 IF(OCEAN_PHMX_ONE)THEN
   HDF5ITMP=1
 ELSE
   HDF5ITMP=0
 ENDIF
-f_ptr=C_LOC(HDF5ITMP(1))
-CALL h5dwrite_f(dset,H5T_NATIVE_INTEGER,f_ptr, hdferr)
-CALL h5dclose_f(dset, hdferr)
-CALL h5sclose_f(space, hdferr)
+CALL write_scalar_int(file,'OCEAN_PHMX_ONE',HDF5ITMP(1))
 
-CALL h5screate_f(H5S_SCALAR_F, space, hdferr)
-CALL h5dcreate_f(file, 'CHLA_HOMOGENEITY',H5T_NATIVE_INTEGER, space, dset, hdferr)
 IF(CHLA_HOMOGENEITY)THEN
-HDF5ITMP=1
+	HDF5ITMP=1
 ELSE
-HDF5ITMP=0
+	HDF5ITMP=0
 ENDIF
-f_ptr=C_LOC(HDF5ITMP(1))
-CALL h5dwrite_f(dset,H5T_NATIVE_INTEGER,f_ptr, hdferr)
-CALL h5dclose_f(dset, hdferr)
-CALL h5sclose_f(space, hdferr)
+CALL write_scalar_int(file,'CHLA_HOMOGENEITY',HDF5ITMP(1))
 
-dimscl=(/ NWATER_DEPTH /)
-ALLOCATE(HDF5RARR(NWATER_DEPTH))
-HDF5RARR=WATER_DEPTH(1:NWATER_DEPTH)
-CALL h5screate_simple_f(1, dimscl, space, hdferr)
-CALL h5dcreate_f(file, 'WATER_DEPTH_LEVELS', H5T_IEEE_F32LE, space, c_dim_nwater_depth, hdferr)
-CALL h5dwrite_f(c_dim_nwater_depth, H5T_NATIVE_REAL, C_LOC(HDF5RARR(1)), hdferr)
-CALL h5dsset_scale_f(c_dim_nwater_depth, hdferr)
-CALL h5sclose_f(space, hdferr)
-DEALLOCATE(HDF5RARR)
-
-dimscl=(/ NWATER_DEPTH /)
-ALLOCATE(HDF5RARR(NWATER_DEPTH))
 IF(OCEAN_FCHLA_FLAG)THEN
-   HDF5RARR=IPAR_SCALAR(1:NWATER_DEPTH)
+   CALL write_1d_real(file, 'IPAR_SCALAR',real(IPAR_SCALAR),c_dim_nwater_depth)
+   CALL write_1d_real(file, 'QUANTUM_YIELD_PROFILE',real(QUANTUM_YIELD_CHLA_PROFILE),c_dim_nwater_depth)
+
 ELSE
+   ALLOCATE(HDF5RARR(NWATER_DEPTH))
    HDF5RARR=-999
+   CALL write_1d_real(file, 'IPAR_SCALAR',HDF5RARR,c_dim_nwater_depth)
+   CALL write_1d_real(file, 'QUANTUM_YIELD_PROFILE',HDF5RARR,c_dim_nwater_depth)
+   DEALLOCATE(HDF5RARR)
 ENDIF
-CALL h5screate_simple_f(1, dimscl, space, hdferr)
-CALL h5dcreate_f(file, 'IPAR_SCALAR', H5T_IEEE_F32LE, space, dset, hdferr)
-CALL h5dwrite_f(dset, H5T_NATIVE_REAL, C_LOC(HDF5RARR(1)), hdferr)
-CALL h5dsattach_scale_f(dset, c_dim_nwater_depth, 1, hdferr)
-CALL h5dclose_f(dset, hdferr)
-CALL h5sclose_f(space, hdferr)
-DEALLOCATE(HDF5RARR)
 
 IF(OCEAN_FCHLA_FLAG .OR. OCEAN_FCDOM_FLAG)THEN
-    dimscl=(/ NFLRSCGRID /)
-    ALLOCATE(HDF5RARR(NFLRSCGRID))
-    HDF5RARR=LAMBDAEXFLRSC
-    CALL h5screate_simple_f(1, dimscl, space, hdferr)
-    CALL h5dcreate_f(file, 'WAVELENGTH_EX_GRID', H5T_IEEE_F32LE, space, c_dim_nflrscgrid, hdferr)
-    CALL h5dwrite_f(c_dim_nflrscgrid, H5T_NATIVE_REAL, C_LOC(HDF5RARR(1)), hdferr)
-    CALL h5dsset_scale_f(c_dim_nflrscgrid, hdferr)
-    CALL h5sclose_f(space, hdferr)
-    DEALLOCATE(HDF5RARR)
-
-    dims= (/NFLRSCGRID,NWATER_DEPTH /)
-    ALLOCATE(HDF5RARR2DIM(NFLRSCGRID,NWATER_DEPTH))
-    HDF5RARR2DIM=DIIRAD_SCALAR_AGD
-    CALL h5screate_simple_f(2, dims, space, hdferr)
-    CALL h5dcreate_f(file, 'DIIRAD_SCALAR_Ex', H5T_IEEE_F32LE, space, dset, hdferr)
-    CALL h5dwrite_f(dset, H5T_NATIVE_REAL, C_LOC(HDF5RARR2DIM(1,1)), hdferr)
-    CALL h5dsattach_scale_f(dset, c_dim_nwater_depth, 1, hdferr)
-    CALL h5dsattach_scale_f(dset, c_dim_nflrscgrid, 2, hdferr)
-    CALL h5dclose_f(dset, hdferr)
-    CALL h5sclose_f(space, hdferr)
-    DEALLOCATE(HDF5RARR2DIM)
-
+    CALL create_dim_scale(file, 'WAVELENGTH_EX_GRID',real(LAMBDAEXFLRSC), c_dim_nflrscgrid)
+    CALL write_2d_real(file, 'DIIRAD_SCALAR_Ex',real(DIIRAD_SCALAR_AGD),c_dim_nflrscgrid,c_dim_nwater_depth)
     CALL h5dclose_f(c_dim_nflrscgrid, hdferr)
 ENDIF
 
-dimscl=(/ NWATER_DEPTH /)
-ALLOCATE(HDF5RARR(NWATER_DEPTH))
-IF(OCEAN_FCHLA_FLAG)THEN
-   HDF5RARR=QUANTUM_YIELD_CHLA_PROFILE(1:NWATER_DEPTH)
-ELSE
-   HDF5RARR=-999
-ENDIF
-CALL h5screate_simple_f(1, dimscl, space, hdferr)
-CALL h5dcreate_f(file, 'QUANTUM_YIELD_PROFILE', H5T_IEEE_F32LE, space, dset, hdferr)
-CALL h5dwrite_f(dset, H5T_NATIVE_REAL, C_LOC(HDF5RARR(1)), hdferr)
-CALL h5dsattach_scale_f(dset, c_dim_nwater_depth, 1, hdferr)
-CALL h5dclose_f(dset, hdferr)
-CALL h5sclose_f(space, hdferr)
-DEALLOCATE(HDF5RARR)
+CALL write_1d_real(file, 'CHLA_VERTICAL_PROFILE',real(CHLA_VERTICAL_PROFILE),c_dim_nwater_depth)
 
-dimscl=(/ NWATER_DEPTH /)
-ALLOCATE(HDF5RARR(NWATER_DEPTH))
-HDF5RARR=CHLA_VERTICAL_PROFILE(1:NWATER_DEPTH)
-CALL h5screate_simple_f(1, dimscl, space, hdferr)
-CALL h5dcreate_f(file, 'CHLA_VERTICAL_PROFILE', H5T_IEEE_F32LE, space, dset, hdferr)
-CALL h5dwrite_f(dset, H5T_NATIVE_REAL, C_LOC(HDF5RARR(1)), hdferr)
-CALL h5dsattach_scale_f(dset, c_dim_nwater_depth, 1, hdferr)
-CALL h5dclose_f(dset, hdferr)
-CALL h5sclose_f(space, hdferr)
-DEALLOCATE(HDF5RARR)
+call write_scalar_real(file, 'QUANTUM_YIELD_CHLA_MIN', real(QUANTUM_YIELD_CHLA_MIN))
+call write_scalar_real(file, 'QUANTUM_YIELD_CHLA_MAX', real(QUANTUM_YIELD_CHLA_MAX))
+call write_scalar_real(file, 'QUANTUM_YIELD_CHLA_EK', real(QUANTUM_YIELD_CHLA_EK))
+call write_scalar_real(file, 'QUANTUM_YIELD_CHLA_ET', real(QUANTUM_YIELD_CHLA_ET))
+call write_scalar_real(file, 'QUANTUM_YIELD_CHLA_MLD', real(QUANTUM_YIELD_CHLA_MLD))
+call write_scalar_real(file, 'QUANTUM_YIELD_CHLA_QI', real(QUANTUM_YIELD_CHLA_QI))
 
-CALL h5screate_f(H5S_SCALAR_F, space, hdferr)
-CALL h5dcreate_f(file, 'QUANTUM_YIELD_CHLA_MIN', H5T_IEEE_F32LE, space, dset, hdferr)
-HDF5RTMP=QUANTUM_YIELD_CHLA_MIN
-f_ptr=C_LOC(HDF5RTMP(1))
-CALL h5dwrite_f(dset,H5T_NATIVE_REAL,f_ptr, hdferr)
-CALL h5dclose_f(dset, hdferr)
-CALL h5sclose_f(space, hdferr)
 
-CALL h5screate_f(H5S_SCALAR_F, space, hdferr)
-CALL h5dcreate_f(file, 'QUANTUM_YIELD_CHLA_MAX', H5T_IEEE_F32LE, space, dset, hdferr)
-HDF5RTMP=QUANTUM_YIELD_CHLA_MAX
-f_ptr=C_LOC(HDF5RTMP(1))
-CALL h5dwrite_f(dset,H5T_NATIVE_REAL,f_ptr, hdferr)
-CALL h5dclose_f(dset, hdferr)
-CALL h5sclose_f(space, hdferr)
-
-CALL h5screate_f(H5S_SCALAR_F, space, hdferr)
-CALL h5dcreate_f(file, 'QUANTUM_YIELD_CHLA_EK', H5T_IEEE_F32LE, space, dset, hdferr)
-HDF5RTMP=QUANTUM_YIELD_CHLA_EK
-f_ptr=C_LOC(HDF5RTMP(1))
-CALL h5dwrite_f(dset,H5T_NATIVE_REAL,f_ptr, hdferr)
-CALL h5dclose_f(dset, hdferr)
-CALL h5sclose_f(space, hdferr)
-
-CALL h5screate_f(H5S_SCALAR_F, space, hdferr)
-CALL h5dcreate_f(file, 'QUANTUM_YIELD_CHLA_ET', H5T_IEEE_F32LE, space, dset, hdferr)
-HDF5RTMP=QUANTUM_YIELD_CHLA_ET
-f_ptr=C_LOC(HDF5RTMP(1))
-CALL h5dwrite_f(dset,H5T_NATIVE_REAL,f_ptr, hdferr)
-CALL h5dclose_f(dset, hdferr)
-CALL h5sclose_f(space, hdferr)
-
-CALL h5screate_f(H5S_SCALAR_F, space, hdferr)
-CALL h5dcreate_f(file, 'QUANTUM_YIELD_CHLA_MLD', H5T_IEEE_F32LE, space, dset, hdferr)
-HDF5RTMP=QUANTUM_YIELD_CHLA_MLD
-f_ptr=C_LOC(HDF5RTMP(1))
-CALL h5dwrite_f(dset,H5T_NATIVE_REAL,f_ptr, hdferr)
-CALL h5dclose_f(dset, hdferr)
-CALL h5sclose_f(space, hdferr)
-
-CALL h5screate_f(H5S_SCALAR_F, space, hdferr)
-CALL h5dcreate_f(file, 'QUANTUM_YIELD_CHLA_QI', H5T_IEEE_F32LE, space, dset, hdferr)
-HDF5RTMP=QUANTUM_YIELD_CHLA_QI
-f_ptr=C_LOC(HDF5RTMP(1))
-CALL h5dwrite_f(dset,H5T_NATIVE_REAL,f_ptr, hdferr)
-CALL h5dclose_f(dset, hdferr)
-CALL h5sclose_f(space, hdferr)
-
-dimscl=(/ NWV_OUTPUT /)
 ALLOCATE(HDF5RARR(NWV_OUTPUT))
+
 IF(ILS_FLAG .OR. MONOCHROMATIC_FLAG)THEN
   HDF5RARR(1:NWV_OUTPUT)=DIRADFULL_AVG(1,NWV_START:NWV_END,1)
 ELSE
   HDF5RARR(1:NWV_OUTPUT)=DIRADFULL(1,NWV_START:NWV_END,1)
 ENDIF
-CALL h5screate_simple_f(1, dimscl, space, hdferr)
-CALL h5dcreate_f(file, 'Irradiance_TOA_Downwelling', H5T_IEEE_F32LE, space, dset, hdferr)
-CALL h5dwrite_f(dset, H5T_NATIVE_REAL, C_LOC(HDF5RARR(1)), hdferr)
-CALL h5dsattach_scale_f(dset, c_dim_nwv_output, 1, hdferr)
-CALL h5dclose_f(dset, hdferr)
-CALL h5sclose_f(space, hdferr)
-DEALLOCATE(HDF5RARR)
+CALL write_1d_real(file, 'Irradiance_TOA_Downwelling', &
+            HDF5RARR,c_dim_nwv_output)
 
-dimscl=(/ NWV_OUTPUT /)
-ALLOCATE(HDF5RARR(NWV_OUTPUT))
 IF(ILS_FLAG .OR. MONOCHROMATIC_FLAG)THEN
   HDF5RARR(1:NWV_OUTPUT)=DIRADFULL_AVG(1,NWV_START:NWV_END,2)
 ELSE
   HDF5RARR(1:NWV_OUTPUT)=DIRADFULL(1,NWV_START:NWV_END,2)
 ENDIF
-CALL h5screate_simple_f(1, dimscl, space, hdferr)
-CALL h5dcreate_f(file, 'Irradiance_TOA_Upwelling', H5T_IEEE_F32LE, space, dset, hdferr)
-CALL h5dwrite_f(dset, H5T_NATIVE_REAL, C_LOC(HDF5RARR(1)), hdferr)
-CALL h5dsattach_scale_f(dset, c_dim_nwv_output, 1, hdferr)
-CALL h5dclose_f(dset, hdferr)
-CALL h5sclose_f(space, hdferr)
-DEALLOCATE(HDF5RARR)
+CALL write_1d_real(file, 'Irradiance_TOA_Upwelling', &
+			HDF5RARR,c_dim_nwv_output)
 
-dimscl=(/ NWV_OUTPUT /)
-ALLOCATE(HDF5RARR(NWV_OUTPUT))
 IF(ILS_FLAG .OR. MONOCHROMATIC_FLAG)THEN
   HDF5RARR(1:NWV_OUTPUT)=DIRADFULL_AVG(2,NWV_START:NWV_END,1)
 ELSE
   HDF5RARR(1:NWV_OUTPUT)=DIRADFULL(2,NWV_START:NWV_END,1)
 ENDIF
-CALL h5screate_simple_f(1, dimscl, space, hdferr)
-CALL h5dcreate_f(file, 'Irradiance_AirSensor_Downwelling', H5T_IEEE_F32LE, space, dset, hdferr)
-CALL h5dwrite_f(dset, H5T_NATIVE_REAL, C_LOC(HDF5RARR(1)), hdferr)
-CALL h5dsattach_scale_f(dset, c_dim_nwv_output, 1, hdferr)
-CALL h5dclose_f(dset, hdferr)
-CALL h5sclose_f(space, hdferr)
-DEALLOCATE(HDF5RARR)
+CALL write_1d_real(file, 'Irradiance_AirSensor_Downwelling', &
+			HDF5RARR,c_dim_nwv_output)
 
-dimscl=(/ NWV_OUTPUT /)
-ALLOCATE(HDF5RARR(NWV_OUTPUT))
 IF(ILS_FLAG .OR. MONOCHROMATIC_FLAG)THEN
   HDF5RARR(1:NWV_OUTPUT)=DIRADFULL_AVG(2,NWV_START:NWV_END,2)
 ELSE
   HDF5RARR(1:NWV_OUTPUT)=DIRADFULL(2,NWV_START:NWV_END,2)
 ENDIF
-CALL h5screate_simple_f(1, dimscl, space, hdferr)
-CALL h5dcreate_f(file, 'Irradiance_AirSensor_Upwelling', H5T_IEEE_F32LE, space, dset, hdferr)
-CALL h5dwrite_f(dset, H5T_NATIVE_REAL, C_LOC(HDF5RARR(1)), hdferr)
-CALL h5dsattach_scale_f(dset, c_dim_nwv_output, 1, hdferr)
-CALL h5dclose_f(dset, hdferr)
-CALL h5sclose_f(space, hdferr)
-DEALLOCATE(HDF5RARR)
+CALL write_1d_real(file, 'Irradiance_AirSensor_Upwelling', &
+			HDF5RARR,c_dim_nwv_output)
 
-dimscl=(/ NWV_OUTPUT /)
-ALLOCATE(HDF5RARR(NWV_OUTPUT))
 IF(ILS_FLAG .OR. MONOCHROMATIC_FLAG)THEN
   HDF5RARR(1:NWV_OUTPUT)=DIRADFULL_AVG(3,NWV_START:NWV_END,1)
 ELSE
   HDF5RARR(1:NWV_OUTPUT)=DIRADFULL(3,NWV_START:NWV_END,1)
 ENDIF
-CALL h5screate_simple_f(1, dimscl, space, hdferr)
-CALL h5dcreate_f(file, 'Irradiance_BOA_Downwelling', H5T_IEEE_F32LE, space, dset, hdferr)
-CALL h5dwrite_f(dset, H5T_NATIVE_REAL, C_LOC(HDF5RARR(1)), hdferr)
-CALL h5dsattach_scale_f(dset, c_dim_nwv_output, 1, hdferr)
-CALL h5dclose_f(dset, hdferr)
-CALL h5sclose_f(space, hdferr)
-DEALLOCATE(HDF5RARR)
+CALL write_1d_real(file, 'Irradiance_BOA_Downwelling', &
+			HDF5RARR,c_dim_nwv_output)
 
-dimscl=(/ NWV_OUTPUT /)
-ALLOCATE(HDF5RARR(NWV_OUTPUT))
 IF(ILS_FLAG .OR. MONOCHROMATIC_FLAG)THEN
   HDF5RARR(1:NWV_OUTPUT)=DIRADFULL_AVG(3,NWV_START:NWV_END,2)
 ELSE
   HDF5RARR(1:NWV_OUTPUT)=DIRADFULL(3,NWV_START:NWV_END,2)
 ENDIF
-CALL h5screate_simple_f(1, dimscl, space, hdferr)
-CALL h5dcreate_f(file, 'Irradiance_BOA_Upwelling', H5T_IEEE_F32LE, space, dset, hdferr)
-CALL h5dwrite_f(dset, H5T_NATIVE_REAL, C_LOC(HDF5RARR(1)), hdferr)
-CALL h5dsattach_scale_f(dset, c_dim_nwv_output, 1, hdferr)
-CALL h5dclose_f(dset, hdferr)
-CALL h5sclose_f(space, hdferr)
-DEALLOCATE(HDF5RARR)
+CALL write_1d_real(file, 'Irradiance_BOA_Upwelling', &
+			HDF5RARR,c_dim_nwv_output)
+
 
 IF(OCEAN_CASE_SELECT >= 0)THEN
-	dimscl=(/ NWV_OUTPUT /)
-	ALLOCATE(HDF5RARR(NWV_OUTPUT))
 	IF(ILS_FLAG .OR. MONOCHROMATIC_FLAG)THEN
 	  HDF5RARR(1:NWV_OUTPUT)=DIRADFULL_AVG(4,NWV_START:NWV_END,1)
 	ELSE
 	  HDF5RARR(1:NWV_OUTPUT)=DIRADFULL(4,NWV_START:NWV_END,1)
 	ENDIF
-	CALL h5screate_simple_f(1, dimscl, space, hdferr)
-	CALL h5dcreate_f(file, 'Irradiance_TOO_Downwelling', H5T_IEEE_F32LE, space, dset, hdferr)
-	CALL h5dwrite_f(dset, H5T_NATIVE_REAL, C_LOC(HDF5RARR(1)), hdferr)
-    CALL h5dsattach_scale_f(dset, c_dim_nwv_output, 1, hdferr)
-	CALL h5dclose_f(dset, hdferr)
-	CALL h5sclose_f(space, hdferr)
-	DEALLOCATE(HDF5RARR)
+    CALL write_1d_real(file, 'Irradiance_TOO_Downwelling', &
+			HDF5RARR,c_dim_nwv_output)
 
-	dimscl=(/ NWV_OUTPUT /)
-	ALLOCATE(HDF5RARR(NWV_OUTPUT))
 	IF(ILS_FLAG .OR. MONOCHROMATIC_FLAG)THEN
 	  HDF5RARR(1:NWV_OUTPUT)=DIRADFULL_AVG(4,NWV_START:NWV_END,2)
 	ELSE
 	  HDF5RARR(1:NWV_OUTPUT)=DIRADFULL(4,NWV_START:NWV_END,2)
 	ENDIF
-	CALL h5screate_simple_f(1, dimscl, space, hdferr)
-	CALL h5dcreate_f(file, 'Irradiance_TOO_Upwelling', H5T_IEEE_F32LE, space, dset, hdferr)
-	CALL h5dwrite_f(dset, H5T_NATIVE_REAL, C_LOC(HDF5RARR(1)), hdferr)
-    CALL h5dsattach_scale_f(dset, c_dim_nwv_output, 1, hdferr)
-	CALL h5dclose_f(dset, hdferr)
-	CALL h5sclose_f(space, hdferr)
-	DEALLOCATE(HDF5RARR)
+	CALL write_1d_real(file, 'Irradiance_TOO_Upwelling', &
+						HDF5RARR,c_dim_nwv_output)
+
 ENDIF
 
-dimscl=(/ NTHETAOUT /)
-ALLOCATE(HDF5RARR(NTHETAOUT))
-HDF5RARR=ACOS(MUOUT)/PI*180.D0
-CALL h5screate_simple_f(1, dimscl, space, hdferr)
-CALL h5dcreate_f(file, 'ThetaV', H5T_IEEE_F32LE, space, c_dim_thetav, hdferr)
-CALL h5dwrite_f(c_dim_thetav, H5T_NATIVE_REAL, C_LOC(HDF5RARR(1)), hdferr)
-CALL h5dsset_scale_f(c_dim_thetav, hdferr)
-CALL h5sclose_f(space, hdferr)
 DEALLOCATE(HDF5RARR)
 
-dimscl=(/ NPHIOUT /)
-ALLOCATE(HDF5RARR(NPHIOUT))
-HDF5RARR=PHIOUT*180.0d0/PI
-CALL h5screate_simple_f(1, dimscl, space, hdferr)
-CALL h5dcreate_f(file, 'PhiV', H5T_IEEE_F32LE, space, c_dim_phiv, hdferr)
-CALL h5dwrite_f(c_dim_phiv, H5T_NATIVE_REAL, C_LOC(HDF5RARR(1)), hdferr)
-CALL h5dsset_scale_f(c_dim_phiv, hdferr)
-CALL h5sclose_f(space, hdferr)
-DEALLOCATE(HDF5RARR)
+CALL create_dim_scale(file, 'ThetaV',real(ACOS(MUOUT)/PI*180.D0),c_dim_thetav)
+CALL create_dim_scale(file, 'PhiV',real(PHIOUT*180.0d0/PI),c_dim_phiv)
 
-dimscl=(/ 4 /)
+N_Stokes_Parameter=4
+dimscl=(/ N_Stokes_Parameter /)
 CALL h5screate_simple_f(1, dimscl, space, hdferr)
-CALL h5dcreate_f(file, 'Stokes_Parameter', H5T_IEEE_F32LE, space, c_dim_stokes, hdferr)
+CALL h5dcreate_f(file, 'N_Stokes_Parameter', H5T_IEEE_F32LE, space, c_dim_stokes, hdferr)
 CALL h5dsset_scale_f(c_dim_stokes, hdferr, dim_not_var)
 CALL h5sclose_f(space, hdferr)
 
@@ -3118,76 +2469,45 @@ IF(ILS_FLAG .OR. MONOCHROMATIC_FLAG)THEN
 ELSE
   HDF5RARR4DIM=DSTOKESFULL(1,NWV_START:NWV_END,:,:,:)
 ENDIF
-CALL h5screate_simple_f(4, dims4, space, hdferr)
-CALL h5dcreate_f(file, 'Stokes_Vector_TOA', H5T_IEEE_F32LE, space, dset, hdferr)
-CALL h5dwrite_f(dset, H5T_NATIVE_REAL, C_LOC(HDF5RARR4DIM(1,1,1,1)), hdferr)
-CALL h5dsattach_scale_f(dset, c_dim_stokes, 1, hdferr)
-CALL h5dsattach_scale_f(dset, c_dim_phiv, 2, hdferr)
-CALL h5dsattach_scale_f(dset, c_dim_thetav, 3, hdferr)
-CALL h5dsattach_scale_f(dset, c_dim_nwv_output, 4, hdferr)
-CALL h5dclose_f(dset, hdferr)
-CALL h5sclose_f(space, hdferr)
-DEALLOCATE(HDF5RARR4DIM)
+CALL write_4d_real(file, 'Stokes_Vector_TOA',HDF5RARR4DIM, &
+           c_dim_nwv_output,c_dim_thetav,c_dim_phiv,c_dim_stokes)
 
-dims4 = (/NWV_OUTPUT,NTHETAOUT,NPHIOUT,4/)
-ALLOCATE(HDF5RARR4DIM(NWV_OUTPUT,NTHETAOUT,NPHIOUT,4))
 IF(ILS_FLAG .OR. MONOCHROMATIC_FLAG)THEN
   HDF5RARR4DIM=DSTOKESFULL_AVG(2,NWV_START:NWV_END,:,:,:)
 ELSE
   HDF5RARR4DIM=DSTOKESFULL(2,NWV_START:NWV_END,:,:,:)
 ENDIF
-CALL h5screate_simple_f(4, dims4, space, hdferr)
-CALL h5dcreate_f(file, 'Stokes_Vector_AirSensor', H5T_IEEE_F32LE, space, dset, hdferr)
-CALL h5dwrite_f(dset, H5T_NATIVE_REAL, C_LOC(HDF5RARR4DIM(1,1,1,1)), hdferr)
-CALL h5dsattach_scale_f(dset, c_dim_stokes, 1, hdferr)
-CALL h5dsattach_scale_f(dset, c_dim_phiv, 2, hdferr)
-CALL h5dsattach_scale_f(dset, c_dim_thetav, 3, hdferr)
-CALL h5dsattach_scale_f(dset, c_dim_nwv_output, 4, hdferr)
-CALL h5dclose_f(dset, hdferr)
-CALL h5sclose_f(space, hdferr)
-DEALLOCATE(HDF5RARR4DIM)
+CALL write_4d_real(file, 'Stokes_Vector_AirSensor',HDF5RARR4DIM, &
+		   c_dim_nwv_output,c_dim_thetav,c_dim_phiv,c_dim_stokes)
 
-dims4 = (/NWV_OUTPUT,NTHETAOUT,NPHIOUT,4/)
-ALLOCATE(HDF5RARR4DIM(NWV_OUTPUT,NTHETAOUT,NPHIOUT,4))
 IF(ILS_FLAG .OR. MONOCHROMATIC_FLAG)THEN
   HDF5RARR4DIM=DSTOKESFULL_AVG(3,NWV_START:NWV_END,:,:,:)
 ELSE
   HDF5RARR4DIM=DSTOKESFULL(3,NWV_START:NWV_END,:,:,:)
 ENDIF
-CALL h5screate_simple_f(4, dims4, space, hdferr)
-CALL h5dcreate_f(file, 'Stokes_Vector_BOA', H5T_IEEE_F32LE, space, dset, hdferr)
-CALL h5dwrite_f(dset, H5T_NATIVE_REAL, C_LOC(HDF5RARR4DIM(1,1,1,1)), hdferr)
-CALL h5dsattach_scale_f(dset, c_dim_stokes, 1, hdferr)
-CALL h5dsattach_scale_f(dset, c_dim_phiv, 2, hdferr)
-CALL h5dsattach_scale_f(dset, c_dim_thetav, 3, hdferr)
-CALL h5dsattach_scale_f(dset, c_dim_nwv_output, 4, hdferr)
-CALL h5dclose_f(dset, hdferr)
-CALL h5sclose_f(space, hdferr)
-DEALLOCATE(HDF5RARR4DIM)
+CALL write_4d_real(file, 'Stokes_Vector_BOA',HDF5RARR4DIM, &
+		   c_dim_nwv_output,c_dim_thetav,c_dim_phiv,c_dim_stokes)
+
+
 
 IF(OCEAN_CASE_SELECT >= 0)THEN
 
-	dims4 = (/NWV_OUTPUT,NTHETAOUT,NPHIOUT,4/)
-	ALLOCATE(HDF5RARR4DIM(NWV_OUTPUT,NTHETAOUT,NPHIOUT,4))
 	IF(ILS_FLAG .OR. MONOCHROMATIC_FLAG)THEN
 	  HDF5RARR4DIM=DSTOKESFULL_AVG(4,NWV_START:NWV_END,:,:,:)
 	ELSE
 	  HDF5RARR4DIM=DSTOKESFULL(4,NWV_START:NWV_END,:,:,:)
 	ENDIF
-	CALL h5screate_simple_f(4, dims4, space, hdferr)
-	CALL h5dcreate_f(file, 'Stokes_Vector_TOO', H5T_IEEE_F32LE, space, dset, hdferr)
-	CALL h5dwrite_f(dset, H5T_NATIVE_REAL, C_LOC(HDF5RARR4DIM(1,1,1,1)), hdferr)
-  CALL h5dsattach_scale_f(dset, c_dim_stokes, 1, hdferr)
-  CALL h5dsattach_scale_f(dset, c_dim_phiv, 2, hdferr)
-  CALL h5dsattach_scale_f(dset, c_dim_thetav, 3, hdferr)
-  CALL h5dsattach_scale_f(dset, c_dim_nwv_output, 4, hdferr)
-	CALL h5dclose_f(dset, hdferr)
-	CALL h5sclose_f(space, hdferr)
-	DEALLOCATE(HDF5RARR4DIM)
+
+    CALL write_4d_real(file, 'Stokes_Vector_TOO',HDF5RARR4DIM, &
+		   c_dim_nwv_output,c_dim_thetav,c_dim_phiv,c_dim_stokes)
 
 ENDIF
+
+DEALLOCATE(HDF5RARR4DIM)
+
 CALL h5dclose_f(c_dim_nwv_band, hdferr)
 CALL h5dclose_f(c_dim_nwv_output, hdferr)
+CALL h5dclose_f(c_dim_nummieuse, hdferr)
 CALL h5dclose_f(c_dim_ntlyera, hdferr)
 CALL h5dclose_f(c_dim_ntlyera1, hdferr)
 CALL h5dclose_f(c_dim_nwater_depth, hdferr)
