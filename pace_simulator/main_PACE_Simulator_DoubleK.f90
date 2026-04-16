@@ -1635,7 +1635,7 @@ DOUBLE PRECISION :: Func_UVIP3P,ILS_INT_CONST,TRAPZOID
 logical:: exist
 
 INTERFACE write_real
-  MODULE PROCEDURE write_1d_real, write_2d_real, write_3d_real, write_4d_real
+  MODULE PROCEDURE write_1d_real, write_2d_real, write_4d_real
 END INTERFACE
 
 ALLOCATE(DIRADFULL_AVG(NDET,NWV_BAND,2),&
@@ -2072,23 +2072,23 @@ CALL create_dim_scale(file, 'Atmosphere_Layer_Altitudes', real(ALT_LYRA),c_dim_n
 
 IF (ILS_FLAG) THEN
   CALL write_1d_real(file, 'fiso', real(fiso_avg(NWV_START:NWV_END)), &
-					 dim1=c_dim_nwv_output)
+					 c_dim_1=c_dim_nwv_output)
 
   CALL write_1d_real(file, 'fgeo', real(fgeo_avg(NWV_START:NWV_END)), &
-					 dim1=c_dim_nwv_output)
+					 c_dim_1=c_dim_nwv_output)
 
   CALL write_1d_real(file, 'fvol', real(fvol_avg(NWV_START:NWV_END)), &
-					 dim1=c_dim_nwv_output)
+					 c_dim_1=c_dim_nwv_output)
 
   CALL write_1d_real(file, 'Bpol', real(Bpol_avg(NWV_START:NWV_END)), &
-					 dim1=c_dim_nwv_output)
+					 c_dim_1=c_dim_nwv_output)
 ENDIF
 
 
-CALL write_1d_real(file, 'Aerosol_Rf', real(REFF1_Save), dim1=c_dim_nummieuse)
-CALL write_1d_real(file, 'Aerosol_Vf', real(VEFF1_Save), dim1=c_dim_nummieuse)
-CALL write_1d_real(file, 'Aerosol_Rc', real(REFF2_Save), dim1=c_dim_nummieuse)
-CALL write_1d_real(file, 'Aerosol_Vc', real(VEFF2_Save), dim1=c_dim_nummieuse)
+CALL write_1d_real(file, 'Aerosol_Rf', real(REFF1_Save), c_dim_1=c_dim_nummieuse)
+CALL write_1d_real(file, 'Aerosol_Vf', real(VEFF1_Save), c_dim_1=c_dim_nummieuse)
+CALL write_1d_real(file, 'Aerosol_Rc', real(REFF2_Save), c_dim_1=c_dim_nummieuse)
+CALL write_1d_real(file, 'Aerosol_Vc', real(VEFF2_Save), c_dim_1=c_dim_nummieuse)
 
 call write_scalar_real(file, 'Aerosol_R_NONSPHERE', real(REFF_NonSpherical))
 call write_scalar_real(file, 'Aerosol_V_NONSPHERE', real(VEFF_NonSpherical))
@@ -2097,178 +2097,178 @@ IF(ILS_FLAG)THEN
 
 	CALL write_2d_real(file, 'Aerosol_Mrf', &
 		 real(MRR1_Save(:, NWV_START:NWV_END)), &
-		 dim1=c_dim_nummieuse, dim2=c_dim_nwv_output)
+		 c_dim_1=c_dim_nummieuse, c_dim_2=c_dim_nwv_output)
 
 	CALL write_2d_real(file, 'Aerosol_Mif', &
 		 real(MRI1_Save(:, NWV_START:NWV_END)), &
-		 dim1=c_dim_nummieuse, dim2=c_dim_nwv_output)
+		 c_dim_1=c_dim_nummieuse, c_dim_2=c_dim_nwv_output)
 
 	CALL write_2d_real(file, 'Aerosol_Mrc', &
 		 real(MRR2_Save(:, NWV_START:NWV_END)), &
-		 dim1=c_dim_nummieuse, dim2=c_dim_nwv_output)
+		 c_dim_1=c_dim_nummieuse, c_dim_2=c_dim_nwv_output)
 
 	CALL write_2d_real(file, 'Aerosol_Mic', &
 		 real(MRI2_Save(:, NWV_START:NWV_END)), &
-		 dim1=c_dim_nummieuse, dim2=c_dim_nwv_output)
+		 c_dim_1=c_dim_nummieuse, c_dim_2=c_dim_nwv_output)
 
     CALL write_1d_real(file, 'Aerosol_Mr_NONSPHERE', &
 		 real(MRR_NonSpherical(NWV_START:NWV_END)), &
-				dim1=c_dim_nwv_output)
+				c_dim_1=c_dim_nwv_output)
 	CALL write_1d_real(file, 'Aerosol_Mi_NONSPHERE', &
 		 real(MRI_NonSpherical(NWV_START:NWV_END)), &
-				dim1=c_dim_nwv_output)
+				c_dim_1=c_dim_nwv_output)
 
 	CALL write_2d_real(file, 'Tau_Aerosol_Extinction', &
 		 real(TAU_ARSL_Ext_AVG(NWV_START:NWV_END, :)), &
-		 dim1=c_dim_nwv_output, dim2=c_dim_ntlyera)
+		 c_dim_1=c_dim_nwv_output, c_dim_2=c_dim_ntlyera)
 
 	CALL write_2d_real(file, 'Tau_Aerosol_Scattering', &
 		 real(TAU_ARSL_Scat_AVG(NWV_START:NWV_END, :)), &
-		 dim1=c_dim_nwv_output, dim2=c_dim_ntlyera)
+		 c_dim_1=c_dim_nwv_output, c_dim_2=c_dim_ntlyera)
 
 	CALL write_2d_real(file, 'Tau_Rayleigh_Extinction', &
 		 real(TAU_RAY_AVG(NWV_START:NWV_END, :)), &
-		 dim1=c_dim_nwv_output, dim2=c_dim_ntlyera)
+		 c_dim_1=c_dim_nwv_output, c_dim_2=c_dim_ntlyera)
 
 	CALL write_2d_real(file, 'Rayleigh_Depolization_Ratio', &
 		 real(DEPOL_A_AVG(NWV_START:NWV_END, :)), &
-		 dim1=c_dim_nwv_output, dim2=c_dim_ntlyera)
+		 c_dim_1=c_dim_nwv_output, c_dim_2=c_dim_ntlyera)
 
 ENDIF
 
 IF (ILS_FLAG) THEN
 	CALL write_1d_real(file, 'Tau_Gas_Absorption_Total', &
-         real(TAU_TG_AVG(NWV_START:NWV_END)), dim1=c_dim_nwv_output)
+         real(TAU_TG_AVG(NWV_START:NWV_END)), c_dim_1=c_dim_nwv_output)
 
 	CALL write_1d_real(file, 'Tau_H2O_Absorption', &
-		 real(TAU_TG_H2O_AVG(NWV_START:NWV_END)), dim1=c_dim_nwv_output)
+		 real(TAU_TG_H2O_AVG(NWV_START:NWV_END)), c_dim_1=c_dim_nwv_output)
 
 	CALL write_1d_real(file, 'Tau_CO2_Absorption', &
-		 real(TAU_TG_CO2_AVG(NWV_START:NWV_END)), dim1=c_dim_nwv_output)
+		 real(TAU_TG_CO2_AVG(NWV_START:NWV_END)), c_dim_1=c_dim_nwv_output)
 
 	CALL write_1d_real(file, 'Tau_CH4_Absorption', &
-		 real(TAU_TG_CH4_AVG(NWV_START:NWV_END)), dim1=c_dim_nwv_output)
+		 real(TAU_TG_CH4_AVG(NWV_START:NWV_END)), c_dim_1=c_dim_nwv_output)
 
 	CALL write_1d_real(file, 'Tau_O2_Absorption', &
-		 real(TAU_TG_O2_AVG(NWV_START:NWV_END)), dim1=c_dim_nwv_output)
+		 real(TAU_TG_O2_AVG(NWV_START:NWV_END)), c_dim_1=c_dim_nwv_output)
 
 	CALL write_1d_real(file, 'Tau_O3_Absorption', &
-		 real(TAU_TG_O3_AVG(NWV_START:NWV_END)), dim1=c_dim_nwv_output)
+		 real(TAU_TG_O3_AVG(NWV_START:NWV_END)), c_dim_1=c_dim_nwv_output)
 
 	CALL write_1d_real(file, 'Tau_NO2_Absorption', &
-		 real(TAU_TG_NO2_AVG(NWV_START:NWV_END)), dim1=c_dim_nwv_output)
+		 real(TAU_TG_NO2_AVG(NWV_START:NWV_END)), c_dim_1=c_dim_nwv_output)
 
 ELSE
     CALL write_1d_real(file, 'Tau_Gas_Absorption_Total', &
-	     real(SUM(TAU_TG_Save(NWV_START:NWV_END,:),2)), dim1=c_dim_nwv_output)
+	     real(SUM(TAU_TG_Save(NWV_START:NWV_END,:),2)), c_dim_1=c_dim_nwv_output)
 
 	CALL write_1d_real(file, 'Tau_H2O_Absorption', &
-		 real(SUM(TAU_TG_H2O_Save(NWV_START:NWV_END,:),2)), dim1=c_dim_nwv_output)
+		 real(SUM(TAU_TG_H2O_Save(NWV_START:NWV_END,:),2)), c_dim_1=c_dim_nwv_output)
 
 	CALL write_1d_real(file, 'Tau_CO2_Absorption', &
-		 real(SUM(TAU_TG_CO2_Save(NWV_START:NWV_END,:),2)), dim1=c_dim_nwv_output)
+		 real(SUM(TAU_TG_CO2_Save(NWV_START:NWV_END,:),2)), c_dim_1=c_dim_nwv_output)
 
 	CALL write_1d_real(file, 'Tau_CH4_Absorption', &
-		 real(SUM(TAU_TG_CH4_Save(NWV_START:NWV_END,:),2)), dim1=c_dim_nwv_output)
+		 real(SUM(TAU_TG_CH4_Save(NWV_START:NWV_END,:),2)), c_dim_1=c_dim_nwv_output)
 
 	CALL write_1d_real(file, 'Tau_O2_Absorption', &
-		 real(SUM(TAU_TG_O2_Save(NWV_START:NWV_END,:),2)), dim1=c_dim_nwv_output)
+		 real(SUM(TAU_TG_O2_Save(NWV_START:NWV_END,:),2)), c_dim_1=c_dim_nwv_output)
 
 	CALL write_1d_real(file, 'Tau_O3_Absorption', &
-		 real(SUM(TAU_TG_O3_Save(NWV_START:NWV_END,:),2)), dim1=c_dim_nwv_output)
+		 real(SUM(TAU_TG_O3_Save(NWV_START:NWV_END,:),2)), c_dim_1=c_dim_nwv_output)
 
 	CALL write_1d_real(file, 'Tau_NO2_Absorption', &
-		 real(SUM(TAU_TG_NO2_Save(NWV_START:NWV_END,:),2)), dim1=c_dim_nwv_output)
+		 real(SUM(TAU_TG_NO2_Save(NWV_START:NWV_END,:),2)), c_dim_1=c_dim_nwv_output)
 
 
 ENDIF
 
-CALL write_1d_int(file, 'Aerosol_Types',ARSL_TYPE, dim1=c_dim_ntlyera)
+CALL write_1d_int(file, 'Aerosol_Types',ARSL_TYPE, c_dim_1=c_dim_ntlyera)
 
 call write_scalar_real(file, 'AirSensor_Height', real(AirSensor_Height))
 
 CALL write_1d_real(file, 'Aerosol_Number_Density_FineMode', &
-                real(ARSLND1_Save),dim1=c_dim_nummieuse)
+                real(ARSLND1_Save),c_dim_1=c_dim_nummieuse)
 CALL write_1d_real(file, 'Aerosol_Number_Density_CoarseMode', &
-				real(ARSLND2_Save),dim1=c_dim_nummieuse)
+				real(ARSLND2_Save),c_dim_1=c_dim_nummieuse)
 
 call write_scalar_real(file,'Aerosol_Number_Density_NONSPHERE', real(ARSLND_NonSpherical))
 
 IF (ILS_FLAG) THEN
 
 	CALL write_1d_real(file, 'aw_Ocean_Water_Absorption_Coefficient', &
-		 real(AW_AVG(NWV_START:NWV_END)), dim1=c_dim_nwv_output)
+		 real(AW_AVG(NWV_START:NWV_END)), c_dim_1=c_dim_nwv_output)
 
 	CALL write_1d_real(file, 'bw_Ocean_Water_Scattering_Coefficient', &
-		 real(BW_AVG(NWV_START:NWV_END)), dim1=c_dim_nwv_output)
+		 real(BW_AVG(NWV_START:NWV_END)), c_dim_1=c_dim_nwv_output)
 
 	CALL write_1d_real(file, 'Refractive_Index_Ocean_Water', &
-		 real(RINDX_WATER_AVG(NWV_START:NWV_END)), dim1=c_dim_nwv_output)
+		 real(RINDX_WATER_AVG(NWV_START:NWV_END)), c_dim_1=c_dim_nwv_output)
 
 	CALL write_1d_real(file, 'ap_Phytoplankton_Absorption_Coefficient_TopLayer', &
-		 real(APTC_AVG(NWV_START:NWV_END)), dim1=c_dim_nwv_output)
+		 real(APTC_AVG(NWV_START:NWV_END)), c_dim_1=c_dim_nwv_output)
 
 	CALL write_1d_real(file, 'bp_Phytoplankton_Scattering_Coefficient_TopLayer', &
-		 real(BPTC_AVG(NWV_START:NWV_END)), dim1=c_dim_nwv_output)
+		 real(BPTC_AVG(NWV_START:NWV_END)), c_dim_1=c_dim_nwv_output)
 
 	CALL write_1d_real(file, 'bbp_Phytoplankton_Backscattering_Coefficient_TopLayer', &
-		 real(BBPTC_AVG(NWV_START:NWV_END)), dim1=c_dim_nwv_output)
+		 real(BBPTC_AVG(NWV_START:NWV_END)), c_dim_1=c_dim_nwv_output)
 
 	CALL write_1d_real(file, 'Bbp_Phytoplankton_Backscattering_fraction_TopLayer', &
-		 real(BBPTCfrac_AVG(NWV_START:NWV_END)), dim1=c_dim_nwv_output)
+		 real(BBPTCfrac_AVG(NWV_START:NWV_END)), c_dim_1=c_dim_nwv_output)
 
 	CALL write_1d_real(file, 'bp_SEDIMENT_Scattering_Coefficient_TopLayer', &
-		 real(BSTC_AVG(NWV_START:NWV_END)), dim1=c_dim_nwv_output)
+		 real(BSTC_AVG(NWV_START:NWV_END)), c_dim_1=c_dim_nwv_output)
 
 	CALL write_1d_real(file, 'bbp_SEDIMENT_Backscattering_Coefficient_TopLayer', &
-		 real(BBSTC_AVG(NWV_START:NWV_END)), dim1=c_dim_nwv_output)
+		 real(BBSTC_AVG(NWV_START:NWV_END)), c_dim_1=c_dim_nwv_output)
 
 	CALL write_1d_real(file, 'Bbp_SEDIMENT_Backscattering_fraction_TopLayer', &
-		 real(BBSTCfrac_AVG(NWV_START:NWV_END)), dim1=c_dim_nwv_output)
+		 real(BBSTCfrac_AVG(NWV_START:NWV_END)), c_dim_1=c_dim_nwv_output)
 
 	CALL write_1d_real(file, 'ap_SEDIMENT_Absorption_Coefficient_TopLayer', &
-		 real(ASTC_AVG(NWV_START:NWV_END)), dim1=c_dim_nwv_output)
+		 real(ASTC_AVG(NWV_START:NWV_END)), c_dim_1=c_dim_nwv_output)
 
 	CALL write_1d_real(file, 'ay_CDOM_Absorption_Coefficient_TopLayer', &
-		 real(ACDM_AVG(NWV_START:NWV_END)), dim1=c_dim_nwv_output)
+		 real(ACDM_AVG(NWV_START:NWV_END)), c_dim_1=c_dim_nwv_output)
 
 ELSE
 
 	CALL write_1d_real(file, 'aw_Ocean_Water_Absorption_Coefficient', &
-		 real(AW(NWV_START:NWV_END)), dim1=c_dim_nwv_output)
+		 real(AW(NWV_START:NWV_END)), c_dim_1=c_dim_nwv_output)
 
 	CALL write_1d_real(file, 'bw_Ocean_Water_Scattering_Coefficient', &
-		 real(BW(NWV_START:NWV_END)), dim1=c_dim_nwv_output)
+		 real(BW(NWV_START:NWV_END)), c_dim_1=c_dim_nwv_output)
 
 	CALL write_1d_real(file, 'Refractive_Index_Ocean_Water', &
-		 real(RINDX_WATER(NWV_START:NWV_END)), dim1=c_dim_nwv_output)
+		 real(RINDX_WATER(NWV_START:NWV_END)), c_dim_1=c_dim_nwv_output)
 
 	CALL write_1d_real(file, 'ap_Phytoplankton_Absorption_Coefficient_TopLayer', &
-		 real(APTC(NWV_START:NWV_END)), dim1=c_dim_nwv_output)
+		 real(APTC(NWV_START:NWV_END)), c_dim_1=c_dim_nwv_output)
 
 	CALL write_1d_real(file, 'bp_Phytoplankton_Scattering_Coefficient_TopLayer', &
-		 real(BPTC(NWV_START:NWV_END)), dim1=c_dim_nwv_output)
+		 real(BPTC(NWV_START:NWV_END)), c_dim_1=c_dim_nwv_output)
 
 	CALL write_1d_real(file, 'bbp_Phytoplankton_Backscattering_Coefficient_TopLayer', &
-		 real(BBPTC(NWV_START:NWV_END)), dim1=c_dim_nwv_output)
+		 real(BBPTC(NWV_START:NWV_END)), c_dim_1=c_dim_nwv_output)
 
 	CALL write_1d_real(file, 'Bbp_Phytoplankton_Backscattering_fraction_TopLayer', &
-		 real(BBPTCfrac(NWV_START:NWV_END)), dim1=c_dim_nwv_output)
+		 real(BBPTCfrac(NWV_START:NWV_END)), c_dim_1=c_dim_nwv_output)
 
 	CALL write_1d_real(file, 'bp_SEDIMENT_Scattering_Coefficient_TopLayer', &
-		 real(BSTC(NWV_START:NWV_END)), dim1=c_dim_nwv_output)
+		 real(BSTC(NWV_START:NWV_END)), c_dim_1=c_dim_nwv_output)
 
 	CALL write_1d_real(file, 'bbp_SEDIMENT_Backscattering_Coefficient_TopLayer', &
-		 real(BBSTC(NWV_START:NWV_END)), dim1=c_dim_nwv_output)
+		 real(BBSTC(NWV_START:NWV_END)), c_dim_1=c_dim_nwv_output)
 
 	CALL write_1d_real(file, 'Bbp_SEDIMENT_Backscattering_fraction_TopLayer', &
-		 real(BBSTCfrac(NWV_START:NWV_END)), dim1=c_dim_nwv_output)
+		 real(BBSTCfrac(NWV_START:NWV_END)), c_dim_1=c_dim_nwv_output)
 
 	CALL write_1d_real(file, 'ap_SEDIMENT_Absorption_Coefficient_TopLayer', &
-		 real(ASTC(NWV_START:NWV_END)), dim1=c_dim_nwv_output)
+		 real(ASTC(NWV_START:NWV_END)), c_dim_1=c_dim_nwv_output)
 
 	CALL write_1d_real(file, 'ay_CDOM_Absorption_Coefficient_TopLayer', &
-		 real(ACDM(NWV_START:NWV_END)), dim1=c_dim_nwv_output)
+		 real(ACDM(NWV_START:NWV_END)), c_dim_1=c_dim_nwv_output)
 
 
 ENDIF
