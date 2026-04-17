@@ -210,7 +210,7 @@ SUBROUTINE write_4d_real(file_id, dataset_name, data_array, &
 	INTEGER(HID_T), INTENT(IN) :: file_id      ! File identifier
 	CHARACTER(LEN=*), INTENT(IN) :: dataset_name
 	REAL, DIMENSION(:,:,:,:), INTENT(IN) :: data_array
-	
+
 	! These are the identifiers for the coordinate datasets (e.g., 'WV_BAND')
 	INTEGER(HID_T), INTENT(IN) :: c_dim_1, c_dim_2, c_dim_3, c_dim_4
 
