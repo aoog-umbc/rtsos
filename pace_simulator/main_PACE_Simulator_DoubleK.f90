@@ -103,7 +103,7 @@ DOUBLE PRECISION,PARAMETER :: Xi_kok=25.6d0,Alpha_kok=4.0d0, T0_kok=0.25d0,Dpol9
 
 !PURE SEA WATER Depolarization ratio value from Zhang X, OE, 2009,
     ! also see Jonasz and Fournier, 2007
-DOUBLE PRECISION :: NMBREINPUT,NMBIMINPUT
+DOUBLE PRECISION :: nmbre_local,nmbim_local
 LOGICAL :: sngmode,OCEAN_RAMAN_FLAG,OCEAN_FCHLA_FLAG,OCEAN_FCDOM_FLAG,&
            HYSPECTRAL_FLAG,OCEAN_PHMX_ONE,MONOCHROMATIC_FLAG
 
@@ -136,7 +136,8 @@ DOUBLE PRECISION :: AirSensor_Height
 CHARACTER*360 :: aux_dir='00000', land_ref_spectra_filename='00000'
 
 INTEGER :: nwv_land_ref
-DOUBLE PRECISION,ALLOCATABLE,DIMENSION(:) :: wavelength_land_ref,fiso_input,fvol_input,fgeo_input,Bpol_input
+DOUBLE PRECISION,ALLOCATABLE,DIMENSION(:) :: wavelength_land_ref,fiso_input,  &
+		   fvol_input,fgeo_input,Bpol_input,nmbre_input,nmbim_input
 
 !CONTAINS
 !SUBROUTINE aux_dir_readin
@@ -407,7 +408,7 @@ LOGICAL :: file_e
 integer time_array_0(8), time_array_1(8)
 real start_time, finish_time
 
-CHARACTER(LEN=360) :: CFILE1,CFILETMP,CFILE_AP
+CHARACTER(LEN=360) :: CFILE1,Land_HEADER,CFILE_AP
 CHARACTER(LEN=360),DIMENSION(NUMMIEUSE) ::CFILE_AEROSOLS
 
 INTEGER :: NARGS,IARGC
@@ -603,21 +604,24 @@ IF(OCEAN_CASE_SELECT<0) THEN
    IF(index(land_ref_spectra_filename,'#')>1) &
 	  land_ref_spectra_filename=trim(land_ref_spectra_filename(1:index(land_ref_spectra_filename,'#')-1))
    OPEN(unit=1,file=land_ref_spectra_filename,status='old')
+   READ(1,*)Land_HEADER
    READ(1,*)nwv_land_ref
    ALLOCATE(wavelength_land_ref(nwv_land_ref),fiso_input(nwv_land_ref),&
-			fvol_input(nwv_land_ref),fgeo_input(nwv_land_ref),Bpol_input(nwv_land_ref))
+			fvol_input(nwv_land_ref),fgeo_input(nwv_land_ref),Bpol_input(nwv_land_ref),&
+            nmbre_input(nwv_land_ref),nmbim_input(nwv_land_ref))
    DO INTTMP=1,nwv_land_ref
 	  READ(1,*)wavelength_land_ref(INTTMP),fiso_input(INTTMP),&
-			   fvol_input(INTTMP),fgeo_input(INTTMP),Bpol_input(INTTMP)
+			   fvol_input(INTTMP),fgeo_input(INTTMP),Bpol_input(INTTMP),&
+               nmbre_input(INTTMP),nmbim_input(INTTMP)
    ENDDO
    CLOSE(1)
 
-   IF(OCEAN_CASE_SELECT==-201)THEN ! TEMPORARY VALUE. MORE TBD
-		pBRDFa_input=0.155d0
-		pBRDFk_input=1.5d0
-		pBRDFb_input=-0.5d0
-        pBRDFe_input=0.0d0
-   ENDIF
+!   IF(OCEAN_CASE_SELECT==-201)THEN ! TEMPORARY VALUE. MORE TBD
+!		pBRDFa_input=0.155d0
+!		pBRDFk_input=1.5d0
+!		pBRDFb_input=-0.5d0
+!        pBRDFe_input=0.0d0
+!   ENDIF
 
 ENDIF
 
@@ -760,8 +764,8 @@ ALLOCATE(MUOUT(NTHETAOUT),PHIOUT(NPHIOUT))
 CALL MUPHIOUTASS(NTHETAOUT,NPHIOUT,MUOUT,PHIOUT)
 
 MAXLORDINPUT=NQUADAINPUT
-NMBREINPUT=1.5
-NMBIMINPUT=0.0
+nmbre_local=1.5
+nmbim_local=0.0
 IF(DIFFUSE_TRANSMITTANCE)THEN
   NCOLINPUT=20
   MAXMORDINPUT=1
@@ -1520,7 +1524,8 @@ DEALLOCATE(TAUR,DEPOL_A,ALT_LYRA,TAU_TG,TAU_ARSL_Ext_TMP,TAU_ARSL_Scat_TMP)
 DEALLOCATE(GAS_ABS_COEFF,GAS_ABS_COEFF_H2O,GAS_ABS_COEFF_CO2, &
            GAS_ABS_COEFF_CH4,GAS_ABS_COEFF_O2, GAS_ABS_COEFF_O3,&
            GAS_ABS_COEFF_NO2)
-IF(OCEAN_CASE_SELECT<0)DEALLOCATE(wavelength_land_ref,fiso_input,fvol_input,fgeo_input,Bpol_input)
+IF(OCEAN_CASE_SELECT<0)DEALLOCATE(wavelength_land_ref,fiso_input,fvol_input, &
+                                  fgeo_input,Bpol_input,nmbre_input,nmbim_input)
 CALL DEALL_SUNL
 CALL DEALLO_ATMOSPRF
 
@@ -1577,7 +1582,7 @@ DOUBLE PRECISION,DIMENSION(NWV_BAND,NTLYERA) ::TAU_ARSL_Ext_AVG,TAU_ARSL_Scat_AV
 
 DOUBLE PRECISION,DIMENSION(NWV_BAND) :: AW_AVG,BW_AVG,RINDX_WATER_AVG,APTC_AVG,BPTC_AVG,BBPTC_AVG, &
                               BBPTCfrac_AVG,BSTC_AVG,BBSTC_AVG,BBSTCfrac_AVG,ASTC_AVG,ACDM_AVG
-DOUBLE PRECISION,DIMENSION(NWV_BAND) :: fiso_avg,fgeo_avg,fvol_avg,Bpol_avg
+DOUBLE PRECISION,DIMENSION(NWV_BAND) :: fiso_avg,fgeo_avg,fvol_avg,Bpol_avg,nmbre_avg,nmbim_avg
 
 DOUBLE PRECISION,DIMENSION(:,:,:),ALLOCATABLE :: DIRADFULL_AVG
 ! DIRADFULL(:,1) DOWNWELLING IRADIANCE
@@ -1736,6 +1741,8 @@ IF(ILS_FLAG)THEN
   fgeo_avg=0.0d0
   fvol_avg=0.0d0
   Bpol_avg=0.0d0
+  nmbre_avg=1.5d0
+  nmbim_avg=0.0d0
 
   TAU_ARSL_Ext_AVG=0.0D0
   TAU_ARSL_Scat_AVG=0.0D0
@@ -1750,6 +1757,8 @@ IF(ILS_FLAG)THEN
       fgeo_avg(IWV_AVG)=Func_UVIP3P(nwv_land_ref,wavelength_land_ref,fgeo_input,WV_BAND(IWV_AVG),1)
       fvol_avg(IWV_AVG)=Func_UVIP3P(nwv_land_ref,wavelength_land_ref,fvol_input,WV_BAND(IWV_AVG),1)
 	  Bpol_avg(IWV_AVG)=Func_UVIP3P(nwv_land_ref,wavelength_land_ref,Bpol_input,WV_BAND(IWV_AVG),1)
+      nmbre_avg(IWV_AVG)=Func_UVIP3P(nwv_land_ref,wavelength_land_ref,nmbre_input,WV_BAND(IWV_AVG),1)
+      nmbim_avg(IWV_AVG)=Func_UVIP3P(nwv_land_ref,wavelength_land_ref,nmbim_input,WV_BAND(IWV_AVG),1)
      ENDIF
      XK=ILS_DeltaWaveLength(IWV_AVG,:)
      YK=ILS_PACE(IWV_AVG,:)
@@ -2082,6 +2091,13 @@ IF (ILS_FLAG) THEN
 
   CALL write_1d_real(file, 'Bpol', real(Bpol_avg(NWV_START:NWV_END)), &
 					 c_dim_1=c_dim_nwv_output)
+
+  CALL write_1d_real(file, 'nmbre', real(nmbre_avg(NWV_START:NWV_END)), &
+	                 c_dim_1=c_dim_nwv_output)
+
+  CALL write_1d_real(file, 'nmbim', real(nmbim_avg(NWV_START:NWV_END)), &
+				     c_dim_1=c_dim_nwv_output)
+
 ENDIF
 
 
@@ -2638,8 +2654,8 @@ IMPLICIT none
 
 INTEGER,INTENT(IN) :: Indx_Inelastic_Scattering,IWVSAVE,NREC,NTLYER,&
                       NUMMIERT,MAXLORDINPUT,NTLYERA,NTLYERO,DELTAM_INPUT
-DOUBLE PRECISION,INTENT(IN)::WAVELENGTH_MICRON,CHLa,pBRDFa_input,pBRDFk_input,&
-                    pBRDFb_input,pBRDFe_input
+DOUBLE PRECISION,INTENT(in)::WAVELENGTH_MICRON,CHLa
+DOUBLE PRECISION,INTENT(inout)::pBRDFa_input,pBRDFk_input,pBRDFb_input,pBRDFe_input
 
 DOUBLE PRECISION,DIMENSION(NTLYERA),INTENT(IN) :: TAUR,DEPOL_A,TAU_TG,PNDLY
 DOUBLE PRECISION,DIMENSION(NTLYERA),INTENT(OUT) :: TAU_ARSL_Ext_TMP,TAU_ARSL_Scat_TMP
@@ -2880,20 +2896,32 @@ SELECT CASE (OCEAN_CASE_SELECT)
 CASE (-200)
 ! LAMBERTIAN LAND BOTTOM
     LBDO_LD=Func_UVIP3P(nwv_land_ref,wavelength_land_ref,fiso_input,WAVELENGTH_NANOMETER,1)
+    FLAM=Func_UVIP3P(nwv_land_ref,wavelength_land_ref,fvol_input,WAVELENGTH_NANOMETER,1)
+    nmbre_local=Func_UVIP3P(nwv_land_ref,wavelength_land_ref,nmbre_input,WAVELENGTH_NANOMETER,1)
+    nmbim_local=Func_UVIP3P(nwv_land_ref,wavelength_land_ref,nmbim_input,WAVELENGTH_NANOMETER,1)
+
 	RECDATASTREAM(NTLYERA+IREC_SHFT,1)=INDXLAMB
 	RECDATASTREAM(NTLYERA+IREC_SHFT,2)=LBDO_LD
 	RECDATASTREAM(NTLYERA+IREC_SHFT,3)=FLAM
-	RECDATASTREAM(NTLYERA+IREC_SHFT,4)=NMBREINPUT
-	RECDATASTREAM(NTLYERA+IREC_SHFT,5)=NMBIMINPUT
+	RECDATASTREAM(NTLYERA+IREC_SHFT,4)=nmbre_local
+	RECDATASTREAM(NTLYERA+IREC_SHFT,5)=nmbim_local
 CASE (-201)
 ! mRPV LAND BOTTOM
+
+	pBRDFa_input=Func_UVIP3P(nwv_land_ref,wavelength_land_ref,fiso_input,WAVELENGTH_NANOMETER,1)
+	pBRDFk_input=Func_UVIP3P(nwv_land_ref,wavelength_land_ref,fvol_input,WAVELENGTH_NANOMETER,1)
+	pBRDFb_input=Func_UVIP3P(nwv_land_ref,wavelength_land_ref,fgeo_input,WAVELENGTH_NANOMETER,1)
+	pBRDFe_input=Func_UVIP3P(nwv_land_ref,wavelength_land_ref,Bpol_input,WAVELENGTH_NANOMETER,1)
+	nmbre_local=Func_UVIP3P(nwv_land_ref,wavelength_land_ref,nmbre_input,WAVELENGTH_NANOMETER,1)
+	nmbim_local=Func_UVIP3P(nwv_land_ref,wavelength_land_ref,nmbim_input,WAVELENGTH_NANOMETER,1)
+
 	RECDATASTREAM(NTLYERA+IREC_SHFT,1)=INDXpBRDF
 	RECDATASTREAM(NTLYERA+IREC_SHFT,2)=pBRDFa_input
 	RECDATASTREAM(NTLYERA+IREC_SHFT,3)=pBRDFk_input
     RECDATASTREAM(NTLYERA+IREC_SHFT,4)=pBRDFb_input
     RECDATASTREAM(NTLYERA+IREC_SHFT,5)=pBRDFe_input
-	RECDATASTREAM(NTLYERA+IREC_SHFT,6)=NMBREINPUT
-	RECDATASTREAM(NTLYERA+IREC_SHFT,7)=NMBIMINPUT
+	RECDATASTREAM(NTLYERA+IREC_SHFT,6)=nmbre_local
+	RECDATASTREAM(NTLYERA+IREC_SHFT,7)=nmbim_local
 CASE (-202)
     LBDO_LD=Func_UVIP3P(nwv_land_ref,wavelength_land_ref,fiso_input,WAVELENGTH_NANOMETER,1)
 ! Snow LAND BOTTOM
@@ -2909,16 +2937,16 @@ CASE (-203)
 	fvol_local=Func_UVIP3P(nwv_land_ref,wavelength_land_ref,fvol_input,WAVELENGTH_NANOMETER,1)
 	fgeo_local=Func_UVIP3P(nwv_land_ref,wavelength_land_ref,fgeo_input,WAVELENGTH_NANOMETER,1)
 	Bpol_local=Func_UVIP3P(nwv_land_ref,wavelength_land_ref,Bpol_input,WAVELENGTH_NANOMETER,1)
-	NMBREINPUT=1.5d0
-	NMBIMINPUT=0.0d0
+    nmbre_local=Func_UVIP3P(nwv_land_ref,wavelength_land_ref,nmbre_input,WAVELENGTH_NANOMETER,1)
+    nmbim_local=Func_UVIP3P(nwv_land_ref,wavelength_land_ref,nmbim_input,WAVELENGTH_NANOMETER,1)
 
 	RECDATASTREAM(NTLYERA+IREC_SHFT,1)=INDXROSSLI
 	RECDATASTREAM(NTLYERA+IREC_SHFT,2)=fiso_local
 	RECDATASTREAM(NTLYERA+IREC_SHFT,3)=fvol_local
 	RECDATASTREAM(NTLYERA+IREC_SHFT,4)=fgeo_local
 	RECDATASTREAM(NTLYERA+IREC_SHFT,5)=Bpol_local
-	RECDATASTREAM(NTLYERA+IREC_SHFT,6)=NMBREINPUT
-    RECDATASTREAM(NTLYERA+IREC_SHFT,7)=NMBIMINPUT
+	RECDATASTREAM(NTLYERA+IREC_SHFT,6)=nmbre_local
+    RECDATASTREAM(NTLYERA+IREC_SHFT,7)=nmbim_local
 CASE DEFAULT
 	CALL WATER_REFRACTIVE_INDEX(WAVELENGTH_NANOMETER,TEMPERTURE,SALINITY,RINDX_WATERLOCAL)
 
@@ -3097,8 +3125,8 @@ CASE DEFAULT
 	RECDATASTREAM(NTLYERA+NDET+2+NTLYERO,1)=INDXLAMB
 	RECDATASTREAM(NTLYERA+NDET+2+NTLYERO,2)=LBDO_LD
 	RECDATASTREAM(NTLYERA+NDET+2+NTLYERO,3)=FLAM
-	RECDATASTREAM(NTLYERA+NDET+2+NTLYERO,4)=NMBREINPUT
-	RECDATASTREAM(NTLYERA+NDET+2+NTLYERO,5)=NMBIMINPUT
+	RECDATASTREAM(NTLYERA+NDET+2+NTLYERO,4)=nmbre_local
+	RECDATASTREAM(NTLYERA+NDET+2+NTLYERO,5)=nmbim_local
 
 END SELECT
 
