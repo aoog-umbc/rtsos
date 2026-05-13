@@ -16,7 +16,7 @@ import numpy as np
 import random
 import sys
 
-def RossLi_input_writer(filestrbase,ipss,iocean):
+def pace_land_input_writer(filestrbase,ipss,icase):
     fileinput='input_ps_'+filestrbase
     f = open(fileinput, 'w')
     f.write("%f" % wndspd + '        #wind speed \n')
@@ -31,7 +31,7 @@ def RossLi_input_writer(filestrbase,ipss,iocean):
     f.write("%d" % Aerosol_Model[iaerosol]+ '  #IAEROSOL=-99,-98,-1,1,20. -99 read aerosol pmhx in from file; -98 read water cloud phmx from file; -1 Ahmad model with flexbile RH and FMF; 1-10 is Shettle and Fenn, 11-20 is Ahmad model \n')
     f.write("%f" % AeroFMF + '        #Aerosol fine mode fraction, only used when Aerosol_Model[iaerosol]==-1 \n')
     f.write("%f" % RH[irh]+ '        #Relative Humidity IRH=1,8, RH=[0.30,0.50,0.70,0.75,0.80,0.85,0.90,0.95] \n')
-    f.write("%d" % bottom_case_select[iocean] + '   #bottom_case_select, case -200-203 Land; 0(atmosphere only), case 1 [Chla] parameterization, case 2 [Chla]+Sediment, case 3: seven parameter model\n')
+    f.write("%d" % bottom_case_select[icase] + '   #bottom_case_select, case -200-203 Land; 0(atmosphere only), case 1 [Chla] parameterization, case 2 [Chla]+Sediment, case 3: seven parameter model\n')
     f.write("%d" % ncolinput + '        #NCOLINPUT \n')
     f.write("%d" % nquadainput + '        #NQUADAINPUT \n')
     f.write("%d" % nquadoinput + '        #NQUADOINPUT \n')
@@ -58,11 +58,29 @@ def RossLi_input_writer(filestrbase,ipss,iocean):
     f.write("%s" % 'output_ps_' + filestrbase+'\n')
     f.close
     
-def RossLi_surf_spec_writer(land_ref_spectra_filename):
+def surf_spec_writer(land_ref_spectra_filename):
+    """
+    This function write out the surface reflectance data to a file so that the pace simulator
+    can read in and perform interpolation.
+	For different surface types, the sequence of the data are:
+	bottom_case_select=-200: Land Lambertian + Fresnel specular reflection 
+  	wavelength_nm   albedo  fraction_labertiam  blank  blank   refin_re   refin_im
+  	bottom_case_select=-201 mRPV land Reflectance
+	wavelength_nm   pBRDFa   pBRDFk   pBRDFb  pBRDFe  refin_re   refin_im
+	bottom_case_select=-202  Snow Reflectance
+	wavelength_nm   albedo blank blank blank blank blank
+	bottom_case_select=-203, Ross Li Land Reflectance
+	wavelength_nm   fiso   fvol   fgeo   Bpol   refin_re   refin_im
+	
+	for all surface types, fiso, fvol, fgeo, and Bpol variables are used, 
+	though their physics interpretations are different, following the column data 
+	sequence above, denoted by the header.
+    """
     spectra_data=[]
     for iwave in range(len(wavelength_land_ref)) :
-        spectra_data.append('{} {} {} {} {}\n'.format(wavelength_land_ref[iwave], fiso[iwave], fvol[iwave], fgeo[iwave], Bpol[iwave]))
+        spectra_data.append('{} {} {} {} {} {} {}\n'.format(wavelength_land_ref[iwave], fiso[iwave], fvol[iwave], fgeo[iwave], Bpol[iwave],NMBRE[iwave],NMBIM[iwave]))
     f = open(land_ref_spectra_filename, 'w')
+    f.write("%s" % header)
     f.write("%d" % nwv_land_ref + '        #number of wavelength \n')
     f.writelines(spectra_data)
     f.close
@@ -103,15 +121,22 @@ AeroFMF=0.3
 #                              !==-203 Ross Li Land Reflectance
 #                              !==-202 Snow Reflectance
 #                              !==-201 mRPV land Reflectance
-#                              !==-200 Land Lambertian Reflectance
-#                              !==0 no ocean water body
-#                              !==1 CASE 1 WATER IOPS
-#                              !==2 CASE 2 WATER IOPS
-#							  !==3 Bio-2 model in polarimeter fitting
+#                              !==-200 Land Lambertian + Fresnel specular reflection
+#                              !==0 no ocean water body, not used in this script
+#                              !==1 CASE 1 WATER IOPS, not used in this script
+#                              !==2 CASE 2 WATER IOPS, not used in this script
+#							  !==3 Bio-2 model in polarimeter fitting, not used in this script
 # negative values mean land surface
-# 0: atmosphere bounded by ocean surface only
 
-bottom_case_select=np.array([0,1,-202,-203])
+case_selection_map = {
+    -200: 'Lamb',
+    -201: 'mRPV',
+    -202: 'Snow',
+    -203: 'RossLi'
+}
+
+bottom_case_select=np.array([-200,-201,-202,-203])
+icase=3
 
 ncolinput=40
 nquadainput=40
@@ -155,33 +180,57 @@ aerosol_phasematrix_file_low='output_flexible_aerosol_fullwave.h5'
 
 ###########
 ipss=1
-iocean=3
 
-if bottom_case_select[iocean] == -202 :
+if bottom_case_select[icase] == -200 :
+	header="wavelength_nm   albedo  fraction_labertiam  blank  blank   refin_re   refin_im \n"
+	nwv_land_ref=6
+	wavelength_land_ref=np.array([300.,440.,550.,664.,867.,2260.])
+	fiso=np.array([0.2,0.2,0.2,0.2,0.2,0.2])
+	fvol=np.ones([nwv_land_ref])
+	fgeo=0.0*fiso
+	Bpol=0.0*fiso
+	NMBRE=1.5*np.ones([nwv_land_ref])
+	NMBIM=np.zeros([nwv_land_ref])
+elif bottom_case_select[icase] == -201 :
+	header="wavelength_nm   pBRDFa   pBRDFk   pBRDFb  pBRDFe  refin_re   refin_im  \n"
+	nwv_land_ref=6
+	wavelength_land_ref=np.array([300.,440.,550.,664.,867.,2260.])
+	fiso=0.155*np.ones(len(wavelength_land_ref))
+	fvol=1.5*np.ones(len(wavelength_land_ref))
+	fgeo=-0.5*np.ones(len(wavelength_land_ref))
+	Bpol=np.zeros(len(wavelength_land_ref))
+	NMBRE=1.5*np.ones([nwv_land_ref])
+	NMBIM=np.zeros([nwv_land_ref])
+elif bottom_case_select[icase] == -202 :
+	header="wavelength_nm   albedo blank blank blank blank blank  \n"
 	nwv_land_ref=6
 	wavelength_land_ref=np.array([300.,440.,550.,664.,867.,2260.])
 	fiso=np.array([0.99,0.9878,0.9822,0.9615,0.90,0.19])
 	fvol=0.0*fiso
 	fgeo=0.0*fiso
 	Bpol=0.0*fiso
+	NMBRE=1.5*np.ones([nwv_land_ref])
+	NMBIM=np.zeros([nwv_land_ref])
 else :
+	header="wavelength_nm   fiso   fvol   fgeo   Bpol   refin_re   refin_im  \n"
 	nwv_land_ref=6
 	wavelength_land_ref=np.array([300.,440.,550.,664.,867.,2260.])
 	fiso=np.array([0.05,0.05,0.05,0.05,0.05,0.05])
 	fvol=0.1*fiso
 	fgeo=0.5*fiso
 	Bpol=np.ones([nwv_land_ref])
-
-if bottom_case_select[iocean] >= 0 :
+	NMBRE=1.5*np.ones([nwv_land_ref])
+	NMBIM=np.zeros([nwv_land_ref])
+if bottom_case_select[icase] >= 0 :
 	print("this script is for land surface only. Use another script for ocean surfaces!")
 	sys.exit(1)
 else :
-	land_ref_spectra_filename='land_ref_spectra'
-	RossLi_surf_spec_writer(land_ref_spectra_filename)
-	filestrbase='LandCase%d' % bottom_case_select[iocean] \
-		+ 'tau_ref_hi_%05.2f' % tau_ref_hi  \
+	land_ref_spectra_filename='land_ref_spectra_'+case_selection_map[bottom_case_select[icase]]
+	surf_spec_writer(land_ref_spectra_filename)
+	filestrbase='LandCase_'+case_selection_map[bottom_case_select[icase]] \
+		+ '_tau_ref_hi_%05.2f' % tau_ref_hi  \
 		+ 'scatteror_hi_%05.2f' % Height_Particle_hi  \
 		+ 'tau_ref_low_%05.2f' % tau_ref_low  \
 		+ 'scatteror_low_%05.2f' % Height_Particle_low  \
 		+'theta0_%05.2f' %theta0
-	RossLi_input_writer(filestrbase,ipss,iocean)
+	pace_land_input_writer(filestrbase,ipss,icase)
