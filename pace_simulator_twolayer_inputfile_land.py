@@ -64,7 +64,7 @@ def surf_spec_writer(land_ref_spectra_filename):
     can read in and perform interpolation.
 	For different surface types, the sequence of the data are:
 	bottom_case_select=-200: Land Lambertian + Fresnel specular reflection 
-  	wavelength_nm   albedo  fraction_labertiam  blank  blank   refin_re   refin_im
+  	wavelength_nm   albedo  fraction_lambertian  blank  blank   refin_re   refin_im
   	bottom_case_select=-201 mRPV land Reflectance
 	wavelength_nm   pBRDFa   pBRDFk   pBRDFb  pBRDFe  refin_re   refin_im
 	bottom_case_select=-202  Snow Reflectance
@@ -182,7 +182,7 @@ aerosol_phasematrix_file_low='output_flexible_aerosol_fullwave.h5'
 ipss=1
 
 if bottom_case_select[icase] == -200 :
-	header="wavelength_nm   albedo  fraction_labertiam  blank  blank   refin_re   refin_im \n"
+	header="wavelength_nm   albedo  fraction_lambertian  blank  blank   refin_re   refin_im \n"
 	nwv_land_ref=6
 	wavelength_land_ref=np.array([300.,440.,550.,664.,867.,2260.])
 	fiso=np.array([0.2,0.2,0.2,0.2,0.2,0.2])
