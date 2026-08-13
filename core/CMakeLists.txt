@@ -4,11 +4,13 @@ add_library(core
     RossLiBRDF.f90
     Save_Ocean_Rad.f90
     SnowBRDF.f90
+    WV_LBL_GRID.f90
     aerosol_microphysical_model.f90
     bessel.f
     bfit.f90
     deltafit.f90
     emis_sea.f90
+    hdf5_utils.f90
     mathlib.f90
     refwat1.f
     rt_single_scattering.f90
