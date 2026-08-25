@@ -83,15 +83,15 @@ def ocean_input_writer(filestrbase,ipss,iocean):
 RH=np.array([0.30,0.50,0.70,0.75,0.80,0.85,0.90,0.95])
 
 irh=5
-wndspd=5.0
-theta0=40.0
-wv_pace_ref=876.0
+wndspd=0.5
+theta0=45.0
+wv_pace_ref=550.0
 
-tau_ref_hi=0.05
-tau_ref_low=0.1
+tau_ref_hi=0.2
+tau_ref_low=0.0
 
-Height_Particle_hi=12.0
-Height_Particle_low=4.0
+Height_Particle_hi=5.0
+Height_Particle_low=0.0
 
 Height_Variance_Particle_hi=2.0
 Height_Variance_Particle_low=2.0
@@ -99,7 +99,7 @@ Height_Variance_Particle_low=2.0
 Aerosol_Model=([-99,-98, -97, -1,11,12,13,14,15,16,17,18,19,20])
 #Aerosol_Model=([-1]) # flexible FMF and RH options for Ahmad's aerosol model.
 
-iaerosol=2
+iaerosol=8
 
 #IAEROSOL=11-20 corresponds to fine mode fraction of
 #RATIO_FINE_MODE_ZIA=(/0.0, 0.01, 0.02, 0.05, 0.1, 0.2, 0.3, 0.5, 0.8, 0.95/) ! from personal communication with Zia
@@ -131,7 +131,7 @@ water_depth_max=200.0
 # chla, phytoplankton_index_refraction,phytoplankton_spectral_slope,
 #sediment_index_refraction,sediment_spectral_slope,sediment_concentration
 chla=np.array([0.03, 0.3, 3, 10, 30])
-ichla=1
+ichla=2
 
 phytoplankton_index_refraction=1.02
 phytoplankton_spectral_slope=3.0
@@ -157,8 +157,8 @@ NPHIV=19
 
 chla_homogeneity=1
 ocean_raman_flag=1
-ocean_fchla_flag=1
-ocean_fcdom_flag=1
+ocean_fchla_flag=0
+ocean_fcdom_flag=0
 
 ap_select = 1
 monochromatic_flag=0
@@ -171,6 +171,12 @@ atmos_zero=0
 SUNGLINT_INPUT=0
 
 gas_abs_flag=1
+
+# wv_seg_flag, 0: all; 1: seg1+3only; 2: seg2only; 3 seg1+2+3; 4: seg4only
+# seg1: OCI wavelengths < 895 nm
+# seg2: OCI Shortwave (SW) infrared (IR) bands include: 940, 1038, 1250, 1378, 1615, 2130, and 2260 nm.
+# seg3: SPEXone wavelengths
+# seg4: HARP2
 
 wv_seg_flag=0
 AirSensor_Height=2.2

@@ -153,6 +153,12 @@ atmos_zero=0
 
 gas_abs_flag=1
 
+# wv_seg_flag, 0: all; 1: seg1+3only; 2: seg2only; 3 seg1+2+3; 4: seg4only
+# seg1: OCI wavelengths < 895 nm
+# seg2: OCI Shortwave (SW) infrared (IR) bands include: 940, 1038, 1250, 1378, 1615, 2130, and 2260 nm.
+# seg3: SPEXone wavelengths
+# seg4: HARP2
+
 wv_seg_flag=0
 AirSensor_Height=2.2
 pss_flag=np.array([0, 1])
