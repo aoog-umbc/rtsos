@@ -89,6 +89,8 @@ RH=np.array([0.30,0.50,0.70,0.75,0.80,0.85,0.90,0.95])
 
 irh=5
 wndspd=5.0 #only used for file consistency
+
+#theta0 is the solar zenith angle in degrees.
 theta0=40.0
 wv_pace_ref=876.0
 
@@ -142,6 +144,14 @@ ncolinput=40
 nquadainput=40
 nquadoinput=60
 MAXMORDINPUT=40
+
+# For each simulation, a whole set of viewing zenith and viewing azimuth angles will be reported to the h5 file.
+# The angular resolution is determined by NTHETAV and NPHIV.
+# NTHETAV specifies the number of viewing zenith in the range of 0-180,
+# ThetaV=0 means light ray going up (sensor looking down), and ThetaV=180 means light ray going down (sensor looking up).
+# NPHIV specifies the number of viewing azimuth angles between 0-180.
+# PHIV=0 is the principal plane, which contains the sun glint; PHIV=180 is the backscattering half plane.
+
 NTHETAV=36
 NPHIV=19
 
