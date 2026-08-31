@@ -86,6 +86,7 @@ SUBROUTINE PHMXMIE_PACE_READIN(CFILE_AEROSOLS,NUMMIEUSE,NWV_PHMX,REFF1_Save,VEFF
              VEFF_NonSpherical,MRR_NonSpherical,MRI_NonSpherical,WV_SEG_FLAG)
 USE RTUTILITY,ONLY : FACTOR,NUMMIEANGMAX
 USE HDF5
+USE HDF5_UTILS, ONLY : CHECK_HDF5
 
 IMPLICIT NONE
 INTEGER,INTENT(IN):: NUMMIEUSE,NWV_PHMX,WV_SEG_FLAG
@@ -99,7 +100,7 @@ DOUBLE PRECISION, INTENT(INOUT),DIMENSION(:) :: MRR_NonSpherical,MRI_NonSpherica
 ! HDF 5 DEFINITION
 INTEGER(HID_T)  :: file, space, dset, attr ! Handles
 INTEGER :: hdferr
-INTEGER(hsize_t),   DIMENSION(1:2) :: dims
+!INTEGER(hsize_t),   DIMENSION(1:2) :: dims
 INTEGER(hsize_t),DIMENSION(1) :: dimscl
 INTEGER(HSIZE_T), DIMENSION(1:2) :: maxdims
 TYPE(C_PTR) :: f_ptr
@@ -127,14 +128,12 @@ DO IMIE=1,NUMMIEUSE
 ! READ IN SCATTERING MATRIX
 CALL h5open_f(hdferr)
 CALL h5fopen_f(CFILE_AEROSOLS(IMIE), H5F_ACC_RDONLY_F, file, hdferr)
-
-!CALL h5dopen_f (file,'NUMMIEANG', dset, hdferr)
-!CALL h5dread_f(dset, H5T_NATIVE_INTEGER,NANGMIE_LOCAL,dimscl, hdferr)
-!CALL h5dclose_f(dset , hdferr)
+CALL CHECK_HDF5(hdferr, 'h5fopen_f', CFILE_AEROSOLS(IMIE))
 
 dimscl=(/ 1 /)
 CALL h5dopen_f (file,'NUM_SCAT_ANG', dset, hdferr)
 CALL h5dread_f(dset, H5T_NATIVE_INTEGER,HDF5ITMP,dimscl, hdferr)
+CALL CHECK_HDF5(hdferr, 'h5dread_f', 'NUM_SCAT_ANG')
 CALL h5dclose_f(dset , hdferr)
 NANGMIE_LOCAL=HDF5ITMP(1)
 IF(NANGMIE_LOCAL>NUMMIEANGMAX) STOP 'ERROR, NANGMIE_LOCAL>NUMMIEANGMAX'
@@ -191,6 +190,7 @@ dimscl=(/ NWV_BAND_SEG1P2 /)
 ALLOCATE(HDF5RARR(NWV_BAND_SEG1P2))
 CALL h5dopen_f (file,'WaveLength_OCI', dset, hdferr)
 CALL h5dread_f(dset, H5T_NATIVE_REAL,HDF5RARR,dimscl, hdferr)
+CALL CHECK_HDF5(hdferr, 'h5dread_f', 'WaveLength_OCI')
 CALL h5dclose_f(dset , hdferr)
 
 IF(ABS(HDF5RARR(NWV_BAND_SEG1P2)-WV_BAND(NWV_BAND_SEG1P2))>1.0E-4)THEN
@@ -205,12 +205,14 @@ ENDIF
 HDF5RARR=0.0d0
 CALL h5dopen_f (file,'Aerosol_Cext_OCI', dset, hdferr)
 CALL h5dread_f(dset, H5T_NATIVE_REAL,HDF5RARR,dimscl, hdferr)
+CALL CHECK_HDF5(hdferr, 'h5dread_f', 'Aerosol_Cext_OCI')
 CALL h5dclose_f(dset , hdferr)
 CEXT_ARSL_BAND(IMIE,1:NWV_BAND_SEG1P2)=HDF5RARR(1:NWV_BAND_SEG1P2)
 
 HDF5RARR=0.0d0
 CALL h5dopen_f (file,'Aerosol_Cscat_OCI', dset, hdferr)
 CALL h5dread_f(dset, H5T_NATIVE_REAL,HDF5RARR,dimscl, hdferr)
+CALL CHECK_HDF5(hdferr, 'h5dread_f', 'Aerosol_Cscat_OCI')
 CALL h5dclose_f(dset , hdferr)
 CSCAT_ARSL_BAND(IMIE,1:NWV_BAND_SEG1P2)=HDF5RARR(1:NWV_BAND_SEG1P2)
 
@@ -260,6 +262,7 @@ dimscl=(/ NWV_BAND_SEG3 /)
 ALLOCATE(HDF5RARR(NWV_BAND_SEG3))
 CALL h5dopen_f (file,'WaveLength_SPEX', dset, hdferr)
 CALL h5dread_f(dset, H5T_NATIVE_REAL,HDF5RARR,dimscl, hdferr)
+CALL CHECK_HDF5(hdferr, 'h5dread_f', 'WaveLength_SPEX')
 CALL h5dclose_f(dset , hdferr)
 
 IF(ABS(HDF5RARR(NWV_BAND_SEG3)-WV_BAND(NWV_BAND_SEG1P2+NWV_BAND_SEG3))>1.0E-4)THEN
@@ -274,12 +277,14 @@ ENDIF
 HDF5RARR=0.0d0
 CALL h5dopen_f (file,'Aerosol_Cext_SPEX', dset, hdferr)
 CALL h5dread_f(dset, H5T_NATIVE_REAL,HDF5RARR,dimscl, hdferr)
+CALL CHECK_HDF5(hdferr, 'h5dread_f', 'Aerosol_Cext_SPEX')
 CALL h5dclose_f(dset , hdferr)
 CEXT_ARSL_BAND(IMIE,NWV_BAND_SEG1P2+1:NWV_BAND_SEG1P2+NWV_BAND_SEG3)=HDF5RARR(1:NWV_BAND_SEG3)
 
 HDF5RARR=0.0d0
 CALL h5dopen_f (file,'Aerosol_Cscat_SPEX', dset, hdferr)
 CALL h5dread_f(dset, H5T_NATIVE_REAL,HDF5RARR,dimscl, hdferr)
+CALL CHECK_HDF5(hdferr, 'h5dread_f', 'Aerosol_Cscat_SPEX')
 CALL h5dclose_f(dset , hdferr)
 CSCAT_ARSL_BAND(IMIE,NWV_BAND_SEG1P2+1:NWV_BAND_SEG1P2+NWV_BAND_SEG3)=HDF5RARR(1:NWV_BAND_SEG3)
 
@@ -330,6 +335,7 @@ dimscl=(/ NWV_BAND_SEG4 /)
 ALLOCATE(HDF5RARR(NWV_BAND_SEG4))
 CALL h5dopen_f (file,'WaveLength_HARP', dset, hdferr)
 CALL h5dread_f(dset, H5T_NATIVE_REAL,HDF5RARR,dimscl, hdferr)
+CALL CHECK_HDF5(hdferr, 'h5dread_f', 'WaveLength_HARP')
 CALL h5dclose_f(dset , hdferr)
 
 RTMP=ABS(HDF5RARR(NWV_BAND_SEG4)-WV_BAND(NWV_BAND_SEG1P2+NWV_BAND_SEG3+NWV_BAND_SEG4)) / &
@@ -346,12 +352,14 @@ ENDIF
 HDF5RARR=0.0d0
 CALL h5dopen_f (file,'Aerosol_Cext_HARP', dset, hdferr)
 CALL h5dread_f(dset, H5T_NATIVE_REAL,HDF5RARR,dimscl, hdferr)
+CALL CHECK_HDF5(hdferr, 'h5dread_f', 'Aerosol_Cext_HARP')
 CALL h5dclose_f(dset , hdferr)
 CEXT_ARSL_BAND(IMIE,NWV_BAND_SEG1P2+NWV_BAND_SEG3+1:NWV_BAND)=HDF5RARR(1:NWV_BAND_SEG4)
 
 HDF5RARR=0.0d0
 CALL h5dopen_f (file,'Aerosol_Cscat_HARP', dset, hdferr)
 CALL h5dread_f(dset, H5T_NATIVE_REAL,HDF5RARR,dimscl, hdferr)
+CALL CHECK_HDF5(hdferr, 'h5dread_f', 'Aerosol_Cscat_HARP')
 CALL h5dclose_f(dset , hdferr)
 CSCAT_ARSL_BAND(IMIE,NWV_BAND_SEG1P2+NWV_BAND_SEG3+1:NWV_BAND)=HDF5RARR(1:NWV_BAND_SEG4)
 
@@ -399,6 +407,7 @@ dimscl=(/ NANGMIE_LOCAL/)
 ALLOCATE(HDF5RARR(NANGMIE_LOCAL))
 CALL h5dopen_f (file,'Aerosol_Phmxmie_Scatang', dset, hdferr)
 CALL h5dread_f(dset, H5T_NATIVE_REAL,HDF5RARR,dimscl, hdferr)
+CALL CHECK_HDF5(hdferr, 'h5dread_f', 'Aerosol_Phmxmie_Scatang')
 CALL h5dclose_f(dset , hdferr)
 DO INDXVAR=1,NWV_BAND
    PHMXMIE_ARSL(IMIE,INDXVAR,1:NANGMIE_LOCAL,0)=HDF5RARR(1:NANGMIE_LOCAL)
@@ -413,7 +422,9 @@ dims3= (/NWV_BAND_SEG1P2,NANGMIE_LOCAL,6/)
 ALLOCATE(HDF5RARR3DIM(NWV_BAND_SEG1P2,NANGMIE_LOCAL,6))
 HDF5RARR3DIM=0.0D0
 CALL h5dopen_f (file,'Aerosol_Phmxmie_OCI', dset, hdferr)
-CALL h5dread_f(dset, H5T_NATIVE_REAL,HDF5RARR3DIM,dims, hdferr)
+CALL CHECK_HDF5(hdferr, 'h5dopen_f', 'Aerosol_Phmxmie_OCI')
+CALL h5dread_f(dset, H5T_NATIVE_REAL,HDF5RARR3DIM,dims3, hdferr)
+CALL CHECK_HDF5(hdferr, 'h5dread_f', 'Aerosol_Phmxmie_OCI')
 CALL h5dclose_f(dset , hdferr)
 DO INDXVAR=1,NWV_BAND_SEG1P2
    PHMXMIE_ARSL(IMIE,INDXVAR,1:NANGMIE_LOCAL,1:6)=HDF5RARR3DIM(INDXVAR,1:NANGMIE_LOCAL,1:6)
@@ -426,7 +437,9 @@ dims3= (/NWV_BAND_SEG3,NANGMIE_LOCAL,6/)
 ALLOCATE(HDF5RARR3DIM(NWV_BAND_SEG3,NANGMIE_LOCAL,6))
 HDF5RARR3DIM=0.0D0
 CALL h5dopen_f (file,'Aerosol_Phmxmie_SPEX', dset, hdferr)
-CALL h5dread_f(dset, H5T_NATIVE_REAL,HDF5RARR3DIM,dims, hdferr)
+CALL CHECK_HDF5(hdferr, 'h5dopen_f', 'Aerosol_Phmxmie_SPEX')
+CALL h5dread_f(dset, H5T_NATIVE_REAL,HDF5RARR3DIM,dims3, hdferr)
+CALL CHECK_HDF5(hdferr, 'h5dread_f', 'Aerosol_Phmxmie_SPEX')
 CALL h5dclose_f(dset , hdferr)
 DO INDXVAR=NWV_BAND_SEG1P2+1,NWV_BAND_SEG1P2+NWV_BAND_SEG3
    PHMXMIE_ARSL(IMIE,INDXVAR,1:NANGMIE_LOCAL,1:6) = &
@@ -440,7 +453,9 @@ dims3= (/NWV_BAND_SEG4,NANGMIE_LOCAL,6/)
 ALLOCATE(HDF5RARR3DIM(NWV_BAND_SEG4,NANGMIE_LOCAL,6))
 HDF5RARR3DIM=0.0D0
 CALL h5dopen_f (file,'Aerosol_Phmxmie_HARP', dset, hdferr)
-CALL h5dread_f(dset, H5T_NATIVE_REAL,HDF5RARR3DIM,dims, hdferr)
+CALL CHECK_HDF5(hdferr, 'h5dopen_f', 'Aerosol_Phmxmie_HARP')
+CALL h5dread_f(dset, H5T_NATIVE_REAL,HDF5RARR3DIM,dims3, hdferr)
+CALL CHECK_HDF5(hdferr, 'h5dread_f', 'Aerosol_Phmxmie_HARP')
 CALL h5dclose_f(dset , hdferr)
 DO INDXVAR=NWV_BAND_SEG1P2+NWV_BAND_SEG3+1,NWV_BAND_SEG1P2+NWV_BAND_SEG3+NWV_BAND_SEG4
    PHMXMIE_ARSL(IMIE,INDXVAR,1:NANGMIE_LOCAL,1:6) = &
@@ -760,6 +775,8 @@ DO IWV_BAND=NWV_START,NWV_END
   ELSE
       CEXT2=0.0D0
       CSCAT2=0.0D0
+      PHMXMIE_LOCAL2=0.0D0
+      COEFFMIE_LOCAL2=0.0D0
   ENDIF
   IF(MAXVAL(NUMBETAL)<NUMBETAL_LOCAL .AND. FREEFORMFLAG<=1) NUMBETAL(1:NUMMIEUSE)=NUMBETAL_LOCAL
 
@@ -767,6 +784,12 @@ DO IWV_BAND=NWV_START,NWV_END
 	  NUM_SCAT_ANG(1:NUMMIEUSE)=NANGMIE_LOCAL
 	  CEXT_ARSL_BAND(1:NUMMIEUSE,IWV_BAND)=ARSLND1*CEXT1+ARSLND2*CEXT2
 	  CSCAT_ARSL_BAND(1:NUMMIEUSE,IWV_BAND)=ARSLND1*CSCAT1+ARSLND2*CSCAT2
+	  IF (CSCAT_ARSL_BAND(1,IWV_BAND) <= TINY(1.0D0)) THEN
+		  WRITE(*,*) 'Invalid total aerosol scattering cross section'
+		  WRITE(*,*) 'IWV_BAND, ARSLND1, ARSLND2 =', IWV_BAND, ARSLND1, ARSLND2
+		  WRITE(*,*) 'CSCAT1, CSCAT2 =', CSCAT1, CSCAT2
+		  STOP 1
+	  END IF
 	  DO IMIE=1,NUMMIEUSE
 		PHMXMIE_ARSL(IMIE,IWV_BAND,:,:)=(ARSLND1*CSCAT1*PHMXMIE_LOCAL1(:,:) + &
 								ARSLND2*CSCAT2*PHMXMIE_LOCAL2(:,:))/ &

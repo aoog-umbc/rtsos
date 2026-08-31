@@ -6,6 +6,20 @@ IMPLICIT NONE
 
 CONTAINS
 
+SUBROUTINE CHECK_HDF5(HDFERR, OPERATION, OBJECT_NAME)
+  IMPLICIT NONE
+
+  INTEGER, INTENT(IN) :: HDFERR
+  CHARACTER(LEN=*), INTENT(IN) :: OPERATION, OBJECT_NAME
+
+  IF (HDFERR < 0) THEN
+	WRITE(*,'(A)') 'HDF5 ERROR: '//TRIM(OPERATION)
+	WRITE(*,'(A)') 'Object: '//TRIM(OBJECT_NAME)
+	WRITE(*,*) 'HDF5 error code = ', HDFERR
+	STOP 1
+  END IF
+END SUBROUTINE CHECK_HDF5
+
 subroutine create_dim_scale(file, name, values, dset_id)
   use hdf5
   implicit none
