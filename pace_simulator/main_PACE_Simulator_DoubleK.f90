@@ -1883,7 +1883,7 @@ IF(ILS_FLAG)THEN
 								  (WV_BAND(IWV_AVG)/WAVELENGTH_Table_Save(nwv_intp_lo))**RTMP
 			ENDIF
 
-			DEPOL_A_AVG(IWV_AVG,ILAYER)=DEPOL_A_AVG(nwv_intp_lo,ILAYER)
+			DEPOL_A_AVG(IWV_AVG,ILAYER)=DEPOL_A_Save(nwv_intp_lo,ILAYER)
 
 
 !			TempU=TAU_ARSL_Ext_Save(:,ILAYER)
