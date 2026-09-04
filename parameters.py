@@ -7,10 +7,10 @@ import xarray as xr
 
 @dataclass(slots=True)
 class Parameters:
-    """names and other documentation for parameters in RTM codes"""
+    """names and other documentation for parameters in RTSOS code"""
 
     # This dataclass stores parameter metadata, but does NOT store the
-    # parameter values used in RT calculations. The class's `make_dataset` method
+    # parameter values used in RTSOS simulations. The class's `make_dataset` method
     # returns an XArray.Dataset that combines the values provided to the method
     # with the metadata defined here. The purpose of `slots=True` is to produce Class
     # attributes that are visible to IDEs which provide tab completion and refactoring.
@@ -21,7 +21,7 @@ class Parameters:
     # as are helpful. Second, find the dictionary of parameters defined in the `main`
     # function of each `scripts/rt_*.py` wrapper that needs the new parameter. Add
     # the parameter and a default value (or list of values), in the order that
-    # parameters must be written to RT simulation input files.
+    # parameters must be written to RTSOS input files.
 
     adg440: Any = field(
         default=None,
@@ -37,7 +37,7 @@ class Parameters:
         default=None,
         metadata=dict(
             long_name="aerosol fine mode fraction",
-            comment="used in RT sims only when Aerosol_Model is set to `-1`",
+            comment="used only when Aerosol_Model is set to `-1`",
             valid_range=np.array((0, 1), dtype=np.float32),
             dtype=np.float32,
         ),

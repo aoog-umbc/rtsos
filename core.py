@@ -1,11 +1,11 @@
+import subprocess
 from argparse import ArgumentParser, Namespace
+from collections.abc import Iterable
 from functools import reduce
 from pathlib import Path
-from shutil import copy
-from tempfile import gettempdir, TemporaryDirectory
-from typing import Iterable
 from platform import system
-import subprocess
+from shutil import copy
+from tempfile import TemporaryDirectory, gettempdir
 
 import dask
 import numpy as np
@@ -22,7 +22,7 @@ cli = ArgumentParser()
 cli.add_argument(
     "--pre",
     action="store_true",
-    help="write radiative transfer model (RTM) defaults to inputs",
+    help="write RTSOS defaults to location given as `inputs`",
 )
 cli.add_argument(
     "--cluster",
@@ -36,8 +36,10 @@ cli.add_argument(
 cli.add_argument(
     "--post",
     type=str,
-    help="dimensions by which cluster outputs (i.e. a previous call with "
-    "`--cluster`) are combined, formatted as for `--cluster`",
+    help=(
+        "dimensions by which cluster outputs (i.e. a previous call with "
+        "`--cluster`) are combined, formatted as for `--cluster`"
+    ),
 )
 cli.add_argument(
     "--tmp",
@@ -56,7 +58,7 @@ cli.add_argument(
     "inputs",
     type=Path,
     help=(
-        "path for RTM input file, a NetCDF whose coordinates are parameters "
+        "path for RTSOS input file, a NetCDF whose coordinates are parameters "
         "over which the model will generate outputs"
     ),
 )
@@ -64,7 +66,7 @@ cli.add_argument(
     "outputs",
     nargs="?",
     type=Path,
-    help=("path for RTM output files (ignored, if given, with `--pre`)"),
+    help=("path for RTSOS output file(s) (ignored, if given, with `--pre`)"),
 )
 
 
@@ -173,7 +175,7 @@ class ZhaiRT:
             coordinates = split_list_arg(args.cluster)
             inputs, outdirs = reduce_by_coords(coordinates, inputs, prefix)
             prefix = Path()
-        # with the `--post` argument, combine RT outputs (after --cluster) and return
+        # with the `--post` argument, combine RTSOS outputs (after --cluster) and return
         if args.post and not args.dry:
             coordinates = split_list_arg(args.post)
             for key, value in groupby(dataset=inputs, groups=outdirs):
@@ -185,7 +187,7 @@ class ZhaiRT:
                     dataset = self.post(dataset)
                 dataset.to_netcdf(args.outputs.parent / key / args.outputs.name)
             return
-        # execute the RT simulations in a temp directory then copy to outputs
+        # execute the RTSOS in a temp directory then copy to outputs
         for key, value in groupby(dataset=inputs, groups=outdirs):
             path = args.outputs.parent / key / args.outputs.name
             self.rtsos(value, path, args.tmp, args.dry)
@@ -212,7 +214,7 @@ class ZhaiRT:
                 copy(tmpdir / infile, outdir)
                 if dry:
                     continue
-                # run RT as subprocess
+                # run RTSOS as subprocess
                 # TODO wrap Fortran to call the program directly
                 subprocess.run(args=[self.program, str(tmpdir / infile)], check=True)
                 # expect no output if instructed to only calculate Mie tables

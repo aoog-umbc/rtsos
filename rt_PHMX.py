@@ -1,7 +1,7 @@
 import numpy as np
 import xarray as xr
 
-from .kit import cli, ZhaiRT
+from .core import cli, ZhaiRT
 from .parameters import Parameters as P
 
 
