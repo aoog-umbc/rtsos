@@ -252,7 +252,7 @@ class ZhaiRT:
                 datasets.append(one_output)
             if datasets:
                 # concatenate datasets
-                ds = xr.combine_by_coords(datasets, data_vars="different")
+                ds = xr.combine_by_coords(datasets, data_vars="different", compat="equals")
                 # write the concatenated datasets to the outputs directory, with
                 # length one coordinates returned to scalars
                 ds.to_netcdf(path=outputs)
