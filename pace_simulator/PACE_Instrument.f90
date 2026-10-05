@@ -14,6 +14,7 @@
 
 MODULE PACE_INSTRUMENT_DESIGN
 USE HDF5
+USE HDF5_UTILS, ONLY : CHECK_HDF5
 USE MAP_INSTRUMENT_DESIGN
 INTEGER,PARAMETER :: NWV_BAND_SEG1=282, NWV_BAND_SEG2=9,&
                      NWV_BAND_SEG1P2=291,NWV_BAND_SEG3=50,&
@@ -97,6 +98,7 @@ HARP2_ILS_Filename=trim(aux_dir)//'/HARP2_RSR_Composite_v01b.csv'
 
 CALL h5open_f(hdferr)
 CALL h5fopen_f(OCI_ILS_Filename, H5F_ACC_RDONLY_F, file, hdferr)
+CALL CHECK_HDF5(hdferr, 'h5fopen_f', OCI_ILS_Filename)
 
 ALLOCATE(HDF5RARR2DIM(2,NWV_BAND_BLUE))
 CALL h5dopen_f (file, '/blue/bandwidth', dset, hdferr)
@@ -269,6 +271,7 @@ ENDDO
 
 CALL h5open_f(hdferr)
 CALL h5fopen_f(SPEXone_ILS_Filename, H5F_ACC_RDONLY_F, file, hdferr)
+CALL CHECK_HDF5(hdferr, 'h5fopen_f', SPEXone_ILS_Filename)
 
 ALLOCATE(HDF5RARR_DB1(NWV_BAND_SEG3))
 CALL h5dopen_f (file, '/wavelength', dset, hdferr)
@@ -360,16 +363,17 @@ IF(HARP2_READIN_FLAG)THEN
 !write(*,*)'ILS_PACE(NWV_BAND_SEG1P2+NWV_BAND_SEG3+4,NILS_HARP-1:NILS_HARP)=',ILS_PACE(NWV_BAND_SEG1P2+NWV_BAND_SEG3+4,NILS_HARP-1:NILS_HARP)
 
 ELSE
-	DO IWV=NWV_BAND_SEG1P2+NWV_BAND_SEG3+1,NWV_BAND
-		Delta_Wavelength_Max=2.0d0*PACE_FWHM(IWV)
-		Delta_Wavelength_Sub=Delta_Wavelength_Max/(1.0d0*NILS_HARP)
-		Factor=4.0D0*log(2.0D0)/(PACE_FWHM(IWV)**2)
-
-		DO ILS_LINE=1,NILS_HARP
-		   ILS_DeltaWaveLength(IWV,ILS_LINE)=(ILS_LINE-NILS_HARP/2)*Delta_Wavelength_Sub
-		   ILS_PACE(IWV,ILS_LINE)=exp(-Factor*(ILS_DeltaWaveLength(IWV,ILS_LINE)**2));
-		ENDDO
-	ENDDO
+!   Gaussian ILS
+!	DO IWV=NWV_BAND_SEG1P2+NWV_BAND_SEG3+1,NWV_BAND
+!		Delta_Wavelength_Max=2.0d0*PACE_FWHM(IWV)
+!		Delta_Wavelength_Sub=Delta_Wavelength_Max/(1.0d0*NILS_HARP)
+!		Factor=4.0D0*log(2.0D0)/(PACE_FWHM(IWV)**2)
+!
+!		DO ILS_LINE=1,NILS_HARP
+!		   ILS_DeltaWaveLength(IWV,ILS_LINE)=(ILS_LINE-(NILS_HARP+1)/2)*Delta_Wavelength_Sub
+!		   ILS_PACE(IWV,ILS_LINE)=exp(-Factor*(ILS_DeltaWaveLength(IWV,ILS_LINE)**2));
+!		ENDDO
+!	ENDDO
 
 	! SETTING HARP FWHM AS A BOXCAR TYPE UNTIL DETAILED ILS AVAILABLE
 	DO IWV=NWV_BAND_SEG1P2+NWV_BAND_SEG3+1,NWV_BAND

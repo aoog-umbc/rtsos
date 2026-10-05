@@ -73,16 +73,27 @@ END MODULE BFIT_PARAMETERS
     DOUBLE PRECISION,dimension(1:NN):: ang,phs
 
     integer :: deltam,deltamlocal
-    DOUBLE PRECISION :: angtrun,ftrunc,ctrunc,sigma_sq
+    DOUBLE PRECISION :: angtrun,ftrunc,ctrunc,sigma_sq,RTMP
     DOUBLE PRECISION :: Func_UVIP3P
     deltamlocal=deltam
-!ccc   ang are in degrees (Theta), not cos(Theta)
 
+! monotonicity check
+	IF (NN < 3) STOP 'BFIT: at least 3 phase-function angles are required'
+		RTMP = ang(2) - ang(1)
+	IF (ABS(RTMP) <= 1.0D-12) STOP 'BFIT: duplicate first two scattering angles'
+	DO i = 3, NN
+	  IF (RTMP * (ang(i) - ang(i-1)) <= 0.0D0) THEN
+		STOP 'BFIT: scattering angles must be strictly monotonic'
+	  END IF
+	END DO
+
+!ccc   ang are in degrees (Theta), not cos(Theta)
 	if (abs(ang(NN)).le.1.0d0 .and. abs(ang(1)).le.1.0d0) then
 	do i=1,NN
         ang(i)=acos(ang(i))*180.0d0/pi
 	enddo
 	endif
+
 
     CALL BFIT_QUAD_SETUP(angtrun)
 
