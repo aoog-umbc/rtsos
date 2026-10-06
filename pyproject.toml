@@ -2,6 +2,10 @@
 name = "rtsos"
 dynamic = ["version"]
 license = "CC-BY-NC-4.0"
+authors = [
+  {name = "Pengwang Zhai", email = "pwzhai@gmail.com"},
+  {name = "Ian Carroll", email = "ian.t.carroll@nasa.gov"}
+]
 requires-python = ">=3.11"
 dependencies = [
     "numpy>=2.3.3",
