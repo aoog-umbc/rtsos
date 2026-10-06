@@ -136,7 +136,7 @@ name = "importlib-metadata"
 version = "8.7.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "zipp", marker = "python_full_version < '3.12'" },
+    { name = "zipp" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/76/66/650a33bd90f786193e4de4b3ad86ea60b53c89b669a5c7be931fac31cdb0/importlib_metadata-8.7.0.tar.gz", hash = "sha256:d13b81ad223b890aa16c5471f2ac3056cf76c5f10f82d6f9292f0b415f389000", size = 56641, upload-time = "2025-04-27T15:29:01.736Z" }
 wheels = [
@@ -498,6 +498,36 @@ wheels = [
 ]
 
 [[package]]
+name = "rtsos"
+source = { editable = "." }
+dependencies = [
+    { name = "dask" },
+    { name = "netcdf4" },
+    { name = "numpy" },
+    { name = "xarray" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "black" },
+    { name = "pytest" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "dask", specifier = ">=2022.10.2" },
+    { name = "netcdf4", specifier = ">=1.6.1" },
+    { name = "numpy", specifier = ">=2.3.3" },
+    { name = "xarray", specifier = ">=2022.3" },
+]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "black" },
+    { name = "pytest" },
+]
+
+[[package]]
 name = "six"
 version = "1.17.0"
 source = { registry = "https://pypi.org/simple" }
@@ -536,36 +566,6 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/7b/ce/f5dd613ddd0b3f839c59e6c2fa20c62469bf671bf4c92a12b09dc0972326/xarray-2025.10.1.tar.gz", hash = "sha256:3c2b5ad7389825bd624ada5ff26b01ac54b1aae72e2fe0d724d81d40a2bf5785", size = 3058736, upload-time = "2025-10-07T20:25:56.708Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/c3/78/4d6d68555a92cb97b4c192759c4ab585c5cb23490f64d4ddf12c66a3b051/xarray-2025.10.1-py3-none-any.whl", hash = "sha256:a4e699433b87a7fac340951bc36648645eeef72bdd915ff055ac2fd99865a73d", size = 1365202, upload-time = "2025-10-07T20:25:54.964Z" },
-]
-
-[[package]]
-name = "zhai-rt"
-source = { editable = "." }
-dependencies = [
-    { name = "dask" },
-    { name = "netcdf4" },
-    { name = "numpy" },
-    { name = "xarray" },
-]
-
-[package.dev-dependencies]
-dev = [
-    { name = "black" },
-    { name = "pytest" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "dask", specifier = ">=2022.10.2" },
-    { name = "netcdf4", specifier = ">=1.6.1" },
-    { name = "numpy", specifier = ">=2.3.3" },
-    { name = "xarray", specifier = ">=2022.3" },
-]
-
-[package.metadata.requires-dev]
-dev = [
-    { name = "black" },
-    { name = "pytest" },
 ]
 
 [[package]]

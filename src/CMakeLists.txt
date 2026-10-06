@@ -15,7 +15,7 @@ foreach(t
 endforeach()
 
 add_executable(rtsos_GSFC_AC_LUT
-    AC_Aerosols_LUT/main_GSFC_AC_LUT.f90
+    ac_aerosols_lut/main_GSFC_AC_LUT.f90
 )
 target_link_libraries(rtsos_GSFC_AC_LUT
     core
@@ -45,4 +45,19 @@ target_link_libraries(rtsos_PACE_Simulator_DoubleK
     core
     pace_simulator
     hdf5::hdf5_hl_fortran
+)
+
+if(DEFINED SKBUILD_SCRIPTS_DIR)
+    set(_BINDIR "${SKBUILD_SCRIPTS_DIR}")
+else()
+    set(_BINDIR "${CMAKE_INSTALL_BINDIR}")
+endif()
+install(
+    TARGETS
+        rtsos_GSFC_AC_LUT
+        rtsos_Aerosol_Phmx_Cal
+        rtsos_rao_dg
+        rtsos_PACE_Simulator_DoubleK
+    RUNTIME DESTINATION
+        ${_BINDIR}
 )
