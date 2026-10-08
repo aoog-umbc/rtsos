@@ -1,0 +1,143 @@
+# ===============================================================
+#  RTSOS – Radiative Transfer model based on Successive Orders of Scattering
+#  Copyright (C) 2025  Pengwang Zhai
+#
+#  Licensed under the Creative Commons Attribution–NonCommercial 4.0
+#  International License (CC BY-NC 4.0).
+#  You may use, modify, and share this code for research and
+#  educational purposes with proper attribution.
+#  Commercial use requires written permission from the author.
+#
+#  Full license: https://creativecommons.org/licenses/by-nc/4.0/
+#  Contact: Pengwang Zhai  |  [pwzhai@gmail.com]
+# ===============================================================
+
+OBJ=mathlib.o hdf5_utils.o rttype_sos_rao_dg.o emis_sea.o SnowBRDF.o RossLiBRDF.o surface_glint.o Atmosphere_Profile.o Gas_Absorption_CS_Readin.o MAP_Instrument.o PACE_Instrument.o Save_Ocean_Rad.o rtsos_rao_dg.o rt_single_scattering.o bessel.o rtspecfunc.o spher.o bfit.o deltafit.o aerosol_microphysical_model.o WV_LBL_GRID.o PACE_MIE_PHMX_Init.o main_PACE_Simulator_DoubleK.o
+
+F90=gfortran
+#F90=ifort
+
+FCFLAG_GAS = -O3
+#FCFLAG_GAS = -g -fbounds-check
+#FCFLAG_GAS = -g
+
+FCFLAG= -O3
+#FCFLAG=-real-size 64 -O3
+#FCFLAG= -g -fbounds-check
+#FCFLAG= -g -fbounds-check -ffpe-trap=invalid,zero,overflow -fcheck=all
+#FCFLAG= -g -fbounds-check -ffpe-trap=invalid,zero,overflow -finit-real=nan -fcheck=all
+
+# Keep compiler module files and generated dependencies out of the source tree.
+# gfortran needs -cpp when using -MMD for Fortran module dependencies.
+MODDIR = .mod
+DEPDIR = .dep
+DEPFLAGS = -cpp -MMD -MF $(DEPDIR)/$(@:.o=.d) -J$(MODDIR) -I$(MODDIR)
+DEPS = $(patsubst %.o,$(DEPDIR)/%.d,$(OBJ))
+
+LAPACKLIBS = -llapack -lblas
+
+# user options
+HDF5DIR = /opt/homebrew/Cellar/hdf5/1.14.6/
+HDF5LIB=-I$(HDF5DIR)/include
+H5FC=$(HDF5DIR)/bin/h5fc
+LIBSHDF= $(HDF5LIB) -L$(HDF5DIR)/lib/ -lhdf5 -lhdf5_fortran -lhdf5_hl_fortran
+
+# cocco options
+#HDF5INCLUDE=-I/usr/include/hdf5/serial/
+#HDF5LIB=/usr/lib/x86_64-linux-gnu/
+#LIBSHDF= $(HDF5INCLUDE) -L$(HDF5LIB) -lhdf5_serial -lhdf5_serial_fortran -lhdf5hl_fortran
+#H5FC=h5fc
+
+# Taki options
+#HDF5DIR =
+#HDF5LIB=
+#H5FC=ifort
+#LIBSHDF= -lhdf5 -lhdf5_fortran -lhdf5_hl_fortran
+
+DIRCore=../src/core/
+DIRMain=../src/pace_simulator/
+
+rtsos_PACE_Simulator_DoubleK.exe: $(OBJ)
+	$(F90) -o rtsos_PACE_Simulator_DoubleK.exe $(FCFLAG) $(OBJ) $(LIBSHDF) $(LAPACKLIBS)
+
+mathlib.o: $(DIRCore)/mathlib.f90
+	$(F90) -c $(FCFLAG) $(DEPFLAGS) $(DIRCore)/mathlib.f90
+
+hdf5_utils.o:  $(DIRCore)/hdf5_utils.f90
+	$(F90) -c $(FCFLAG) $(DEPFLAGS) $(LIBSHDF) $(DIRCore)/hdf5_utils.f90
+
+rttype_sos_rao_dg.o: $(DIRCore)/rttype_sos_rao_dg.f90
+	$(F90) -c $(FCFLAG) $(DEPFLAGS) $(DIRCore)/rttype_sos_rao_dg.f90
+
+emis_sea.o:$(DIRCore)/emis_sea.f90
+	$(F90) -c $(FCFLAG) $(DEPFLAGS) $(DIRCore)/emis_sea.f90
+
+SnowBRDF.o:$(DIRCore)/SnowBRDF.f90
+	$(F90) -c $(FCFLAG) $(DEPFLAGS) $(DIRCore)/SnowBRDF.f90
+
+RossLiBRDF.o:$(DIRCore)/RossLiBRDF.f90
+	$(F90) -c $(FCFLAG) $(DEPFLAGS) $(DIRCore)/RossLiBRDF.f90
+
+surface_glint.o: $(DIRCore)/surface_glint.f90
+	$(F90) -c $(FCFLAG) $(DEPFLAGS) $(DIRCore)/surface_glint.f90
+
+Atmosphere_Profile.o: $(DIRCore)/Atmosphere_Profile.f90
+	$(F90) -c $(FCFLAG) $(DEPFLAGS) $(DIRCore)/Atmosphere_Profile.f90
+
+Gas_Absorption_CS_Readin.o: $(DIRCore)/Gas_Absorption_CS_Readin.f90
+	$(F90) -c $(FCFLAG_GAS) $(DEPFLAGS) $(LIBSHDF) $(DIRCore)/Gas_Absorption_CS_Readin.f90
+
+MAP_Instrument.o: $(DIRMain)/MAP_Instrument.f90
+	$(F90) -c $(FCFLAG) $(DEPFLAGS) $(LIBSHDF) $(DIRMain)/MAP_Instrument.f90
+
+PACE_Instrument.o: $(DIRMain)/PACE_Instrument.f90
+	$(F90) -c $(FCFLAG) $(DEPFLAGS) $(LIBSHDF) $(DIRMain)/PACE_Instrument.f90
+
+Save_Ocean_Rad.o: $(DIRCore)/Save_Ocean_Rad.f90
+	$(F90) -c $(FCFLAG) $(DEPFLAGS) $(DIRCore)/Save_Ocean_Rad.f90
+
+bessel.o:$(DIRCore)/bessel.f
+	$(F90) -c $(FCFLAG) $(DEPFLAGS) $(DIRCore)/bessel.f
+
+rtspecfunc.o:$(DIRCore)/rtspecfunc.f90
+	$(F90) -c $(FCFLAG) $(DEPFLAGS) $(DIRCore)/rtspecfunc.f90
+
+rtsos_rao_dg.o: $(DIRCore)/rtsos_rao_dg.f90
+	$(F90) -c $(FCFLAG) $(DEPFLAGS) $(LIBSHDF) $(DIRCore)/rtsos_rao_dg.f90
+
+rt_single_scattering.o: $(DIRCore)/rt_single_scattering.f90
+	$(F90) -c $(FCFLAG) $(DEPFLAGS) $(LIBSHDF) $(DIRCore)/rt_single_scattering.f90
+
+spher.o: $(DIRCore)/spher.f
+	$(F90) -c $(FCFLAG) $(DEPFLAGS) $(DIRCore)/spher.f
+
+bfit.o: $(DIRCore)/bfit.f90
+	$(F90) -c $(FCFLAG) $(DEPFLAGS) $(DIRCore)/bfit.f90
+
+deltafit.o: $(DIRCore)/deltafit.f90
+	$(F90) -c $(FCFLAG) $(DEPFLAGS) $(DIRCore)/deltafit.f90
+
+aerosol_microphysical_model.o: $(DIRCore)/aerosol_microphysical_model.f90
+	$(F90) -c $(FCFLAG) $(DEPFLAGS) $(DIRCore)/aerosol_microphysical_model.f90
+
+WV_LBL_GRID.o: $(DIRCore)/WV_LBL_GRID.f90
+	$(F90) -c $(FCFLAG) $(DEPFLAGS) $(DIRCore)/WV_LBL_GRID.f90
+
+PACE_MIE_PHMX_Init.o: $(DIRMain)/PACE_MIE_PHMX_Init.f90
+	$(F90) -c $(FCFLAG) $(DEPFLAGS) $(LIBSHDF) $(DIRMain)/PACE_MIE_PHMX_Init.f90
+
+main_PACE_Simulator_DoubleK.o: $(DIRMain)/main_PACE_Simulator_DoubleK.f90
+	$(F90) -c $(FCFLAG) $(DEPFLAGS) $(LIBSHDF) $(DIRMain)/main_PACE_Simulator_DoubleK.f90
+
+# Ensure module/dependency directories exist before any object compilation.
+$(OBJ): | $(MODDIR) $(DEPDIR)
+
+$(MODDIR) $(DEPDIR):
+	mkdir -p $@
+
+clean:
+	rm -f *.o *.exe *.mod
+	rm -rf $(MODDIR) $(DEPDIR)
+
+# Read compiler-generated Fortran module dependencies when present.
+-include $(DEPS)
