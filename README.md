@@ -76,7 +76,7 @@ $ cmake -B build --install-prefix ~/.local
 ```
 
 The `--install-prefix` argument is optional. Now change to the build directory and run
-cmake twice more with the `--build` and then the `--install` arguments.
+cmake twice more, first with `--build` and then with `--install`.
 
 ```shell
 $ cd build
@@ -101,28 +101,28 @@ prerequistes available:
 
 The installer `pip` calls the Python wrapper's build-system, `scikit-build-core`, which
 also uses `cmake` to compile the source code. Those tools are fetched by `pip` as
-needed, but the others are not. One option for installing these prerequistes is through
-[Conda], which is our recommended approach for preparing a Python environment for use
-with the Python wrapper.
+needed.
 
-Choose a name for the Conda environment and create it with the required prerequistes.
-For example, with "project" as the environment name:
+One option for installing the prerequistes is through [Conda], which is our recommended
+approach for preparing a Python environment for use with the Python wrapper. Choose a
+name for the Conda environment and create it with the required prerequistes. For
+example, with "my-project" as the environment name:
 
 ```shell
-$ conda create --yes --name project python hdf5 lapack
-$ conda activate project
+$ conda create --yes --name my-project python hdf5 lapack
+$ conda activate my-project
 ```
 
 To install the [latest release] from PyPI:
 
 ```shell
-(project) $ pip install rtsos
+(my-project) $ pip install rtsos
 ```
 
 To install the development version from GitHub:
 
 ```shell
-(project) $ pip install git+https://github.com/aoog-umbc/rtsos
+(my-project) $ pip install git+https://github.com/aoog-umbc/rtsos
 ```
 
 If installation fails with the message `ERROR: Could not build wheels for rtsos...`,
