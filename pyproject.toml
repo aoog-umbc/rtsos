@@ -1,18 +1,32 @@
 [project]
 name = "rtsos"
-dynamic = ["version"]
-license = "CC-BY-NC-4.0"
+description = "Radiative Transfer model based on Successive Orders of Scattering"
 authors = [
   {name = "Pengwang Zhai", email = "pwzhai@gmail.com"},
   {name = "Ian Carroll", email = "ian.t.carroll@nasa.gov"}
 ]
-requires-python = ">=3.11"
+license = "CC-BY-NC-4.0"
+dynamic = ["version"]
+readme = "README-temp.md"
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "Programming Language :: Fortran",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14"
+]
+requires-python = ">=3.12"
 dependencies = [
     "numpy>=2.3.3",
     "xarray>=2022.3",
     "netcdf4>=1.6.1",
     "dask>=2022.10.2",
 ]
+
+[project.urls]
+repository = "https://github.com/aoog-umbc/rtsos"
 
 [project.scripts]
 rt-AC-LUT = "rtsos.rt_AC_LUT:main"
@@ -35,8 +49,8 @@ cmake.args = ["-G", "Unix Makefiles"]
 write_to = "src/rtsos/_version.py"
 
 [tool.pytest]
-cache_dir = "tests/.pytest_cache"
+cache_dir = "test/.pytest_cache"
 
 [build-system]
-requires = ["scikit-build-core>=0.11", "numpy>=2"]
+requires = ["scikit-build-core>=0.11", "numpy>=2.1"]
 build-backend = "scikit_build_core.build"
