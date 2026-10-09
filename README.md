@@ -21,8 +21,8 @@ can be Lambertian, snow surface, Ross-Li, and a number of other surfaces. The oc
 waters are modeled by a mixture of pure ocean water, phytoplankton, and colored
 dissolved organic matter (CDOM), and other hydrosols. The sensors can be placed at
 arbitrary levels in the Earth system. The output of the sensor can include the full
-polarized Stokes parameters (I, Q, U, V). For more information, see References at the
-end of this document.
+polarized Stokes parameters (I, Q, U, V). For more information, see
+[References](#references) at the end of this document.
 
 PACE simulator is a wrapper built around the monochromatic RTSOS, which has a list of
 built-in aerosol and ocean inherent optical properties. A publication on the PACE
