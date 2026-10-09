@@ -36,8 +36,8 @@ top-of-atmosphere measurements.
 
 The software is distributed as source code, so the programs must be built locally. There
 are two options for building:
-1. use `cmake` to build and install the binary RTSOS executables
-1. use `pip` to build and install the binary RTSOS executables along with their Python
+- use `cmake` to build and install the binary RTSOS executables
+- use `pip` to build and install the binary RTSOS executables along with their Python
    wrappers
 
 ### 1.1A First Option
