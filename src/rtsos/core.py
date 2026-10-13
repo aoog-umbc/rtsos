@@ -52,7 +52,7 @@ def split_list_arg(arg: str) -> dict:
     pairs for the returned dictionary, parsing the value for later use
     in xr.Dataset indexing.
     """
-    cluster = {}
+    split = {}
     for item in arg.split(","):
         key, *value = item.split(":")
         if value:
@@ -65,8 +65,8 @@ def split_list_arg(arg: str) -> dict:
             stop = stop + 1
         else:
             start = stop = None
-        cluster[key] = slice(start, stop)
-    return cluster
+        split[key] = slice(start, stop)
+    return split
 
 
 def paths_by_coords(current: xr.DataArray, next: tuple[(str, slice)]) -> xr.DataArray:
@@ -97,7 +97,7 @@ def reduce_by_coords(
         _inputs = inputs.isel(coords)
     except KeyError as cause:
         exception = Exception(
-            "`--cluster` and `--post` value(s) must reference dimensions of inputs"
+            "`--split` and `--combine` value(s) must reference dimensions of inputs"
         )
         raise exception from cause
     _outdirs, _ = xr.broadcast(xr.DataArray(outdirs), inputs)
@@ -131,19 +131,19 @@ class Program:
         # begin construction of output path(s) relative to args.outputs.parent
         outdirs = xr.DataArray(Path())
         prefix = Path(args.outputs.stem)
-        # with the `--cluster` argument, prepare to process a subset of inputs
-        # in subdirectories, defined by the dimension(s) given with cluster
-        if args.cluster:
-            coordinates = split_list_arg(args.cluster)
+        # with the `--split` argument, prepare to process a subset of inputs
+        # in subdirectories, defined by the dimension(s) given as the split
+        if args.split:
+            coordinates = split_list_arg(args.split)
             inputs, outdirs = reduce_by_coords(coordinates, inputs, prefix)
             prefix = Path()
-        # with the `--post` argument, combine RTSOS outputs (after --cluster) and return
-        if args.post and not args.dry:
-            coordinates = split_list_arg(args.post)
+        # with the `--combine` argument, combine split outputs and return
+        if args.combine and not args.dry:
+            coordinates = split_list_arg(args.combine)
             for key, value in groupby(dataset=inputs, groups=outdirs):
-                _, postdirs = reduce_by_coords(coordinates, value, key)
-                postdirs = np.unique(postdirs)
-                paths = args.outputs.parent / prefix / postdirs / args.outputs.name
+                _, outdirs = reduce_by_coords(coordinates, value, key)
+                outdirs = np.unique(outdirs)
+                paths = args.outputs.parent / prefix / outdirs / args.outputs.name
                 dataset = xr.open_mfdataset(paths=paths.tolist(), data_vars="different")
                 try:
                     dataset = self.post(dataset)

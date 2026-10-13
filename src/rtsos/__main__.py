@@ -29,7 +29,7 @@ common.add_argument(
     help="write default parameters to the location given as `inputs`",
 )
 common.add_argument(
-    "--cluster",
+    "--split",
     type=str,
     help=(
         "comma-separated list of dimensions by which inputs are split into "
@@ -38,11 +38,11 @@ common.add_argument(
     ),
 )
 common.add_argument(
-    "--post",
+    "--combine",
     type=str,
     help=(
-        "dimensions by which cluster outputs (i.e. a previous call with "
-        "`--cluster`) are combined, formatted as for `--cluster`"
+        "dimensions by which outputs from a previous call using "
+        "`--split` are combined, formatted as for `--split`"
     ),
 )
 common.add_argument(
