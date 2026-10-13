@@ -335,19 +335,19 @@ NetCDF file.
       ```shell
       $ rtsos PACE_Simulator_DoubleK inputs.nc outputs.nc
       ```
-    - To run subsets of the parameterizations as separate jobs, add the `--cluster`
+    - To run subsets of the parameterizations as separate jobs, add the `--split`
       argument to indicate dimensions and indices over which to slice the inputs.
       ```shell
-      $ rtsos PACE_Simulator_DoubleK --cluster=RH:0,theta0:0-2 inputs.nc outputs.nc
-      $ rtsos PACE_Simulator_DoubleK --cluster=RH:0,theta0:2-4 inputs.nc outputs.nc
-      $ rtsos PACE_Simulator_DoubleK --cluster=RH:1,theta0:0-2 inputs.nc outputs.nc
-      $ rtsos PACE_Simulator_DoubleK --cluster=RH:1,theta0:2-4 inputs.nc outputs.nc
+      $ rtsos PACE_Simulator_DoubleK --split=RH:0,theta0:0-2 inputs.nc outputs.nc
+      $ rtsos PACE_Simulator_DoubleK --split=RH:0,theta0:2-4 inputs.nc outputs.nc
+      $ rtsos PACE_Simulator_DoubleK --split=RH:1,theta0:0-2 inputs.nc outputs.nc
+      $ rtsos PACE_Simulator_DoubleK --split=RH:1,theta0:2-4 inputs.nc outputs.nc
       ```
       Note that instead of writing to `outputs.nc`, a tree is written under `outputs/`
-      with results from each job. Once each jobs is complete, use the `--post` argument
+      with results from each job. Once each jobs is complete, use the `--combine` argument
       to combine existing outputs into a single file.
       ```shell
-      $ rtsos PACE_Simulator_DoubleK --post=RH,theta0 intputs.nc outputs.nc
+      $ rtsos PACE_Simulator_DoubleK --combine=RH,theta0 intputs.nc outputs.nc
       ```
 
 ## References
