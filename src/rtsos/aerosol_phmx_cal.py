@@ -20,10 +20,10 @@ from .parameters import Parameters as P
 
 
 class PHMX(Program):
-    """Class that drives `rtsos aerosol_phmx_cal`"""
+    """Class that drives `rtsos Aerosol_Phmx_Cal`"""
 
     def __init__(self, *args, **kwargs):
-        self.program = "rtsos_aerosol_phmx_cal"
+        self.program = __name__.replace(".", "_")
         super().__init__(*args, **kwargs)
 
     @Program.params.setter

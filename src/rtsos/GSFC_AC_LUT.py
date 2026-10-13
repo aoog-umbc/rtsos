@@ -26,7 +26,7 @@ class ACLUT(Program):
     """
 
     def __init__(self, *args, **kwargs):
-        self.program = "rtsos_GSFC_AC_LUT"
+        self.program = __name__.replace(".", "_")
         super().__init__(*args, **kwargs)
 
     def post(self, dataset: xr.Dataset) -> xr.Dataset:

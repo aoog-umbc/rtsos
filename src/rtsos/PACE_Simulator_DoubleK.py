@@ -20,7 +20,7 @@ class PACE(Program):
     """Class that drives `rtsos PACE_Simulator_DoubleK`"""
 
     def __init__(self, *args, **kwargs):
-        self.program = "rtsos_PACE_Simulator_DoubleK"
+        self.program = __name__.replace(".", "_")
         super().__init__(*args, **kwargs)
 
 

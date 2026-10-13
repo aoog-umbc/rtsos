@@ -82,7 +82,7 @@ subparsers.add_parser(
     ),
 )
 subparsers.add_parser(
-    name="aerosol_phmx_cal",
+    name="Aerosol_Phmx_Cal",
     parents=[common],
     description=(
         "Generate a file containing the aerosol scattering matrix to be read by RTSOS."
