@@ -302,19 +302,18 @@ Available aerosol modes:
 
 ### 2.1B Python Wrapper
 
-The Python wrapper adds the command line tools `rt-AC-LUT`, `rt-PACE`, and `rt-PHMX`,
-which all accept the same command line arguments (see, for example `rt-PACE --help`).
-These wrappers presently work by calling the binary executables `rtsos_GSFC_AC_LUT`,
-`rtsos_PACE_Simulator_DoubleK`, and `rtsos_Aerosol_Phmx_Cal` which are included with the
-install.
+The Python wrapper adds a command line tool `rtsos` with subcommands `GSFC_AC_LUT`,
+`PACE_Simulator_DoubleK`, and `Aerosol_Phmx_Cal`. These wrappers presently work by
+calling the binary executables `rtsos_GSFC_AC_LUT`, `rtsos_PACE_Simulator_DoubleK`, and
+`rtsos_Aerosol_Phmx_Cal` which are included with the install.
 
 The Python wrapper adds the ability to run the programs over arrays of parameters
 provided in NetCDF files.  To run the PACE simulator with default values, call
-`rt-PACE` with two arguments giving, first, the path where default parameters will be
-written and second, the path for outputs.
+`rtsos PACE_Simulator_DoubleK` followed by two arguments giving, first, the path where
+default parameters will be written and second, the path for outputs.
 
 ```shell
-$ rt-PACE intputs.nc outputs.nc
+$ rtsos PACE_Simulator_DoubleK intputs.nc outputs.nc
 ```
 
 To run the PACE simulator over non-default parameters, you must provide a suitable
@@ -323,7 +322,7 @@ NetCDF file.
 1. Generate a template for the parameter sets over which you wish to run the
    PACE simulator.
    ```shell
-   $ rt-PACE --pre defaults.nc
+   $ rtsos PACE_Simulator_DoubleK --pre defaults.nc
    ```
 1. Using whatever tools you want, generate a new input dataset with the same variables
    as the default dataset. New dimensions are allowed, but every coordinate variable
@@ -334,21 +333,21 @@ NetCDF file.
     - To run all parameterizations in one process, provide inputs and outputs file
       paths.
       ```shell
-      $ rt-PACE inputs.nc outputs.nc
+      $ rtsos PACE_Simulator_DoubleK inputs.nc outputs.nc
       ```
     - To run subsets of the parameterizations as separate jobs, add the `--cluster`
       argument to indicate dimensions and indices over which to slice the inputs.
       ```shell
-      $ rt-PACE --cluster=RH:0,theta0:0-2 inputs.nc outputs.nc
-      $ rt-PACE --cluster=RH:0,theta0:2-4 inputs.nc outputs.nc
-      $ rt-PACE --cluster=RH:1,theta0:0-2 inputs.nc outputs.nc
-      $ rt-PACE --cluster=RH:1,theta0:2-4 inputs.nc outputs.nc
+      $ rtsos PACE_Simulator_DoubleK --cluster=RH:0,theta0:0-2 inputs.nc outputs.nc
+      $ rtsos PACE_Simulator_DoubleK --cluster=RH:0,theta0:2-4 inputs.nc outputs.nc
+      $ rtsos PACE_Simulator_DoubleK --cluster=RH:1,theta0:0-2 inputs.nc outputs.nc
+      $ rtsos PACE_Simulator_DoubleK --cluster=RH:1,theta0:2-4 inputs.nc outputs.nc
       ```
       Note that instead of writing to `outputs.nc`, a tree is written under `outputs/`
       with results from each job. Once each jobs is complete, use the `--post` argument
       to combine existing outputs into a single file.
       ```shell
-      $ rt-PACE --post=RH,theta0 intputs.nc outputs.nc
+      $ rtsos PACE_Simulator_DoubleK --post=RH,theta0 intputs.nc outputs.nc
       ```
 
 ## References
