@@ -12,11 +12,21 @@
 #  Contact: Pengwang Zhai  |  [pwzhai@gmail.com]
 # ===============================================================
 
-from .core import cli, ZhaiRT
+from .core import Program
 from .parameters import Parameters as P
 
 
-def main(argv: str = None) -> None:
+class PACE(Program):
+    """Class that drives `rtsos PACE_Simulator_DoubleK`"""
+
+    def __init__(self, *args, **kwargs):
+        self.program = "rtsos_PACE_Simulator_DoubleK"
+        super().__init__(*args, **kwargs)
+
+
+def init() -> PACE:
+    """Prepare subclass for execution defaults"""
+
     # values to write, in the order below, to the input file
     values = {
         P.Wind_Speed: 5.0,
@@ -83,12 +93,4 @@ def main(argv: str = None) -> None:
     dataset = params.make_dataset(values)
 
     # the callable object that runs the given program
-    prog = ZhaiRT(
-        program="rtsos_PACE_Simulator_DoubleK",
-        defaults=dataset,
-        params=tuple(values),
-    )
-
-    # parse arguments from command line and run as instructed
-    args = cli.parse_args(argv)
-    prog(args)
+    return PACE(defaults=dataset, params=tuple(values))

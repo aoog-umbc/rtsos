@@ -29,9 +29,7 @@ dependencies = [
 repository = "https://github.com/aoog-umbc/rtsos"
 
 [project.scripts]
-rt-AC-LUT = "rtsos.rt_AC_LUT:main"
-rt-PACE = "rtsos.rt_PACE:main"
-rt-PHMX = "rtsos.rt_PHMX:main"
+rtsos = "rtsos.__main__:main"
 
 [dependency-groups]
 dev = [
