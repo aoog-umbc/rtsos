@@ -21,17 +21,16 @@ from platform import system
 from shutil import copy
 from tempfile import TemporaryDirectory
 
-import dask.config as dask_config
+import dask.config
 import numpy as np
 import xarray as xr
-from dask.base import tokenize
+from dask.tokenize import tokenize
 
 from .parameters import Parameters as P
 
 expect_exe = system() == "Windows"
-dask_config.set({"tokenize.ensure-deterministic": True})
 # TODO Slurm, threading, and https://github.com/pydata/xarray/issues/7549
-dask_config.set(scheduler="synchronous")
+dask.config.set(scheduler="synchronous")
 
 
 def groupby(dataset: xr.Dataset, groups: xr.DataArray) -> Iterable[tuple]:
@@ -234,7 +233,8 @@ class Program:
             name = param.attrs.get("long_name", item)
             value = param.item()
             lines.append(f"{value:<24} # {name}")
-        outfile = Path(tokenize(dataset)).with_suffix(".outfile")
+        outfile = tokenize(dataset, ensure_deterministic=True)
+        outfile = Path(outfile).with_suffix(".outfile")
         lines += [str(path / outfile), ""]
         infile = outfile.with_suffix(".infile.txt")
         with (path / infile).open("w") as stream:
