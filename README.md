@@ -95,7 +95,7 @@ folder with the HDF5 libraries.
 The software is configured for building with `pip` on a system with the following
 prerequistes available:
 
-- [Python] >= 3.11
+- [Python] >= 3.12
 - [HDF5] >= 1.10
 - [LAPACK] >= 3.9
 - a modern [Fortran] compiler (e.g. gfortran)
