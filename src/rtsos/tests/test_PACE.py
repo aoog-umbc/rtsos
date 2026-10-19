@@ -44,7 +44,7 @@ def cache_output(tmp_input):
         # run for only chla 0 and each tau_ref_hi
         rt_PACE.main(
             [
-                "--cluster=chla:0,tau_ref_hi",
+                "--split=chla:0,tau_ref_hi",
                 str(tmp_input),
                 str(path),
             ],
@@ -87,10 +87,10 @@ def cache_output_with_phmx(tmp_input_with_phmx):
 
 
 @fixture
-def tmp_post(tmp_input, cache_output):
+def tmp_combine(tmp_input, cache_output):
     rt_PACE.main(
         [
-            "--post=chla:0,tau_ref_hi",
+            "--combine=chla:0,tau_ref_hi",
             str(tmp_input),
             str(cache_output),
         ],
@@ -111,7 +111,7 @@ def test_infile(tmp_input):
     rt_PACE.main(
         [
             "--dry-run",
-            "--cluster=chla:0,tau_ref_hi",
+            "--split=chla:0,tau_ref_hi",
             str(tmp_input),
             str(path),
         ],
@@ -131,8 +131,8 @@ def test_output(cache_output):
         assert ds.sizes["tau_ref_hi"] == 1
 
 
-def test_post(tmp_post):
-    ds = xr.open_dataset(tmp_post)
+def test_combine(tmp_combine):
+    ds = xr.open_dataset(tmp_combine)
     assert ds.sizes["tau_ref_hi"] == 2
     assert ds.sizes["Solar_Zenith_Angle"] == 2
 

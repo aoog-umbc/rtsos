@@ -43,7 +43,7 @@ def cache_output(tmp_input):
         # run one AM, one RH, and every sza-dt
         rt_AC_LUT.main(
             [
-                "--cluster=Aerosol_Model:2,Relative_Humidity:4,sza-dt",
+                "--split=Aerosol_Model:2,Relative_Humidity:4,sza-dt",
                 str(tmp_input),
                 str(path),
             ],
@@ -54,12 +54,12 @@ def cache_output(tmp_input):
 
 
 @fixture
-def tmp_cluster_post(tmp_input, cache_output):
+def tmp_split_combine(tmp_input, cache_output):
     # aggregate sza-dt only, not AM or RH
     rt_AC_LUT.main(
         [
-            "--cluster=Aerosol_Model:2,Relative_Humidity:4",
-            "--post=sza-dt",
+            "--split=Aerosol_Model:2,Relative_Humidity:4",
+            "--combine=sza-dt",
             str(tmp_input),
             str(cache_output),
         ],
@@ -71,10 +71,10 @@ def tmp_cluster_post(tmp_input, cache_output):
 
 
 @fixture
-def tmp_post(tmp_input, cache_output):
+def tmp_combine(tmp_input, cache_output):
     rt_AC_LUT.main(
         [
-            "--post=Aerosol_Model:2,Relative_Humidity:4,sza-dt",
+            "--combine=Aerosol_Model:2,Relative_Humidity:4,sza-dt",
             str(tmp_input),
             str(cache_output),
         ],
@@ -94,7 +94,7 @@ def test_infile(tmp_input):
     rt_AC_LUT.main(
         [
             "--dry-run",
-            "--cluster=Aerosol_Model:2,Relative_Humidity:4,sza-dt",
+            "--split=Aerosol_Model:2,Relative_Humidity:4,sza-dt",
             str(tmp_input),
             str(path),
         ],
@@ -114,8 +114,8 @@ def test_output(cache_output):
         assert dataset.sizes["Tau_NIR"] == 2
 
 
-def test_cluster_post(tmp_cluster_post):
-    path = tmp_cluster_post.parent / "output"
+def test_split_combine(tmp_split_combine):
+    path = tmp_split_combine.parent / "output"
     output = tuple(path.glob("Aerosol_Model/*/Relative_Humidity/*/output.nc"))
     assert len(output) == 1
     for item in output:
@@ -124,7 +124,7 @@ def test_cluster_post(tmp_cluster_post):
         assert dataset.sizes["Solar_Zenith_Angle"] == 2
 
 
-def test_post(tmp_post):
-    dataset = xr.open_dataset(tmp_post)
+def test_combine(tmp_combine):
+    dataset = xr.open_dataset(tmp_combine)
     assert dataset.sizes["Tau_NIR"] == 2
     assert dataset.sizes["Solar_Zenith_Angle"] == 2

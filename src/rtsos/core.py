@@ -13,75 +13,24 @@
 # ===============================================================
 
 import subprocess
-from argparse import ArgumentParser, Namespace
+from argparse import Namespace
 from collections.abc import Iterable
 from functools import reduce
 from pathlib import Path
 from platform import system
 from shutil import copy
-from tempfile import TemporaryDirectory, gettempdir
+from tempfile import TemporaryDirectory
 
-import dask
+import dask.config
 import numpy as np
 import xarray as xr
+from dask.tokenize import tokenize
 
 from .parameters import Parameters as P
 
 expect_exe = system() == "Windows"
-
 # TODO Slurm, threading, and https://github.com/pydata/xarray/issues/7549
 dask.config.set(scheduler="synchronous")
-
-cli = ArgumentParser()
-cli.add_argument(
-    "--pre",
-    action="store_true",
-    help="write RTSOS defaults to location given as `inputs`",
-)
-cli.add_argument(
-    "--cluster",
-    type=str,
-    help=(
-        "comma-separated list of dimensions by which inputs are split into "
-        "nested subdirectories, with optional positions or inclusive ranges as "
-        "`dim:index` or `dim:start-stop` respectively."
-    ),
-)
-cli.add_argument(
-    "--post",
-    type=str,
-    help=(
-        "dimensions by which cluster outputs (i.e. a previous call with "
-        "`--cluster`) are combined, formatted as for `--cluster`"
-    ),
-)
-cli.add_argument(
-    "--tmp",
-    type=Path,
-    default=gettempdir(),
-    help="path where temporary directories will be created",
-)
-cli.add_argument(
-    "--dry-run",
-    default=False,
-    dest="dry",
-    action="store_true",
-    help="only generate parameter files",
-)
-cli.add_argument(
-    "inputs",
-    type=Path,
-    help=(
-        "path for RTSOS input file, a NetCDF whose coordinates are parameters "
-        "over which the model will generate outputs"
-    ),
-)
-cli.add_argument(
-    "outputs",
-    nargs="?",
-    type=Path,
-    help=("path for RTSOS output file(s) (ignored, if given, with `--pre`)"),
-)
 
 
 def groupby(dataset: xr.Dataset, groups: xr.DataArray) -> Iterable[tuple]:
@@ -103,7 +52,7 @@ def split_list_arg(arg: str) -> dict:
     pairs for the returned dictionary, parsing the value for later use
     in xr.Dataset indexing.
     """
-    cluster = {}
+    split = {}
     for item in arg.split(","):
         key, *value = item.split(":")
         if value:
@@ -116,8 +65,8 @@ def split_list_arg(arg: str) -> dict:
             stop = stop + 1
         else:
             start = stop = None
-        cluster[key] = slice(start, stop)
-    return cluster
+        split[key] = slice(start, stop)
+    return split
 
 
 def paths_by_coords(current: xr.DataArray, next: tuple[(str, slice)]) -> xr.DataArray:
@@ -142,28 +91,27 @@ def reduce_by_coords(
     coords: dict,
     inputs: xr.Dataset,
     outdirs: Path,
-) -> tuple[(xr.Dataset, xr.DataArray)]:
+) -> tuple[xr.Dataset, xr.DataArray]:
     """A reduce operation that iterates over slices along xarray.DataArray.coords."""
     try:
-        inputs = inputs.isel(coords)
+        _inputs = inputs.isel(coords)
     except KeyError as cause:
         exception = Exception(
-            "`--cluster` and `--post` value(s) must be dimensions of inputs"
+            "`--split` and `--combine` value(s) must reference dimensions of inputs"
         )
         raise exception from cause
-    outdirs, _ = xr.broadcast(xr.DataArray(outdirs), inputs)
-    outdirs = reduce(paths_by_coords, coords.items(), outdirs)
-    return inputs, outdirs
+    _outdirs, _ = xr.broadcast(xr.DataArray(outdirs), inputs)
+    _outdirs = reduce(paths_by_coords, coords.items(), _outdirs)
+    return _inputs, _outdirs
 
 
-class ZhaiRT:
+class Program:
     def __init__(
         self,
-        program: str,
         defaults: xr.Dataset,
         params: tuple = (),
     ) -> None:
-        self.program = program + (".exe" if expect_exe else "")
+        self.program = self.program + (".exe" if expect_exe else "")
         self.defaults = defaults
         # initialize the params @property
         self._params = tuple(i.__name__ for i in params)
@@ -183,32 +131,34 @@ class ZhaiRT:
         # begin construction of output path(s) relative to args.outputs.parent
         outdirs = xr.DataArray(Path())
         prefix = Path(args.outputs.stem)
-        # with the `--cluster` argument, prepare to process a subset of inputs
-        # in subdirectories, defined by the dimension(s) given with cluster
-        if args.cluster:
-            coordinates = split_list_arg(args.cluster)
+        # with the `--split` argument, prepare to process a subset of inputs
+        # in subdirectories, defined by the dimension(s) given as the split
+        if args.split:
+            coordinates = split_list_arg(args.split)
             inputs, outdirs = reduce_by_coords(coordinates, inputs, prefix)
             prefix = Path()
-        # with the `--post` argument, combine RTSOS outputs (after --cluster) and return
-        if args.post and not args.dry:
-            coordinates = split_list_arg(args.post)
+        # with the `--combine` argument, combine split outputs and return
+        if args.combine and not args.dry:
+            coordinates = split_list_arg(args.combine)
             for key, value in groupby(dataset=inputs, groups=outdirs):
-                _, postdirs = reduce_by_coords(coordinates, value, key)
-                postdirs = np.unique(postdirs)
-                paths = args.outputs.parent / prefix / postdirs / args.outputs.name
+                _, outdirs = reduce_by_coords(coordinates, value, key)
+                outdirs = np.unique(outdirs)
+                paths = args.outputs.parent / prefix / outdirs / args.outputs.name
                 dataset = xr.open_mfdataset(paths=paths.tolist(), data_vars="different")
-                if hasattr(self, "post"):
+                try:
                     dataset = self.post(dataset)
+                except NotImplementedError:
+                    pass
                 dataset.to_netcdf(args.outputs.parent / key / args.outputs.name)
             return
-        # execute the RTSOS in a temp directory then copy to outputs
+        # execute the program in a temp directory then copy to outputs
         for key, value in groupby(dataset=inputs, groups=outdirs):
             path = args.outputs.parent / key / args.outputs.name
-            self.rtsos(value, path, args.tmp, args.dry)
+            self.run(value, path, args.tmp, args.dry)
 
-    def rtsos(self, inputs: xr.Dataset, outputs: Path, tmp: Path, dry: bool) -> None:
-        # within a temporary directory, write the rtsos input files and store
-        # outputs from each rtsos calculation, run as a subprocess
+    def run(self, inputs: xr.Dataset, outputs: Path, tmp: Path, dry: bool) -> None:
+        # within a temporary directory, write the input files and store
+        # outputs from each program execution, run as a subprocess
         with TemporaryDirectory(dir=tmp) as tmpdir:
             tmpdir = Path(tmpdir)
             outdir = outputs.parent
@@ -266,12 +216,14 @@ class ZhaiRT:
                 datasets.append(one_output)
             if datasets:
                 # concatenate datasets
-                ds = xr.combine_by_coords(datasets, data_vars="different", compat="equals")
+                ds = xr.combine_by_coords(
+                    datasets, data_vars="different", compat="equals"
+                )
                 # write the concatenated datasets to the outputs directory, with
                 # length one coordinates returned to scalars
                 ds.to_netcdf(path=outputs)
 
-    def infile(self, path: Path, dataset: xr.Dataset) -> Path:
+    def infile(self, path: Path, dataset: xr.Dataset) -> tuple[Path, Path]:
         """Write parameters to a text file, and return its path."""
         lines = []
         for item in self.params:
@@ -281,12 +233,16 @@ class ZhaiRT:
             name = param.attrs.get("long_name", item)
             value = param.item()
             lines.append(f"{value:<24} # {name}")
-        outfile = Path(dask.base.tokenize(dataset)).with_suffix(".outfile")
+        outfile = tokenize(dataset, ensure_deterministic=True)
+        outfile = Path(outfile).with_suffix(".outfile")
         lines += [str(path / outfile), ""]
         infile = outfile.with_suffix(".infile.txt")
         with (path / infile).open("w") as stream:
             stream.write("\n".join(lines))
         return infile, outfile.with_suffix(".outfile.h5")
+
+    def post(self, dataset: xr.Dataset) -> xr.Dataset:
+        raise NotImplementedError
 
     @property
     def params(self) -> tuple:
