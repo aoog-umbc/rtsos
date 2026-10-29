@@ -229,9 +229,8 @@ $ rtsos_PACE_Simulator_DoubleK input.txt
 ### 2.1A.2 Single Scattering Matrix Code
 
 If you set `IAEROSOL=-99` in the PACE simulator input file, you will need to prepare the
-aerosol phase matrix. A tool was written by [Neranga K. Hannadige]
-(https://scholar.google.com/citations?user=0lAwqNsAAAAJ&hl=en) to generate the input
-scattering matrix files for the PACE simulator.
+aerosol phase matrix. A tool was written by [Neranga K. Hannadige](https://scholar.google.com/citations?user=0lAwqNsAAAAJ&hl=en)
+to generate the input scattering matrix files for the PACE simulator.
 
 We provided a Python script to generate the input files in the
 `test/PACE_Simulator/python_script/` folder of the source code repository:
