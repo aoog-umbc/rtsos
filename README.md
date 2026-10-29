@@ -312,17 +312,17 @@ provided in NetCDF files. To run the PACE simulator with default values from a w
 directory that contains the `Data` and `Gas_Absorption_Coefficients` folders, call
 `rtsos PACE_Simulator_DoubleK` with two arguments: the first argument is a name
 for the NetCDF file where default parameter values will be written, the second argument
-is a name for the NetCDF file where outputs will be stored.
+is a name for the NetCDF file where outputs will be stored. For example:
 
 ```shell
 $ rtsos PACE_Simulator_DoubleK intputs.nc outputs.nc
 ```
 
-To run the PACE simulator over non-default parameters, you must provide a suitable
-NetCDF file which can be achieved by updating the defaults.
+If a file called `inputs.nc` already exists, then it will be read as a parameter file
+and not overwritten. To run the PACE simulator over non-default parameters, you must
+generate a suitable NetCDF parameter file as follows:
 
-1. Generate a template for the parameters over which you wish to run the
-   PACE simulator.
+1. Generate a template for the parameters over which you wish to run the PACE simulator.
    ```shell
    $ rtsos PACE_Simulator_DoubleK --pre defaults.nc
    ```
