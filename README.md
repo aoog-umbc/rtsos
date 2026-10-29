@@ -314,7 +314,7 @@ for the NetCDF file where default parameter values will be written, the second a
 is a name for the NetCDF file where outputs will be stored. For example:
 
 ```shell
-$ rtsos PACE_Simulator_DoubleK intputs.nc outputs.nc
+(my-project) $ rtsos PACE_Simulator_DoubleK intputs.nc outputs.nc
 ```
 
 If a file called `inputs.nc` already exists, then it will be read as a parameter file
@@ -323,7 +323,7 @@ generate a suitable NetCDF parameter file as follows:
 
 1. Generate a template for the parameters over which you wish to run the PACE simulator.
    ```shell
-   $ rtsos PACE_Simulator_DoubleK --pre defaults.nc
+   (my-project) $ rtsos PACE_Simulator_DoubleK --pre defaults.nc
    ```
 1. Using whatever tools you want, update `defaults.nc` with different values for any
    variables in the default dataset. New dimensions are allowed, but every variable must
@@ -335,23 +335,23 @@ generate a suitable NetCDF parameter file as follows:
     - To run all parameterizations in one process, provide the input and output file
       paths:
       ```shell
-      $ rtsos PACE_Simulator_DoubleK inputs.nc outputs.nc
+      (my-project) $ rtsos PACE_Simulator_DoubleK inputs.nc outputs.nc
       ```
     - To run subsets of the parameterizations as separate jobs, add the `--split`
       argument to indicate dimensions and indices over which to slice the inputs.
       ```shell
-      $ rtsos PACE_Simulator_DoubleK --split=chla:0-2,tau_ref_hi:0 inputs.nc outputs.nc
-      $ rtsos PACE_Simulator_DoubleK --split=chla:0-2,tau_ref_hi:0 inputs.nc outputs.nc
-      $ rtsos PACE_Simulator_DoubleK --split=chla:3-4,tau_ref_hi:1 inputs.nc outputs.nc
-      $ rtsos PACE_Simulator_DoubleK --split=chla:3-4,tau_ref_hi:1 inputs.nc outputs.nc
+      (my-project) $ rtsos PACE_Simulator_DoubleK --split=chla:0-2,tau_ref_hi:0 inputs.nc outputs.nc
+      (my-project) $ rtsos PACE_Simulator_DoubleK --split=chla:0-2,tau_ref_hi:0 inputs.nc outputs.nc
+      (my-project) $ rtsos PACE_Simulator_DoubleK --split=chla:3-4,tau_ref_hi:1 inputs.nc outputs.nc
+      (my-project) $ rtsos PACE_Simulator_DoubleK --split=chla:3-4,tau_ref_hi:1 inputs.nc outputs.nc
       ```
       Instead of writing a sinlge `outputs.nc`, multiple `outputs.nc` files are written
       under `outputs/` with results from each job. Once all jobs are complete, use the
       `--combine` argument to combine those outputs into a single file.
       ```shell
-      $ rtsos PACE_Simulator_DoubleK --combine=chla,tau_ref_hi intputs.nc outputs.nc
+      (my-project) $ rtsos PACE_Simulator_DoubleK --combine=chla,tau_ref_hi intputs.nc outputs.nc
       ```
-1. Reference `rtsos -h` for additional arguments, such as `--dry-run`.
+1. Reference `rtsos --help` for additional arguments, such as `--dry-run`.
 
 ## References
 
