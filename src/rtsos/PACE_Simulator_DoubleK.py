@@ -81,7 +81,7 @@ def init() -> PACE:
         P.WAVEBAND_SEG_FLAG: 0,
         P.AirSensor_Height: 2.2,
         P.pss_flag: 0,
-        P.Aux_Dir: "Auxiliary_Files",
+        P.Aux_Dir: "Data",
         P.Atmos_Dir: "Gas_Absorption_Coefficients",
         P.CFILE_AP: "afglus.dat",
         P.Aerosol_Phasematrix_File_Hi: "",

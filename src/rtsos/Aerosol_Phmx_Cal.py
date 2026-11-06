@@ -143,7 +143,7 @@ def inti() -> PHMX:
         P.r0_s: 0.05,
         P.r0_ss: 2.0194,
         P.WAVEBAND_SEG_FLAG: 0,
-        P.Aux_Dir: "Auxiliary_Files",
+        P.Aux_Dir: "Data",
     }
 
     # create a dataset to hold the inputs as coordinates

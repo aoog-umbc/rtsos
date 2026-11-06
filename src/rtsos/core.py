@@ -100,7 +100,7 @@ def reduce_by_coords(
             "`--split` and `--combine` value(s) must reference dimensions of inputs"
         )
         raise exception from cause
-    _outdirs, _ = xr.broadcast(xr.DataArray(outdirs), inputs)
+    _outdirs, _ = xr.broadcast(xr.DataArray(outdirs), _inputs)
     _outdirs = reduce(paths_by_coords, coords.items(), _outdirs)
     return _inputs, _outdirs
 

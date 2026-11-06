@@ -99,7 +99,7 @@ def init() -> ACLUT:
         P.NWV: 0,
         P.WAVELENGTH_MICRON_REF: 0.870,
         P.CFILE_INSTRUMENT: "afinp.txt",
-        P.Aux_Dir: "Auxiliary_Files",
+        P.Aux_Dir: "Data",
         P.Atmos_Dir: "Gas_Absorption_Coefficients",
         P.Mie_Database_Dir: "",
         P.MIE_TABLE_CAL: 2,
