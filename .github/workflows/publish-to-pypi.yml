@@ -19,6 +19,7 @@ jobs:
         with:
           persist-credentials: false
           fetch-depth: ${{ github.event_name == 'release' && 1 || 0 }}
+          fetch-tags: true
       - name: Install Python
         uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0  # v7.1.0
         with:
