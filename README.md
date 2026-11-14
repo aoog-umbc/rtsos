@@ -157,6 +157,69 @@ scattering matrix of dust particles, the instrument response functions of ocean 
 instrument, HARP2, and SPEXone, and a number of other data files used in the PACE
 simulator.
 
+### 1.3 Ocean and Surface Models and Required Data
+
+`OCEAN_CASE_SELECT` selects the lower boundary and, for ocean cases, the water-body
+optical model. The text-input generator scripts call this setting
+`bottom_case_select[iocean]` or `bottom_case_select[icase]`.
+
+| Value | Model | Model-specific inputs and additional data |
+| --- | --- | --- |
+| `0` | Ocean interface with a black water body; no water-leaving contribution | Wind speed and ocean-interface settings; no mineral tables |
+| `1` | Chlorophyll-based Case 1 water | Chlorophyll, `ap_select`, and water-column settings; no mineral tables |
+| `2` | Chlorophyll-associated particles plus mineral sediment | Case 2 particle inputs and the two mineral tables below |
+| `3` | Seven-parameter ocean model | Chlorophyll plus six absorption/backscattering parameters; no mineral tables |
+| `-200` | Lambertian land reflection mixed with Fresnel specular reflection | Land spectral file containing albedo, Lambertian fraction, and refractive index |
+| `-201` | Modified Rahman–Pinty–Verstraete (mRPV) land reflection | Land spectral file with `pBRDFa`, `pBRDFk`, `pBRDFb`, `pBRDFe`, and refractive index |
+| `-202` | Snow reflection | Land spectral albedo file and `SnowBRDF_Data/brdfPaperMaterial/` auxiliary tables |
+| `-203` | Ross–Li land reflection with a polarized term | Land spectral file with `fiso`, `fvol`, `fgeo`, `Bpol`, and refractive index |
+
+All cases still use the standard RTSOS auxiliary data described above. Use the ocean
+text-input generator for `0`–`3`, and the separate land generator for `-200`–`-203`;
+their positional input layouts differ. The current Python wrapper writes ocean-format
+inputs and is not a land-input generator. See the
+[ocean and surface guide](Documentation/pace_ocean_optics.md#supported-ocean_case_select-values)
+for detailed options, parameter units, land-file columns, and interface limitations.
+
+#### Additional Mineral Data for Case 2
+
+`OCEAN_CASE_SELECT=2` now uses wavelength-dependent, absorbing mineral refractive
+indices for the suspended sediment component. Obtain these two additional files from
+[Zhang et al.'s dataset, version 1.3](https://zenodo.org/records/14171144):
+
+| Required file | Contents |
+| --- | --- |
+| `nall27_coarse.dat` | Absolute real refractive index, n |
+| `kall27_coarse.dat` | Nonnegative imaginary refractive index, k |
+
+Download both into the **same auxiliary `Data` directory used by the simulator**.
+From the directory containing your `Data` folder:
+
+```shell
+mkdir -p Data
+curl --fail --location --output Data/nall27_coarse.dat \
+  'https://zenodo.org/records/14171144/files/nall27_coarse.dat?download=1'
+curl --fail --location --output Data/kall27_coarse.dat \
+  'https://zenodo.org/records/14171144/files/kall27_coarse.dat?download=1'
+```
+
+Set `aux_dir` in the text-input generator, or `Aux_Dir` in the Python wrapper's
+NetCDF input, to this directory; an absolute path is recommended. Both tables are
+required for Case 2 initialization even when `sediment_concentration=0`. They are
+separate downloads from the main RTSOS auxiliary-data bundle; check for them after
+extracting an existing bundle.
+
+Use the **coarse** pair with their original filenames. Each file has 127 wavelength
+rows and 27 sample columns, without a wavelength column or header. The wavelength
+grid is embedded in the Fortran module, so no extra wavelength file is needed at
+runtime. The regional sample descriptions are supplied separately in
+[NewRegionalSamples.xlsx](https://zenodo.org/records/14171144/files/NewRegionalSamples.xlsx?download=1).
+
+The input is now `sediment_sample_num`, an **integer from 1 to 27**, replacing the
+old floating-point `sediment_index_refraction` input. Existing input files need to be
+regenerated or migrated. See the [ocean and surface guide](Documentation/pace_ocean_optics.md)
+for sample selection, checksums, input examples, model changes, and troubleshooting.
+
 ## 2. Usage
 
 The first of two ways to use RTSOS is with a single parameterization, given to the
@@ -188,6 +251,8 @@ ocean and the other for land surfaces, respectively, which are located in the
 
 For ocean simulations, ocean inherent optical properties are documented in Zhai et al.
 (2017, 2018, 2022).
+The current Case 2 implementation and changes since those publications are described
+in the [ocean and surface guide](Documentation/pace_ocean_optics.md).
 
 Study each file before you execute them. Most importantly, set `aux_dir` to the path
 ending in the `Data` folder and `gas_absorption_coeff_dir` to the path ending in the
@@ -314,12 +379,19 @@ for the NetCDF file where default parameter values will be written, the second a
 is a name for the NetCDF file where outputs will be stored. For example:
 
 ```shell
-(my-project) $ rtsos PACE_Simulator_DoubleK intputs.nc outputs.nc
+(my-project) $ rtsos PACE_Simulator_DoubleK inputs.nc outputs.nc
 ```
 
 If a file called `inputs.nc` already exists, then it will be read as a parameter file
-and not overwritten. To run the PACE simulator over non-default parameters, you must
-generate a suitable NetCDF parameter file as follows:
+and not overwritten.
+
+For Case 2 runs, obtain the [mineral refractive-index tables](#additional-mineral-data-for-case-2)
+and use an integer `sediment_sample_num` in the input dataset. The
+[migration instructions](Documentation/pace_ocean_optics.md#migrating-existing-inputs)
+explain how older inputs must change.
+
+To run the PACE simulator over non-default parameters, generate a suitable NetCDF
+parameter file as follows:
 
 1. Generate a template for the parameters over which you wish to run the PACE simulator.
    ```shell
@@ -349,7 +421,7 @@ generate a suitable NetCDF parameter file as follows:
       under `outputs/` with results from each job. Once all jobs are complete, use the
       `--combine` argument to combine those outputs into a single file.
       ```shell
-      (my-project) $ rtsos PACE_Simulator_DoubleK --combine=chla,tau_ref_hi intputs.nc outputs.nc
+      (my-project) $ rtsos PACE_Simulator_DoubleK --combine=chla,tau_ref_hi inputs.nc outputs.nc
       ```
 1. Reference `rtsos --help` for additional arguments, such as `--dry-run`.
 
