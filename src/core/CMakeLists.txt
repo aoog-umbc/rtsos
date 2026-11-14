@@ -12,6 +12,7 @@ add_library(core
     emis_sea.f90
     hdf5_utils.f90
     mathlib.f90
+    mineral_refractive_index.f90
     refwat1.f
     rt_single_scattering.f90
     rtsos_rao_dg.f90

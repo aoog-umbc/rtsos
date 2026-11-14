@@ -652,11 +652,12 @@ class Parameters:
             "dtype": np.float32,
         },
     )
-    sediment_index_refraction: Any = field(
+    sediment_sample_num: Any = field(
         default=None,
         metadata={
-            "comment": "used when ocean_case_select == 2",
-            "dtype": np.float32,
+            "comment": "mineral sample number in Zhang et al. (2024), used when ocean_case_select == 2",
+            "valid_range": np.array((1, 27), dtype=np.int32),
+            "dtype": np.int32,
         },
     )
     sediment_spectral_slope: Any = field(

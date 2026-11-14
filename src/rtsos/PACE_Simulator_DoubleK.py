@@ -47,7 +47,7 @@ def init() -> PACE:
         P.chla: [0.03, 0.3, 3, 10, 30],
         P.phytoplankton_index_refraction: 1.02,
         P.phytoplankton_spectral_slope: 3.0,
-        P.sediment_index_refraction: 1.2,
+        P.sediment_sample_num: 1,
         P.sediment_spectral_slope: 4.0,
         P.sediment_concentration: 0.0,
         P.adg440: 1.0,

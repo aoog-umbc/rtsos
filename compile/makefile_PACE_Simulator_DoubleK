@@ -12,7 +12,7 @@
 #  Contact: Pengwang Zhai  |  [pwzhai@gmail.com]
 # ===============================================================
 
-OBJ=mathlib.o hdf5_utils.o rttype_sos_rao_dg.o emis_sea.o SnowBRDF.o RossLiBRDF.o surface_glint.o Atmosphere_Profile.o Gas_Absorption_CS_Readin.o MAP_Instrument.o PACE_Instrument.o Save_Ocean_Rad.o rtsos_rao_dg.o rt_single_scattering.o bessel.o rtspecfunc.o spher.o bfit.o deltafit.o aerosol_microphysical_model.o WV_LBL_GRID.o PACE_MIE_PHMX_Init.o main_PACE_Simulator_DoubleK.o
+OBJ=mathlib.o hdf5_utils.o mineral_refractive_index.o rttype_sos_rao_dg.o emis_sea.o SnowBRDF.o RossLiBRDF.o surface_glint.o Atmosphere_Profile.o Gas_Absorption_CS_Readin.o MAP_Instrument.o PACE_Instrument.o Save_Ocean_Rad.o rtsos_rao_dg.o rt_single_scattering.o bessel.o rtspecfunc.o spher.o bfit.o deltafit.o aerosol_microphysical_model.o WV_LBL_GRID.o PACE_MIE_PHMX_Init.o main_PACE_Simulator_DoubleK.o
 
 F90=gfortran
 #F90=ifort
@@ -66,6 +66,9 @@ mathlib.o: $(DIRCore)/mathlib.f90
 hdf5_utils.o:  $(DIRCore)/hdf5_utils.f90
 	$(F90) -c $(FCFLAG) $(DEPFLAGS) $(LIBSHDF) $(DIRCore)/hdf5_utils.f90
 
+mineral_refractive_index.o:  $(DIRCore)/mineral_refractive_index.f90
+	$(F90) -c $(FCFLAG) $(DEPFLAGS) $(DIRCore)/mineral_refractive_index.f90
+	
 rttype_sos_rao_dg.o: $(DIRCore)/rttype_sos_rao_dg.f90
 	$(F90) -c $(FCFLAG) $(DEPFLAGS) $(DIRCore)/rttype_sos_rao_dg.f90
 

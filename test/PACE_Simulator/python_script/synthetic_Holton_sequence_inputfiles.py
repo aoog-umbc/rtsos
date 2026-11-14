@@ -23,7 +23,7 @@ def input_writer(filestrbase,chla,iaerosol,irh,theta0,tau_ref_hi):
     f.write("%f" % chla             + '        #CHLa \n')
     f.write("%f" % phytoplankton_index_refraction + '        #PHYTOPLANKTON_INDEX_REFRACTION \n')
     f.write("%f" % phytoplankton_spectral_slope + '        #PHYTOPLANKTON_SPECTRAL_SLOPE\n')
-    f.write("%f" % sediment_index_refraction + '        #SEDIMENT_INDEX_REFRACTION \n')
+    f.write("%d" % sediment_sample_num + '        #sediment_sample_num 1-27 \n')
     f.write("%f" % sediment_spectral_slope + '        #SEDIMENT_SPECTRAL_SLOPE \n')
     f.write("%f" % sediment_concentration + '        #SEDIMENT_CONCENTRATION \n')
     f.write("%f" % adg440 + '        #adg440 (1/m), range: 0.0:2.5 \n')
@@ -106,10 +106,14 @@ water_depth_max=200.0
 
 # the following parameters are used in bottom_case_select==2
 # chla, phytoplankton_index_refraction,phytoplankton_spectral_slope,
-#sediment_index_refraction,sediment_spectral_slope,sediment_concentration
+#sediment_sample_num,sediment_spectral_slope,sediment_concentration
 phytoplankton_index_refraction=1.02
 phytoplankton_spectral_slope=3.0
-sediment_index_refraction=1.2
+
+# sediment_sample_num between 1-27, see
+# Zhang et al. (2024), DOI:10.1029/2023JD040181.
+# Dataset version 1.3: https://zenodo.org/records/14171144
+sediment_sample_num=1
 sediment_spectral_slope=4.0
 sediment_concentration=0.0
 
