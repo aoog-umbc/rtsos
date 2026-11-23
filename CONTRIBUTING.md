@@ -121,8 +121,8 @@ site yet, so releasing takes only one maintainer action: creating the release on
 
 ### Create a GitHub Release
 
-Decide on the SemVer version number (denoted "<v>") and a corresponding title like
-"Release Version <v>", "Pre-release Version <v>", or "Release Candidate <v>". [Create a
+Decide on the SemVer version number (denoted "\<v\>") and a corresponding title like
+"Release Version \<v\>", "Pre-release Version \<v\>", or "Release Candidate \<v\>". [Create a
 new release on GitHub](../../releases/new) from the "main" branch and create a tag like
 `v#.#.#` for the major, minor, and patch version numbers. For a pre-release, include a
 well-known suffix and use an upcoming version number (e.g. `v2.0.0-alpha2`,
