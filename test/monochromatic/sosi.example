@@ -9,6 +9,7 @@
 40          30    60                                # NCOL, NQUADA,# NQUADO
 1           3      3                                #nummie,MAXLORD,MAXMORD
 RayDepol0.pmtx
+0.5         0.8660254
 
 L60gamma_a1.05b1.00Wv0.78.pmtx
 lognormalAA0p3BB0p8464.pmtx
@@ -16,9 +17,14 @@ lognormalAA0p3BB0p8464.pmtx
 -101        7.0        1.34      0.0    0.0  0.0  0.0      #water interface bottom, windspeed, re(mwater), im(mwater),glint_flag,RSR0P,blank number
 -102        7.0        1.34      0.0    0.0  0.0  0.0      #water interface bottom, windspeed, re(mwater), im(mwater),glint_flag,temperature,emissivity
 
+# if ipt==-100, 101, or -102, rtsos will read an addition line after the last phase matrix file name, which contains two numbers, first is
+# wind_x=cos(theta_w), wind_y=sin(theta_w), where \theta_{w} is the angle between the wind vector and the positive x-axis.
+# if wind_x^2+wind_y^2 =0.0d0 or the line is absent, rtsos falls back to isotropic Gaussian
+
+
 -201        1.0        1.0       1.5    0.0  0.0  0.0     #polarized bottom, pBRDFa,pBRDFk,pBRDFb,pBRDFe,NMBRE,NMBIM
 -202        0.99       0.0       0.0    0.0  0.0  0.0     #snow surface albedo, blank, blank, blank, blank, blank
-/Users/pwzhai/Research/RT/DSCOVR/SnowBRDF_Data/brdfPaperMaterial/  #snow brdf file path
+/Users/pwzhai/Research/RT/DSCOVR/SnowBRDF_Data/brdfPaperMaterial/  #snow brdf file path, put this below the last phase matrix file names. see sosi.snow.example
 
 -203        0.99       0.0       0.0    0.0  0.0  0.0     #Ross-Li, fiso, fvol, fgeo, blank, blank, blank
 -203        0.0399  0.0245  0.0072    0.1  1.5  0.0     #Ross-Li, fiso, fvol, fgeo, Bpol, NMBRE,NMBIM

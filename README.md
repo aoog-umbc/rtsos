@@ -232,8 +232,8 @@ in a single NetCDF file. You can do this if you used the second installation opt
 
 ### 2.1A Binary Executables
 
-For monochromatic simulation, users are referred to the documentation located at
-"Documentation/Describtion_of_input_files/SOS_io.pdf" in the source code repository.
+For monochromatic simulations, see the
+[input and output guide](Documentation/SOS_io.md).
 
 ### 2.1A.1 PACE Simulator
 
