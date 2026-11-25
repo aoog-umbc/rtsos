@@ -20,6 +20,17 @@ SUBROUTINE CHECK_HDF5(HDFERR, OPERATION, OBJECT_NAME)
   END IF
 END SUBROUTINE CHECK_HDF5
 
+SUBROUTINE write_string_attribute(file, object_name, name, value)
+  USE H5LT, ONLY : h5ltset_attribute_string_f
+  IMPLICIT NONE
+  INTEGER(HID_T), INTENT(IN) :: file
+  CHARACTER(LEN=*), INTENT(IN) :: object_name,name,value
+  INTEGER :: hdferr
+
+  CALL h5ltset_attribute_string_f(file,object_name,name,value,hdferr)
+  CALL CHECK_HDF5(hdferr,'write string attribute '//TRIM(name),object_name)
+END SUBROUTINE write_string_attribute
+
 subroutine create_dim_scale(file, name, values, dset_id)
   use hdf5
   implicit none

@@ -190,6 +190,130 @@ even for land runs. The mineral pair is an additional requirement only for Case 
 For ocean cases, `SUN_GLINT_FLAG=0` includes glint and `1` disables it. For all cases,
 `ATMOS_ZERO=1` removes the atmospheric contribution, whereas the default `0` retains it.
 
+## Optional wind direction
+
+PACE ocean cases `0`, `1`, `2`, and `3` accept an optional line after the output
+filename, at the end of the positional text input:
+
+```text
+output_scene.h5
+0.5 0.8660254  # wind direction cosines
+```
+
+The first input line still specifies wind speed in m/s. The optional pair is
+`wind_x = cos(theta_w)`, `wind_y = sin(theta_w)`, with a unit norm. `theta_w` is the
+direction **toward which** the wind blows, in degrees counterclockwise viewed from
+above, measured from viewing azimuth zero on the solar-glint side of the principal
+plane. These are dimensionless direction cosines, not east/north velocity components.
+
+The reader follows the monochromatic executable's behavior: EOF retains isotropy;
+blank and comment-only lines are skipped; `#` and `!` start comments. A nonnumeric
+first meaningful line retains isotropy and ends the search. A finite vector whose
+norm differs from 1 by more than `1e-6` is reported and ignored. Accepted vectors
+are normalized to remove rounding errors. Parsed NaN/Inf components and read errors
+other than EOF stop the program. Land cases ignore the optional wind trailer.
+
+The direction is initialized once and reused across excitation wavelengths and all
+output-wavelength calls. With the default Cox-Munk roughness parameterization, it
+selects the existing non-Gaussian **direct solar reflection** routine. Diffuse
+reflection, interface transmission, Smith shadowing, and water-column source
+calculations retain their isotropic treatments. Wind speeds below 0.5 m/s select
+flat water, and disabling sun glint disables the directional reflected contribution.
+
+The viewing-azimuth grid remains 0-180 degrees for compatibility. For arbitrary
+wind directions, do not reconstruct the other half-plane by the usual fixed-wind
+mirror symmetry.
+
+### Standalone input generators
+
+In `test/PACE_Simulator/python_script/`, both
+`pace_simulator_twolayer_inputfile_ocean.py` and
+`synthetic_Holton_sequence_inputfiles.py` now provide:
+
+```python
+wind_vector = None  # e.g. (0.5, 0.8660254)
+```
+
+`None` preserves the existing input layout and filenames. Set a two-component tuple
+to append the wind line. Directional filenames include `_wind_<x>_<y>` so they are
+distinct from the corresponding isotropic run. The Halton sequence still samples
+its original five parameters; `wind_vector` is a configurable setting shared by
+that generated batch.
+
+### Python wrapper
+
+The `rtsos PACE_Simulator_DoubleK` wrapper starts from a NetCDF input dataset, writes
+a text input for each parameter combination, runs the executable, and combines the
+HDF5 results. It exposes wind direction as a single coordinate, `Wind_Direction`,
+in degrees, and converts it into the required cosine/sine pair after `OUTFILE`.
+The default is NaN, which omits the wind line. Existing NetCDF inputs without this
+coordinate are also supported. Infinite angles are rejected; finite angles are
+wrapped into `[0,360)`. Land runs omit the wind trailer.
+
+For example, create defaults, then enable a single wind direction:
+
+```sh
+rtsos PACE_Simulator_DoubleK --pre pace_defaults.nc
+```
+
+```python
+import xarray as xr
+
+ds = xr.load_dataset("pace_defaults.nc")
+ds["Wind_Direction"][()] = 60.0
+# Configure Aux_Dir, Atmos_Dir, and other simulation settings as usual.
+ds.to_netcdf("pace_wind.nc")
+```
+
+```sh
+rtsos PACE_Simulator_DoubleK pace_wind.nc pace_output.nc
+```
+
+To sweep several directions, replace the scalar coordinate with:
+
+```python
+direction_attrs = ds["Wind_Direction"].attrs.copy()
+ds = ds.assign_coords(Wind_Direction=xr.DataArray(
+    [0.0, 60.0, 270.0], dims="Wind_Direction", attrs=direction_attrs,
+))
+```
+
+The wrapper writes a separate valid unit vector and a distinct temporary output
+name for each direction. Avoid treating the x and y components as independent
+sweep coordinates, which would create non-unit combinations. The Fortran output
+uses `Wind_Direction_Used` for the accepted angle, so input/output comparisons do
+not confuse the requested angle with its wrapped or normalized representation.
+
+### Wind metadata in HDF5 output
+
+The existing `Wind_Speed` dataset is retained. New scalar datasets are:
+
+| Dataset | Meaning |
+| --- | --- |
+| `Wind_Vector_Present` | `1` if the direction was accepted; otherwise `0`. |
+| `Wind_X`, `Wind_Y` | Accepted, normalized direction cosines; both zero when unspecified. |
+| `Wind_Direction_Used` | Accepted angle in `[0,360)` degrees; `-999` when unspecified. |
+| `Wind_Direction_Active` | `1` if directional direct solar reflection is enabled; `0` for isotropic, flat, land, or glint-disabled cases. |
+| `Water_Surface_Model` | `-1`: non-ocean; `0`: flat; `1`: isotropic Gaussian; `2`: directional Cox-Munk direct solar reflection. |
+
+Descriptions, angle units, model codes, and the direct-reflection scope are attached
+as HDF5 attributes. An accepted vector may be present while inactive, for example
+with flat water or sun glint disabled.
+
+### Regression checks
+
+From the repository root, run the wrapper and input-generator checks with:
+
+```sh
+PYTHONPATH=src python -m pytest src/checks/test_pace_wind.py
+```
+
+For executable/HDF5 checks, also set `RTSOS_PACE_EXECUTABLE` to the rebuilt PACE
+executable, `RTSOS_DATA_DIR` to the extracted Data directory, and `RTSOS_GAS_DIR`
+to the gas/profile directory. Optionally set `RTSOS_PACE_BASELINE` to an older
+executable to check that existing output datasets are unchanged when wind direction
+is omitted. All simulation inputs and outputs are generated in temporary directories.
+
 ## Required data and provenance
 
 First obtain the main RTSOS auxiliary data as described in the

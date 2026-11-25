@@ -12,6 +12,11 @@
 #  Contact: Pengwang Zhai  |  [pwzhai@gmail.com]
 # ===============================================================
 
+import math
+from pathlib import Path
+
+import xarray as xr
+
 from .core import Program
 from .parameters import Parameters as P
 
@@ -23,6 +28,32 @@ class PACE(Program):
         self.program = __name__.replace(".", "_")
         super().__init__(*args, **kwargs)
 
+    def infile(self, path: Path, dataset: xr.Dataset) -> tuple[Path, Path]:
+        """Append optional wind direction after the output filename.
+
+        Wind_Direction is a sweep coordinate, in degrees counterclockwise from
+        viewing azimuth zero, pointing toward where the wind blows. Keeping it
+        in dataset also makes the output filename distinct for each direction.
+        """
+        direction = dataset.get(P.Wind_Direction.__name__)
+        wind_vector = None
+        if direction is not None and dataset[P.OCEAN_CASE_SELECT.__name__].item() >= 0:
+            angle = float(direction.item())
+            if not math.isnan(angle):
+                if not math.isfinite(angle):
+                    raise ValueError("Wind_Direction must be finite, or NaN to omit it")
+                angle = math.radians(angle % 360.0)
+                wind_vector = math.cos(angle), math.sin(angle)
+
+        infile, outfile = super().infile(path, dataset)
+        if wind_vector is not None:
+            with (path / infile).open("a") as stream:
+                stream.write(
+                    f"{wind_vector[0]:.17g} {wind_vector[1]:.17g}"
+                    "  # wind direction cosines (blows toward)\n"
+                )
+        return infile, outfile
+
 
 def init() -> PACE:
     """Prepare subclass for execution defaults"""
@@ -30,6 +61,7 @@ def init() -> PACE:
     # values to write, in the order below, to the input file
     values = {
         P.Wind_Speed: 5.0,
+        P.Wind_Direction: float("nan"),
         P.Solar_Zenith_Angle: [20.0, 60.0],
         P.wv_pace_ref: 532.0,
         P.tau_ref_hi: [0.1, 0.3],
@@ -93,4 +125,8 @@ def init() -> PACE:
     dataset = params.make_dataset(values)
 
     # the callable object that runs the given program
-    return PACE(defaults=dataset, params=tuple(values))
+    # Wind_Direction is serialized as a pair after OUTFILE, not a positional row.
+    return PACE(
+        defaults=dataset,
+        params=tuple(key for key in values if key is not P.Wind_Direction),
+    )

@@ -722,6 +722,20 @@ class Parameters:
             "dtype": np.float32,
         },
     )
+    Wind_Direction: Any = field(
+        default=None,
+        metadata={
+            "long_name": "Wind direction toward which the wind blows",
+            "units": "degrees",
+            "comment": (
+                "Counterclockwise viewed from above, from viewing azimuth zero "
+                "on the solar-glint side of the principal plane. Finite angles "
+                "are wrapped to [0,360); NaN omits the optional wind-vector line "
+                "and retains the isotropic surface. PACE ocean cases only."
+            ),
+            "dtype": np.float64,
+        },
+    )
     Wind_Speed: Any = field(
         default=None,
         metadata={

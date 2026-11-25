@@ -297,6 +297,7 @@ DFUNCALPHA_VAL= (EXPOFAC+1)*(DK(2)+ALPHA_VAL)**EXPOFAC-(DK(3)+ALPHA_VAL)**EXPOFA
 END SUBROUTINE SUB_ALPHA
 
 PROGRAM SOSINT
+USE, INTRINSIC :: IEEE_ARITHMETIC, ONLY : IEEE_IS_FINITE,IEEE_VALUE,IEEE_QUIET_NAN
 USE ATMOS_CONFIGURATION_DIRECTORY
 USE GLOBAL_DATA
 USE MIE_PHMX_PACE
@@ -305,7 +306,8 @@ USE FLUORESCENCEDATA
 USE SAVE_OCEAN_MOD
 USE IRRADSUNL
 USE RTUTILITY, ONLY : PI,FACTOR,NUMMIEANGMAX,PSEUDO_SPHERICAL_SHELL,&
-                      SPHERICAL_SHELL_SINGLESCATTERING_CORRECTION
+                      SPHERICAL_SHELL_SINGLESCATTERING_CORRECTION, &
+                      WIND_VECTOR_PRESENT,WIND_X,WIND_Y
 USE Atmosphere_Profile
 USE PACE_INSTRUMENT_DESIGN
 USE DOUBLEKPARA
@@ -416,6 +418,10 @@ CHARACTER(LEN=360),DIMENSION(NUMMIEUSE) ::CFILE_AEROSOLS
 INTEGER :: NARGS,IARGC
 CHARACTER(LEN=360) :: INFILE   ! Modification for scripting (MJG)
 CHARACTER(LEN=360) :: OUTFILE  ! Modification for scripting (MJG)
+CHARACTER(LEN=360) :: WIND_LINE
+INTEGER :: WIND_IOSTAT,WIND_COMMENT_POS
+DOUBLE PRECISION :: WIND_DIRECTION_NORM
+DOUBLE PRECISION,PARAMETER :: WIND_NORM_TOL=1.0D-6
 ! Read inputs from the command line
 NARGS = IARGC()
 IF(NARGS.LT.1) THEN
@@ -586,6 +592,49 @@ READ(1,'(A)')CFILE_AEROSOLS(2) ! AEROSOL PHASE MATRIX FILE top layer
 IF(OCEAN_CASE_SELECT < 0) READ(1,'(A)')land_ref_spectra_filename  !land surface reflectance filename
 
 READ(1,'(A)')OUTFILE
+! Same optional direction-cosine convention and validation as monochromatic RTSOS.
+! Set the direction once, before all excitation and output-wavelength RTSOS calls.
+WIND_VECTOR_PRESENT=.FALSE.
+WIND_X=0.0D0
+WIND_Y=0.0D0
+IF(OCEAN_CASE_SELECT>=0)THEN
+    DO
+        READ(1,'(A)',IOSTAT=WIND_IOSTAT)WIND_LINE
+        IF(IS_IOSTAT_END(WIND_IOSTAT))EXIT
+        IF(WIND_IOSTAT/=0)ERROR STOP 'Cannot read optional wind-direction line'
+        WIND_COMMENT_POS=SCAN(WIND_LINE,'#!')
+        IF(WIND_COMMENT_POS>0)WIND_LINE=WIND_LINE(:WIND_COMMENT_POS-1)
+        IF(VERIFY(WIND_LINE,' '//ACHAR(9))==0)CYCLE
+
+        WIND_X=IEEE_VALUE(0.0D0,IEEE_QUIET_NAN)
+        WIND_Y=WIND_X
+        READ(WIND_LINE,*,IOSTAT=WIND_IOSTAT)WIND_X,WIND_Y
+        IF(WIND_IOSTAT/=0)THEN
+            WIND_X=0.0D0
+            WIND_Y=0.0D0
+            WRITE(*,*)'Optional wind direction not found; using isotropic surface'
+            EXIT
+        ENDIF
+        IF(.NOT.IEEE_IS_FINITE(WIND_X) .OR. .NOT.IEEE_IS_FINITE(WIND_Y)) &
+            ERROR STOP 'Wind-direction components must be finite numbers'
+        WIND_DIRECTION_NORM=NORM2((/WIND_X,WIND_Y/))
+        IF(.NOT.IEEE_IS_FINITE(WIND_DIRECTION_NORM)) &
+            ERROR STOP 'Wind direction must have a finite magnitude'
+        IF(ABS(WIND_DIRECTION_NORM-1.0D0)>WIND_NORM_TOL)THEN
+            WRITE(*,'("WARNING: wind-vector norm=",ES16.8,"; expected 1 within ",ES10.2)') &
+                WIND_DIRECTION_NORM,WIND_NORM_TOL
+            WRITE(*,'("Ignoring WIND_X,WIND_Y=",2(1X,ES16.8),"; using isotropic Gaussian surface")') &
+                WIND_X,WIND_Y
+            WIND_X=0.0D0
+            WIND_Y=0.0D0
+            EXIT
+        ENDIF
+        WIND_X=WIND_X/WIND_DIRECTION_NORM
+        WIND_Y=WIND_Y/WIND_DIRECTION_NORM
+        WIND_VECTOR_PRESENT=.TRUE.
+        EXIT
+    ENDDO
+ENDIF
 CLOSE(1)
 
 IF(index(aux_dir,'#')>1) &
@@ -634,6 +683,12 @@ IF(WV_SEG_FLAG<0 .OR. WV_SEG_FLAG>4) STOP 'CHECK WV_SEG_FLAG INPUT'
 
 IF(OCEAN_CASE_SELECT>=0)THEN
 	write(*,*)'Wind speed=',WNDSPD
+    WRITE(*,'("WIND_VECTOR_PRESENT=",L1)')WIND_VECTOR_PRESENT
+    IF(WIND_VECTOR_PRESENT)THEN
+        WRITE(*,'("WIND_X,WIND_Y (DIRECTION COSINES)=",2(1X,ES16.8))')WIND_X,WIND_Y
+        WRITE(*,'("THETA_W (DEG, BLOWS TOWARD, CCW FROM PHI=0)=",F12.6)') &
+            MODULO(ATAN2(WIND_Y,WIND_X)/FACTOR,360.0D0)
+    ENDIF
 	write(*,*)'Chlorophyll a concentration=',CHLa
 	write(*,*)'PHYTOPLANKTON_INDEX_REFRACTION=',PHYTOPLANKTON_INDEX_REFRACTION
 	write(*,*)'PHYTOPLANKTON_SPECTRAL_SLOPE=',PHYTOPLANKTON_SPECTRAL_SLOPE
@@ -1572,6 +1627,7 @@ USE SAVE_OCEAN_MOD,only:WATER_DEPTH,NWATER_DEPTH,IPAR_SCALAR,DIIRAD_SCALAR_AGD,&
                         CHLA_VERTICAL_PROFILE,QUANTUM_YIELD_CHLA_PROFILE
 USE FLUORESCENCEDATA
 USE MIE_PHMX_PACE,ONLY : BBFRAC_Plankton_BAND,BBFRAC_Mineral_BAND,PHMX_Init_Flag
+USE RTUTILITY, ONLY : WIND_VECTOR_PRESENT,WIND_X,WIND_Y,FLATO,I_SURFACE_ROUGHNESS_PARA
 USE HDF5
 USE H5DS
 USE hdf5_utils
@@ -1581,6 +1637,8 @@ IMPLICIT none
 CHARACTER*360 :: CFILE1
 INTEGER,INTENT(IN) :: NWV_BAND_CAL,IAEROSOL
 INTEGER :: NTHETAOUT,NPHIOUT,NTLYERA,N_Stokes_Parameter,ICOM
+INTEGER :: WIND_SURFACE_MODEL,WIND_DIRECTION_ACTIVE
+DOUBLE PRECISION :: WIND_THETA_DEG
 
 DOUBLE PRECISION,DIMENSION(NWV_BAND_CAL) :: WAVELENGTH_Table_Save
 DOUBLE PRECISION,DIMENSION(NWV_BAND_CAL,NTLYERA) ::TAU_ARSL_Ext_Save,TAU_ARSL_Scat_Save, &
@@ -2078,6 +2136,46 @@ ENDIF
 
 CALL write_scalar_real(file, 'Relative_Humidity',real(RH_simu))
 CALL write_scalar_real(file, 'Wind_Speed',real(WNDSPD))
+
+! Wind direction is shared across wavelengths. Model codes describe the boundary;
+! the active flag also accounts for whether the direct solar glint is enabled.
+WIND_SURFACE_MODEL=-1
+WIND_DIRECTION_ACTIVE=0
+WIND_THETA_DEG=-999.0D0
+IF(WIND_VECTOR_PRESENT)WIND_THETA_DEG=MODULO(ATAN2(WIND_Y,WIND_X)*180.0D0/PI,360.0D0)
+IF(OCEAN_CASE_SELECT>=0)THEN
+    IF(FLATO)THEN
+        WIND_SURFACE_MODEL=0
+    ELSEIF(WIND_VECTOR_PRESENT .AND. I_SURFACE_ROUGHNESS_PARA==1)THEN
+        WIND_SURFACE_MODEL=2
+    ELSE
+        WIND_SURFACE_MODEL=1
+    ENDIF
+    IF(WIND_SURFACE_MODEL==2 .AND. SUNGLINT_INPUT)WIND_DIRECTION_ACTIVE=1
+ENDIF
+CALL write_scalar_int(file, 'Wind_Vector_Present',MERGE(1,0,WIND_VECTOR_PRESENT))
+CALL write_scalar_real(file, 'Wind_X',REAL(WIND_X))
+CALL write_scalar_real(file, 'Wind_Y',REAL(WIND_Y))
+! The input wrapper uses Wind_Direction; this separate name records the used angle
+! without conflicting with its requested angle during NetCDF parameter sweeps.
+CALL write_scalar_real(file, 'Wind_Direction_Used',REAL(WIND_THETA_DEG))
+CALL write_scalar_int(file, 'Wind_Direction_Active',WIND_DIRECTION_ACTIVE)
+CALL write_scalar_int(file, 'Water_Surface_Model',WIND_SURFACE_MODEL)
+CALL write_string_attribute(file, 'Wind_Vector_Present', 'description', &
+    '1=accepted unit direction; 0=unspecified, rejected, or non-ocean surface')
+CALL write_string_attribute(file, 'Wind_X', 'description', &
+    'Dimensionless accepted x direction cosine; 0 when Wind_Vector_Present=0')
+CALL write_string_attribute(file, 'Wind_Y', 'description', &
+    'Dimensionless accepted y direction cosine; 0 when Wind_Vector_Present=0')
+CALL write_string_attribute(file, 'Wind_Direction_Used', 'units', 'degrees')
+CALL write_string_attribute(file, 'Wind_Direction_Used', 'description', &
+    'Blows toward, counterclockwise viewed from above, from viewing azimuth zero; -999=unspecified')
+CALL write_string_attribute(file, 'Wind_Direction_Active', 'description', &
+    '1=directional Cox-Munk direct solar glint enabled; 0=inactive')
+CALL write_string_attribute(file, 'Water_Surface_Model', 'codes', &
+    '-1=non-ocean; 0=flat; 1=isotropic Gaussian; 2=directional Cox-Munk direct solar reflection')
+CALL write_string_attribute(file, 'Water_Surface_Model', 'scope', &
+    'Wind direction changes direct solar reflection; diffuse reflection, transmission and shadowing remain isotropic')
 
 CALL create_dim_scale(file, 'WaveLength_PACE', real(WV_BAND), c_dim_nwv_band)
 
@@ -4152,7 +4250,10 @@ ELSE IF(OCEAN_CASE_SELECT==3)THEN
    CPTCLOCAL=BPTCLOCAL+APTCLOCAL
 ENDIF
 
-IF(OCEAN_CASE_SELECT > 0 .and. (BPTCLOCAL<=0.0D0 .or. BBPTCLOCAL > BPTCLOCAL)) THEN
+! Case 0 assigns these coefficients below. Fortran need not short-circuit .AND.,
+! so guard the comparison separately to avoid reading undefined coefficients.
+IF(OCEAN_CASE_SELECT > 0)THEN
+IF(BPTCLOCAL<=0.0D0 .or. BBPTCLOCAL > BPTCLOCAL) THEN
     WRITE(*,*)'WARNING CPTCLOCAL<APTCLOCAL or BPTCLOCAL<BBPTCLOCAL'
     WRITE(*,*)'CPTCLOCAL,APTCLOCAL=',CPTCLOCAL,APTCLOCAL
     WRITE(*,*)'Seting BPTCLOCAL=0.0'
@@ -4160,6 +4261,7 @@ IF(OCEAN_CASE_SELECT > 0 .and. (BPTCLOCAL<=0.0D0 .or. BBPTCLOCAL > BPTCLOCAL)) T
     BPTCLOCAL=0.0d0
     BBPTCLOCAL=0.0d0
     BBPTCfracLOCAL=0.01d0
+ENDIF
 ENDIF
 
 

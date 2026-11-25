@@ -253,6 +253,8 @@ For ocean simulations, ocean inherent optical properties are documented in Zhai 
 (2017, 2018, 2022).
 The current Case 2 implementation and changes since those publications are described
 in the [ocean and surface guide](Documentation/pace_ocean_optics.md).
+Optional wind-direction input, Python-wrapper controls, and HDF5 metadata are
+described in its [wind-direction section](Documentation/pace_ocean_optics.md#optional-wind-direction).
 
 Study each file before you execute them. Most importantly, set `aux_dir` to the path
 ending in the `Data` folder and `gas_absorption_coeff_dir` to the path ending in the

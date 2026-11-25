@@ -17,6 +17,10 @@ import random
 import sys
 
 def ocean_input_writer(filestrbase,ipss,iocean):
+    # Distinguish directional runs while preserving legacy names when omitted.
+    if wind_vector is not None:
+        wind_x, wind_y = wind_vector
+        filestrbase += f'_wind_{wind_x:.8g}_{wind_y:.8g}'
     fileinput='input_ps_'+filestrbase
     f = open(fileinput, 'w')
     f.write("%f" % wndspd + '        #wind speed \n')
@@ -77,13 +81,21 @@ def ocean_input_writer(filestrbase,ipss,iocean):
     f.write("%s" % aerosol_phasematrix_file_hi +'\n')
     f.write("%s" % aerosol_phasematrix_file_low +'\n')
     f.write("%s" % 'output_ps_' + filestrbase+'\n')
-    f.close
+    if wind_vector is not None:
+        f.write(f'{wind_x:.16g} {wind_y:.16g}  # wind direction cosines\n')
+    f.close()
 
 
 RH=np.array([0.30,0.50,0.70,0.75,0.80,0.85,0.90,0.95])
 
 irh=5
 wndspd=0.5
+
+# None keeps the isotropic Gaussian surface. Otherwise supply a unit vector.
+# Example: (0.5, 0.8660254) blows toward azimuth 60 degrees, counterclockwise
+# from viewing azimuth zero (the glint half-plane), viewed from above.
+# Wind speed remains wndspd in m/s; these components are dimensionless.
+wind_vector = None  # e.g. (0.5, 0.8660254)
 
 #theta0 is the solar zenith angle in degrees.
 theta0=45.0

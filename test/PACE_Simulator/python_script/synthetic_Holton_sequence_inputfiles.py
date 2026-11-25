@@ -3,6 +3,10 @@ import random
 import sys
 
 def input_writer(filestrbase,chla,iaerosol,irh,theta0,tau_ref_hi):
+    # Distinguish directional runs while preserving legacy names when omitted.
+    if wind_vector is not None:
+        wind_x, wind_y = wind_vector
+        filestrbase += f'_wind_{wind_x:.8g}_{wind_y:.8g}'
     fileinput='input_ps_'+filestrbase
     f = open(fileinput, 'w')
     f.write("%f" % wndspd + '        #wind speed \n')
@@ -63,7 +67,9 @@ def input_writer(filestrbase,chla,iaerosol,irh,theta0,tau_ref_hi):
     f.write("%s" % aerosol_phasematrix_file_hi +'\n')
     f.write("%s" % aerosol_phasematrix_file_low +'\n')
     f.write("%s" % 'output_ps_' + filestrbase+'\n')
-    f.close
+    if wind_vector is not None:
+        f.write(f'{wind_x:.16g} {wind_y:.16g}  # wind direction cosines\n')
+    f.close()
 
 
 #tau_ref_hi=0.05
@@ -100,6 +106,12 @@ AeroFMF=random.random()
 bottom_case_select=np.array([0,1,-203])
 iocean=1
 wndspd=5.0
+
+# None keeps the isotropic Gaussian surface. Otherwise supply a unit vector.
+# Example: (0.5, 0.8660254) blows toward azimuth 60 degrees, counterclockwise
+# from viewing azimuth zero (the glint half-plane), viewed from above.
+# Wind speed remains wndspd in m/s; these components are dimensionless.
+wind_vector = None  # e.g. (0.5, 0.8660254)
 albedo_ground=0.3
 water_depth_max=200.0
 
