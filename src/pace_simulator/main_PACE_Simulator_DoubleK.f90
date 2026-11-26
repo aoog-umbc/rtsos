@@ -816,9 +816,12 @@ finish_time = time_array_1 (5) * 3600 + time_array_1 (6) * 60 &
 write(*,*)'ABS_COEFF_INIT elapsed time =', finish_time-start_time
 
 ! ASSIGN RTSOS PARAMETERS
-
+! With an accepted wind vector, double the input count and sample [0,360)
+! without duplicating azimuth zero at 360 degrees. Without a vector, retain
+! the input count on [0,180], including both endpoints (or just 0 for count 1).
+IF(WIND_VECTOR_PRESENT)NPHIOUT=2*NPHIOUT
 ALLOCATE(MUOUT(NTHETAOUT),PHIOUT(NPHIOUT))
-CALL MUPHIOUTASS(NTHETAOUT,NPHIOUT,MUOUT,PHIOUT)
+CALL MUPHIOUTASS(WIND_VECTOR_PRESENT,NTHETAOUT,NPHIOUT,MUOUT,PHIOUT)
 
 MAXLORDINPUT=NQUADAINPUT
 nmbre_local=1.5
@@ -1627,7 +1630,8 @@ USE SAVE_OCEAN_MOD,only:WATER_DEPTH,NWATER_DEPTH,IPAR_SCALAR,DIIRAD_SCALAR_AGD,&
                         CHLA_VERTICAL_PROFILE,QUANTUM_YIELD_CHLA_PROFILE
 USE FLUORESCENCEDATA
 USE MIE_PHMX_PACE,ONLY : BBFRAC_Plankton_BAND,BBFRAC_Mineral_BAND,PHMX_Init_Flag
-USE RTUTILITY, ONLY : WIND_VECTOR_PRESENT,WIND_X,WIND_Y,FLATO,I_SURFACE_ROUGHNESS_PARA
+USE RTUTILITY, ONLY : WIND_VECTOR_PRESENT,WIND_X,WIND_Y,FLATO,I_SURFACE_ROUGHNESS_PARA, &
+                     RT_WIND_SPEED => WNDSPD
 USE HDF5
 USE H5DS
 USE hdf5_utils
@@ -1637,7 +1641,7 @@ IMPLICIT none
 CHARACTER*360 :: CFILE1
 INTEGER,INTENT(IN) :: NWV_BAND_CAL,IAEROSOL
 INTEGER :: NTHETAOUT,NPHIOUT,NTLYERA,N_Stokes_Parameter,ICOM
-INTEGER :: WIND_SURFACE_MODEL,WIND_DIRECTION_ACTIVE
+INTEGER :: WIND_SURFACE_MODEL,MS_SURFACE_MODEL,WIND_DIRECTION_ACTIVE
 DOUBLE PRECISION :: WIND_THETA_DEG
 
 DOUBLE PRECISION,DIMENSION(NWV_BAND_CAL) :: WAVELENGTH_Table_Save
@@ -2137,20 +2141,23 @@ ENDIF
 CALL write_scalar_real(file, 'Relative_Humidity',real(RH_simu))
 CALL write_scalar_real(file, 'Wind_Speed',real(WNDSPD))
 
-! Wind direction is shared across wavelengths. Model codes describe the boundary;
-! the active flag also accounts for whether the direct solar glint is enabled.
+! Record the direct-radiance and multiple-scattering surface models separately.
+! Match RADACMDRCT/RADOCMDRCT's 1e-6 m/s direct-beam threshold, using the
+! core's actual wind speed. FLATO still selects the multiple-scattering model.
 WIND_SURFACE_MODEL=-1
+MS_SURFACE_MODEL=-1
 WIND_DIRECTION_ACTIVE=0
 WIND_THETA_DEG=-999.0D0
 IF(WIND_VECTOR_PRESENT)WIND_THETA_DEG=MODULO(ATAN2(WIND_Y,WIND_X)*180.0D0/PI,360.0D0)
 IF(OCEAN_CASE_SELECT>=0)THEN
-    IF(FLATO)THEN
+    IF(RT_WIND_SPEED<1.0D-6)THEN
         WIND_SURFACE_MODEL=0
     ELSEIF(WIND_VECTOR_PRESENT .AND. I_SURFACE_ROUGHNESS_PARA==1)THEN
         WIND_SURFACE_MODEL=2
     ELSE
         WIND_SURFACE_MODEL=1
     ENDIF
+    MS_SURFACE_MODEL=MERGE(0,1,FLATO)
     IF(WIND_SURFACE_MODEL==2 .AND. SUNGLINT_INPUT)WIND_DIRECTION_ACTIVE=1
 ENDIF
 CALL write_scalar_int(file, 'Wind_Vector_Present',MERGE(1,0,WIND_VECTOR_PRESENT))
@@ -2161,6 +2168,7 @@ CALL write_scalar_real(file, 'Wind_Y',REAL(WIND_Y))
 CALL write_scalar_real(file, 'Wind_Direction_Used',REAL(WIND_THETA_DEG))
 CALL write_scalar_int(file, 'Wind_Direction_Active',WIND_DIRECTION_ACTIVE)
 CALL write_scalar_int(file, 'Water_Surface_Model',WIND_SURFACE_MODEL)
+CALL write_scalar_int(file, 'Multiple_Scattering_Surface_Model',MS_SURFACE_MODEL)
 CALL write_string_attribute(file, 'Wind_Vector_Present', 'description', &
     '1=accepted unit direction; 0=unspecified, rejected, or non-ocean surface')
 CALL write_string_attribute(file, 'Wind_X', 'description', &
@@ -2171,11 +2179,19 @@ CALL write_string_attribute(file, 'Wind_Direction_Used', 'units', 'degrees')
 CALL write_string_attribute(file, 'Wind_Direction_Used', 'description', &
     'Blows toward, counterclockwise viewed from above, from viewing azimuth zero; -999=unspecified')
 CALL write_string_attribute(file, 'Wind_Direction_Active', 'description', &
-    '1=directional Cox-Munk direct solar glint enabled; 0=inactive')
+    '1=directional Cox-Munk direct solar reflection/transmission enabled; '// &
+    'requires core wind speed >=1e-6 m/s and sun glint enabled, independently of FLATO')
 CALL write_string_attribute(file, 'Water_Surface_Model', 'codes', &
-    '-1=non-ocean; 0=flat; 1=isotropic Gaussian; 2=directional Cox-Munk direct solar reflection')
+    '-1=non-ocean; 0=flat direct beam; 1=isotropic Gaussian direct glint; '// &
+    '2=directional Cox-Munk direct solar reflection/transmission')
 CALL write_string_attribute(file, 'Water_Surface_Model', 'scope', &
-    'Wind direction changes direct solar reflection; diffuse reflection, transmission and shadowing remain isotropic')
+    'Selected direct solar reflection/transmission radiance kernel, even if sun glint is disabled; '// &
+    'independent of FLATO. See Multiple_Scattering_Surface_Model for diffuse interfaces and beam-source treatment.')
+CALL write_string_attribute(file, 'Multiple_Scattering_Surface_Model', 'codes', &
+    '-1=non-ocean; 0=flat Fresnel interface (FLATO=true); 1=isotropic Gaussian rough interface (FLATO=false)')
+CALL write_string_attribute(file, 'Multiple_Scattering_Surface_Model', 'scope', &
+    'Surface treatment for multiple scattering, direct-beam irradiances and scattering-source illumination; '// &
+    'FLATO is true below 0.5 m/s. Direct glint can remain rough while this model is flat; Smith shadowing stays isotropic.')
 
 CALL create_dim_scale(file, 'WaveLength_PACE', real(WV_BAND), c_dim_nwv_band)
 
@@ -2663,10 +2679,11 @@ RETURN
 END SUBROUTINE  STOKESOUT
 
 
-SUBROUTINE MUPHIOUTASS(NTHETAOUT,NPHIOUT,MUOUT,PHIOUT)
-INTEGER :: NTHETAOUT,NPHIOUT
-DOUBLE PRECISION,DIMENSION(NTHETAOUT) :: MUOUT
-DOUBLE PRECISION,DIMENSION(NPHIOUT) :: PHIOUT
+SUBROUTINE MUPHIOUTASS(WIND_VECTOR_PRESENT,NTHETAOUT,NPHIOUT,MUOUT,PHIOUT)
+LOGICAL,INTENT(IN) :: WIND_VECTOR_PRESENT
+INTEGER,INTENT(IN) :: NTHETAOUT,NPHIOUT
+DOUBLE PRECISION,DIMENSION(NTHETAOUT),INTENT(OUT) :: MUOUT
+DOUBLE PRECISION,DIMENSION(NPHIOUT),INTENT(OUT) :: PHIOUT
 DOUBLE PRECISION,DIMENSION(:),ALLOCATABLE ::THETAOUT_FREE
 INTEGER :: IANG
 DOUBLE PRECISION RTMP
@@ -2686,7 +2703,12 @@ ENDIF
 IF(NPHIOUT==1)THEN
 	PHIOUT(1)=0.0D0
 ELSE
-	RTMP=180.0d0/(NPHIOUT-1.0d0)
+    IF(WIND_VECTOR_PRESENT)THEN
+	    ! NPHIOUT has already been doubled in the main program.
+	    RTMP=360.0d0/(NPHIOUT*1.0d0)
+	ELSE
+        RTMP=180.0d0/(NPHIOUT-1.0d0)
+    ENDIF
 	DO IANG=1,NPHIOUT
 	   PHIOUT(IANG)=(IANG-1)*RTMP
 	ENDDO

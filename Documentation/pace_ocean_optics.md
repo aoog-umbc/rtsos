@@ -215,14 +215,37 @@ other than EOF stop the program. Land cases ignore the optional wind trailer.
 
 The direction is initialized once and reused across excitation wavelengths and all
 output-wavelength calls. With the default Cox-Munk roughness parameterization, it
-selects the existing non-Gaussian **direct solar reflection** routine. Diffuse
-reflection, interface transmission, Smith shadowing, and water-column source
-calculations retain their isotropic treatments. Wind speeds below 0.5 m/s select
-flat water, and disabling sun glint disables the directional reflected contribution.
+selects non-Gaussian **direct solar reflection and air-to-water transmission**.
+Both use the same wind-oriented Cox-Munk slope PDF, including skewness, peakedness,
+and zero clipping of negative Gram-Charlier values without renormalization. The
+transmission routine derives its facet normal from `s - n_water*t`, where `s` and
+`t` are the incoming and transmitted propagation vectors, and retains the existing
+Fresnel transmission matrix and refraction Jacobian. If no vector is accepted, or
+the alternative roughness parameterization is selected, direct transmission uses
+the existing isotropic routine.
 
-The viewing-azimuth grid remains 0-180 degrees for compatibility. For arbitrary
-wind directions, do not reconstruct the other half-plane by the usual fixed-wind
-mirror symmetry.
+The direct radiance kernels and the scattering interface use separate thresholds:
+`RADACMDRCT` and `RADOCMDRCT` select a flat Fresnel beam only when the core wind speed
+is **below `1e-6` m/s**. At and above that speed they preserve the rough reflected
+and transmitted glint patterns. The multiple-scattering interface continues to use
+`FLATO=.TRUE.` for wind speeds **below 0.5 m/s** and an isotropic rough interface
+otherwise. Therefore `1e-6 <= WNDSPD < 0.5` is a hybrid calculation: rough direct
+solar radiances with flat-interface scattering.
+
+Direct-beam irradiances and water-column scattering-source illumination follow the
+`FLATO` surface treatment; Smith shadowing retains its isotropic approximation.
+Consequently, an angular integral of the rough direct-radiance pattern need not
+match the reported irradiance in the hybrid interval. The `1e-6` cutoff does not
+introduce a calm-wind slope-variance floor, solar-disk averaging, or sensor angular
+averaging. Disabling sun glint disables the direct reflected/transmitted radiance
+contributions but does not change the selected surface model codes.
+
+An accepted wind vector changes the generated viewing-azimuth grid from `N` points
+on `[0,180]` to `2*N` points on `[0,360)`. See the
+[README azimuth-grid documentation](../README.md#viewing-azimuth-grid-with-optional-wind-direction)
+for spacing, examples, inactive-wind behavior, and HDF5 output dimensions. For an
+arbitrary fixed wind direction, do not reconstruct the second half-plane by mirror
+symmetry.
 
 ### Standalone input generators
 
@@ -293,20 +316,41 @@ The existing `Wind_Speed` dataset is retained. New scalar datasets are:
 | `Wind_Vector_Present` | `1` if the direction was accepted; otherwise `0`. |
 | `Wind_X`, `Wind_Y` | Accepted, normalized direction cosines; both zero when unspecified. |
 | `Wind_Direction_Used` | Accepted angle in `[0,360)` degrees; `-999` when unspecified. |
-| `Wind_Direction_Active` | `1` if directional direct solar reflection is enabled; `0` for isotropic, flat, land, or glint-disabled cases. |
-| `Water_Surface_Model` | `-1`: non-ocean; `0`: flat; `1`: isotropic Gaussian; `2`: directional Cox-Munk direct solar reflection. |
+| `Wind_Direction_Active` | `1` if an accepted vector is used for direct glint: core wind speed `>=1e-6` m/s, Cox-Munk roughness, and sun glint enabled. This can be `1` while `FLATO=.TRUE.`. Otherwise `0`. |
+| `Water_Surface_Model` | Selected **direct radiance** kernel: `-1`: non-ocean; `0`: flat Fresnel beam (`WNDSPD < 1e-6`); `1`: isotropic Gaussian rough glint; `2`: directional Cox-Munk reflection/transmission. |
+| `Multiple_Scattering_Surface_Model` | Interface used for **multiple scattering**, direct-beam irradiances, and scattering-source illumination: `-1`: non-ocean; `0`: flat Fresnel (`FLATO=.TRUE.`); `1`: isotropic Gaussian rough (`FLATO=.FALSE.`). |
 
-Descriptions, angle units, model codes, and the direct-reflection scope are attached
-as HDF5 attributes. An accepted vector may be present while inactive, for example
-with flat water or sun glint disabled.
+Descriptions, angle units, model codes, and each model's scope are attached as
+HDF5 attributes. The model codes describe the selected kernels independently of
+the glint switch; `Wind_Direction_Active` records whether directional direct glint
+is enabled. An accepted vector remains inactive below `1e-6` m/s or when sun glint
+is disabled. For example:
+
+| Wind speed / vector / glint | `Water_Surface_Model` | `Multiple_Scattering_Surface_Model` | `Wind_Direction_Active` |
+| --- | --- | --- | --- |
+| `0`, accepted, enabled | 0 | 0 | 0 |
+| `1e-6`, accepted, enabled | 2 | 0 | 1 |
+| `0.4`, accepted, enabled | 2 | 0 | 1 |
+| `0.4`, omitted, enabled | 1 | 0 | 0 |
+| `0.4`, accepted, disabled | 2 | 0 | 0 |
+| `0.5`, accepted, enabled | 2 | 1 | 1 |
+
+Earlier files without `Multiple_Scattering_Surface_Model` derived
+`Water_Surface_Model` from `FLATO`; that metadata could not distinguish the hybrid
+case. Regenerate outputs when the explicit direct/scattering distinction is needed.
 
 ### Regression checks
 
 From the repository root, run the wrapper and input-generator checks with:
 
 ```sh
-PYTHONPATH=src python -m pytest src/checks/test_pace_wind.py
+PYTHONPATH=src python -m pytest src/checks/test_pace_wind.py src/checks/test_ocean_transmission_wind.py
 ```
+
+The transmission-kernel checks require `gfortran` but no HDF5 installation or
+auxiliary data. They compile the actual modules, kernels, and polarization routines,
+and check the isotropic Gaussian limit, known refracting facets, wind rotation and
+mirror symmetry, clipping, invalid geometry, and the direct-call fallback.
 
 For executable/HDF5 checks, also set `RTSOS_PACE_EXECUTABLE` to the rebuilt PACE
 executable, `RTSOS_DATA_DIR` to the extracted Data directory, and `RTSOS_GAS_DIR`

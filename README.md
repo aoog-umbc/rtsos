@@ -260,6 +260,87 @@ Study each file before you execute them. Most importantly, set `aux_dir` to the 
 ending in the `Data` folder and `gas_absorption_coeff_dir` to the path ending in the
 `Gas_Absorption_Coefficients` folder.
 
+#### Viewing-azimuth grid with optional wind direction
+
+The PACE simulator generates viewing azimuths from the input count `NPHIOUT`
+(`NPHIV` in the Python wrapper). Let this positive integer input count be `N`:
+
+| Wind-vector input | Actual output count | Azimuth range | Spacing in degrees |
+| --- | --- | --- | --- |
+| Absent or rejected | `N` | `[0,180]`, including both endpoints | `180/(N-1)` for `N > 1` |
+| Accepted (`WIND_VECTOR_PRESENT=.TRUE.`) | `2*N` | `[0,360)`, including 0 and 180 but excluding 360 | `180/N` |
+
+For zero-based sample index `j`, the generated angles in degrees are:
+
+```text
+No accepted vector: phi[j] = j * 180/(N-1), j = 0, ..., N-1  (N > 1)
+Accepted vector:    phi[j] = j * 180/N,     j = 0, ..., 2*N-1
+```
+
+Without an accepted vector, `N=1` gives only azimuth 0. With an accepted vector,
+`N=1` gives two azimuths, 0 and 180.
+
+For example, the usual input count `N=19` produces 19 azimuths at
+`0, 10, ..., 180` without an accepted vector. With an accepted vector, the same
+input produces **38 azimuths** at `0, 9.473684, 18.947368, ..., 180, ..., 350.526316`.
+To obtain a full-circle grid with **10-degree spacing**, set `NPHIOUT=18`
+(or `NPHIV=18`); this produces 36 azimuths at `0, 10, ..., 350`.
+
+The full-circle grid excludes the duplicate 360-degree endpoint. Keeping the same
+input count changes the spacing from `180/(N-1)` to `180/N`, so the original
+half-plane grid is not generally a subset of the full-circle grid. Compare results
+at matching angles rather than matching array indices.
+
+Grid expansion depends on an **accepted wind vector**, even when its directional
+contribution is inactive because the wind speed is below `1e-6` m/s or sun glint
+is disabled. Missing or rejected wind input retains the half-plane grid.
+Land cases also retain that grid because they do not accept the optional vector.
+
+Read the actual angles from the HDF5 **`PhiV` coordinate**, in degrees; the Stokes
+azimuth dimension has length `len(PhiV)`. In wrapper output, `NPHIV` retains the
+requested input count and is not the output count when a vector is accepted.
+For arbitrary wind directions, use the computed full-circle values instead of
+reconstructing the second half-plane by mirror symmetry with the wind held fixed.
+
+The direct glint model and the interface used for multiple scattering have
+separate wind-speed thresholds. With sun glint enabled, the current treatments are:
+
+| Wind speed `U` (m/s) | Direct reflected/transmitted sunlight | Multiple-scattering interface (`FLATO`) |
+| --- | --- | --- |
+| `U < 1e-6` | Flat Fresnel beam | Flat (`.TRUE.`) |
+| `1e-6 <= U < 0.5` | Rough-surface glint pattern | Flat (`.TRUE.`) |
+| `U >= 0.5` | Rough-surface glint pattern | Isotropic rough surface (`.FALSE.`) |
+
+For rough direct glint, an accepted vector selects wind-dependent Cox-Munk
+reflection and transmission with the default roughness parameterization; otherwise
+the direct kernels are isotropic Gaussian. The transmission kernel uses the same
+wind-oriented slope statistics as reflection, with its own refracting-facet geometry
+and transmission Jacobian. The hybrid interval preserves direct glint while
+retaining flat-interface scattering, beam-source illumination, and direct-beam
+irradiances. Thus, the reported irradiances need not equal an angular integral of
+the rough direct-radiance pattern. Smith shadowing retains its isotropic treatment.
+
+The HDF5 metadata records these choices separately:
+
+- `Water_Surface_Model` describes the **direct** radiance kernel: `-1` non-ocean,
+  `0` flat beam, `1` isotropic Gaussian, `2` directional Cox-Munk.
+- `Multiple_Scattering_Surface_Model` describes the interface selected by **`FLATO`**:
+  `-1` non-ocean, `0` flat Fresnel, `1` isotropic Gaussian rough.
+- `Wind_Direction_Active` is `1` when directional direct glint is enabled, including
+  the hybrid interval. It is `0` below `1e-6` m/s, without an accepted vector, for
+  non-Cox-Munk roughness, for land, or when sun glint is disabled.
+
+For example, at `U=0.4` with an accepted vector and glint enabled, these three
+values are respectively `2`, `0`, and `1`. Without a vector they are `1`, `0`, and
+`0`. Model codes describe the selected kernels even if the glint switch suppresses
+the direct contributions. The `1e-6` cutoff is a numerical model choice; it does
+not regularize the increasingly narrow directional glint just above zero wind.
+
+The flat-water reflection and transmission routines test azimuth periodically,
+so 0 and 360 degrees are equivalent within the existing `1e-6`-radian tolerance.
+These automatic grid rules apply to the PACE simulator; the monochromatic
+executable continues to use its explicitly supplied viewing angles.
+
 ####  Aerosol Models
 
 The `Aerosol_Model[iaerosol]` value in the input file generator scripts is used in the

@@ -34,6 +34,8 @@ class PACE(Program):
         Wind_Direction is a sweep coordinate, in degrees counterclockwise from
         viewing azimuth zero, pointing toward where the wind blows. Keeping it
         in dataset also makes the output filename distinct for each direction.
+        When the vector is accepted, Fortran returns 2*NPHIV azimuths on
+        [0,360), rather than NPHIV on [0,180]. Read the actual grid from PhiV.
         """
         direction = dataset.get(P.Wind_Direction.__name__)
         wind_vector = None

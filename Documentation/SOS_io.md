@@ -289,9 +289,17 @@ $$
 
 Here $c$ and $u$ denote crosswind and upwind slopes. The input vector points downwind, so the routine reverses its direction when projecting onto the paper's positive upwind axis. See [Facet slopes and wind coordinates](BRDM_OCEAN_nonGAUSSIAN.md) for the geometric derivation. Negative values of the truncated Gram–Charlier distribution are clipped to zero, with no renormalization after clipping.
 
-**The present wind dependence applies to the direct reflected solar contribution.** Diffuse and multiple-scattering surface reflection, transmission through the interface, and the Smith shadowing approximation retain their isotropic treatments. Supplying a wind vector therefore does not make the entire coupled atmosphere–ocean calculation anisotropic, or change the prescribed thermal emissivity. If sun glint is disabled, its directional direct-reflection contribution is excluded as well.
+**The present wind dependence applies to direct solar reflection and air-to-water transmission.** Diffuse interface reflection/transmission and the Smith shadowing approximation retain their isotropic treatments. Supplying a wind vector does not make the entire coupled atmosphere–ocean calculation anisotropic or change the prescribed thermal emissivity. If sun glint is disabled, the direct reflected/transmitted radiance contributions are excluded.
 
-Without an accepted wind direction, the existing isotropic Gaussian rough-water model is used. The alternate roughness setting `I_SURFACE_ROUGHNESS_PARA=2` also retains its isotropic model. When wind speed is below 0.5 m/s, the flat-water treatment takes precedence, subject to the coverage adjustment described above.
+Direct radiance and multiple scattering have different flat-surface thresholds:
+
+- `WNDSPD < 1e-6` m/s: the direct reflected and transmitted beams use flat Fresnel optics.
+- `1e-6 <= WNDSPD < 0.5` m/s: direct glint uses rough-surface kernels while multiple scattering retains `FLATO=.TRUE.`.
+- `WNDSPD >= 0.5` m/s: multiple scattering uses the isotropic rough interface, and direct glint uses rough-surface kernels.
+
+An accepted vector with Cox-Munk roughness makes the rough direct kernels wind dependent; without a vector, or with `I_SURFACE_ROUGHNESS_PARA=2`, those kernels remain isotropic. Direct-beam irradiances and scattering-source illumination follow the `FLATO` treatment, so they need not match an angular integral of the rough direct-radiance pattern in the hybrid interval. Prescribed coverage can still raise the core wind speed to 0.5 m/s as described above. The `1e-6` cutoff does not regularize the very narrow directional glint at near-zero wind speeds.
+
+The PACE HDF5 output records the direct and multiple-scattering surface models separately; see [wind metadata in HDF5 output](pace_ocean_optics.md#wind-metadata-in-hdf5-output).
 
 ### Other lower boundaries and snow data
 
@@ -350,20 +358,29 @@ WIND_VECTOR_PRESENT=T
 WIND SPEED USED (M/S)=  7.00000000E+00
 WIND_X,WIND_Y (DIRECTION COSINES)=   5.00000002E-01   8.66025403E-01
 THETA_W (DEG, BLOWS TOWARD, CCW FROM PHI=0)=   60.000000
-WATER SURFACE MODEL=DIRECTIONAL COX-MUNK (NON-GAUSSIAN DIRECT SOLAR REFLECTION)
+DIRECT SOLAR R/T=DIRECTIONAL COX-MUNK
+MULTIPLE SCATTERING SURFACE=ISOTROPIC GAUSSIAN
 ```
 
 `THETA_W` is reported in the range $[0,360)$ degrees. The components printed here are the accepted, normalized direction cosines. `WIND SPEED USED` is the speed used by the core, including any adjustment for prescribed surface coverage.
 
-If the direction is absent or rejected by the norm check, the footer instead reports:
+At 7 m/s, if the direction is absent or rejected by the norm check, the footer instead reports:
 
 ```text
 WIND_VECTOR_PRESENT=F
 WIND DIRECTION=UNSPECIFIED
-WATER SURFACE MODEL=ISOTROPIC GAUSSIAN
+DIRECT SOLAR R/T=ISOTROPIC GAUSSIAN
+MULTIPLE SCATTERING SURFACE=ISOTROPIC GAUSSIAN
 ```
 
-The speed line is still present. A flat-water case reports `WATER SURFACE MODEL=FLAT`, even if a wind direction was supplied. A valid direction can also be present while the model remains isotropic under the alternate roughness setting. Check the model line as well as `WIND_VECTOR_PRESENT`. Norm-rejection warnings are written to the console.
+The speed line is still present. The two model lines describe the selected kernels; `R/T` means reflection/transmission. Direct sunlight reports `FLAT` below `1e-6` m/s, and otherwise reports `DIRECTIONAL COX-MUNK` with an accepted vector and Cox-Munk roughness, or `ISOTROPIC GAUSSIAN`. Multiple scattering reports `FLAT` below 0.5 m/s and `ISOTROPIC GAUSSIAN` otherwise. Thus, at 0.4 m/s with an accepted vector:
+
+```text
+DIRECT SOLAR R/T=DIRECTIONAL COX-MUNK
+MULTIPLE SCATTERING SURFACE=FLAT
+```
+
+These labels identify the selected models even when the input glint switch disables the direct contributions. Norm-rejection warnings remain in the console.
 
 ## Important variables in the source code
 
