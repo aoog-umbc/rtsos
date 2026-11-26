@@ -15,7 +15,7 @@ foreach(t
 endforeach()
 
 add_executable(rtsos_GSFC_AC_LUT
-    ac_aerosols_lut/main_GSFC_AC_LUT.f90
+    AC_Aerosols_LUT/main_GSFC_AC_LUT.f90
 )
 target_link_libraries(rtsos_GSFC_AC_LUT
     core
